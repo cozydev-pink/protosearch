@@ -23,6 +23,26 @@ class InvertedIndexWithTF(underlying: Map[String, Array[Int]]) {
   def docsWithTerm(term: String): List[Int] =
     underlying.get(term).map(evenElems).getOrElse(Nil)
 
+  def docsWithTermTFIDF(term: String): List[(Int, Double)] =
+    underlying
+      .get(term)
+      .map { arr =>
+        var i = 0
+        val bldr = ListBuffer.newBuilder[(Int, Double)]
+        bldr.sizeHint(arr.size / 2)
+        while (i < arr.length) {
+          val id = arr(i)
+          val tf = Math.log(1.0 + arr(i + 1))
+          val idf: Double = 2.0 / arr.size.toDouble
+          val tfidf: Double = tf * idf
+          println(s"tf: $tf, idf: $idf, tfidf: $tfidf")
+          bldr += (id -> tfidf)
+          i += 2
+        }
+        bldr.result().toList
+      }
+      .getOrElse(Nil)
+
 }
 object InvertedIndexWithTF {
   import scala.collection.mutable.{HashMap => MMap}

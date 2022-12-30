@@ -35,4 +35,13 @@ class InvertedIndexWithTFSuite extends munit.FunSuite {
     assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
   }
 
+  test("InvertedIndex docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
+    val samples = List(
+      tokenize("this is a sample"),
+      tokenize("this is another example"),
+    )
+    val index = InvertedIndexWithTF(samples)
+    assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))
+  }
+
 }
