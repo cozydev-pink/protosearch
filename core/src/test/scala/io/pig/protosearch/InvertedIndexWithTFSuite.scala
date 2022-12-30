@@ -10,32 +10,33 @@ class InvertedIndexWithTFSuite extends munit.FunSuite {
     tokenize("a lazy cat sleeps all day"),
   )
 
-  test("InvertedIndex.apply builds from list of lists of strings") {
-    assertEquals(InvertedIndexWithTF(docs).numTerms, 16)
+  lazy val index = InvertedIndexWithTF(docs)
+
+  test("apply builds from list of lists of strings") {
+    assertEquals(index.numTerms, 16)
   }
 
-  test("InvertedIndex docCount returns zero when no docs contain term") {
-    assertEquals(InvertedIndexWithTF(docs).docCount("???"), 0)
+  test("docCount returns zero when no docs contain term") {
+    assertEquals(index.docCount("???"), 0)
   }
 
-  test("InvertedIndex docCount returns number of documents containing term") {
-    assertEquals(InvertedIndexWithTF(docs).docCount("cat"), 3)
-    assertEquals(InvertedIndexWithTF(docs).docCount("lazy"), 2)
-    assertEquals(InvertedIndexWithTF(docs).docCount("room"), 1)
+  test("docCount returns number of documents containing term") {
+    assertEquals(index.docCount("cat"), 3)
+    assertEquals(index.docCount("lazy"), 2)
+    assertEquals(index.docCount("room"), 1)
   }
 
-  test("InvertedIndex docsWithTerm returns empty list when no docs contain term") {
-    assertEquals(InvertedIndexWithTF(docs).docsWithTerm("???"), Nil)
+  test("docsWithTerm returns empty list when no docs contain term") {
+    assertEquals(index.docsWithTerm("???"), Nil)
   }
 
-  test("InvertedIndex docsWithTerm returns list of docIDs containing term") {
-    val index = InvertedIndexWithTF(docs)
+  test("docsWithTerm returns list of docIDs containing term") {
     assertEquals(index.docsWithTerm("cat").sorted, List(0, 1, 2))
     assertEquals(index.docsWithTerm("the").sorted, List(0, 1))
     assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
   }
 
-  test("InvertedIndex docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
+  test("docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
     val samples = List(
       tokenize("this is a sample"),
       tokenize("this is another example"),
