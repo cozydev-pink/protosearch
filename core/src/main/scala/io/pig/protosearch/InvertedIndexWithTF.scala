@@ -39,7 +39,7 @@ class InvertedIndexWithTF(termIndex: Map[String, Array[Int]]) {
           bldr += (id -> tfidf)
           i += 2
         }
-        bldr.result().toList
+        bldr.result().sortBy(-_._2).toList
       }
       .getOrElse(Nil)
 

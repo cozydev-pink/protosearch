@@ -45,4 +45,8 @@ class InvertedIndexWithTFSuite extends munit.FunSuite {
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))
   }
 
+  test("docsWithTermTFIDF returns list of docIDs containing term in order of TFIDF") {
+    assertEquals(index.docsWithTermTFIDF("lazy").map(_._1), List(2, 0))
+  }
+
 }
