@@ -2,12 +2,12 @@ package io.pig.protosearch
 
 import scala.collection.mutable.ListBuffer
 
-class InvertedIndexWithTF(underlying: Map[String, Array[Int]]) {
+class InvertedIndexWithTF(termIndex: Map[String, Array[Int]]) {
 
-  val numTerms = underlying.size
+  val numTerms = termIndex.size
 
   def docCount(term: String): Int =
-    underlying.get(term).map(_.size).getOrElse(0) / 2
+    termIndex.get(term).map(_.size).getOrElse(0) / 2
 
   private def evenElems(arr: Array[Int]): List[Int] = {
     var i = 0
@@ -21,10 +21,10 @@ class InvertedIndexWithTF(underlying: Map[String, Array[Int]]) {
   }
 
   def docsWithTerm(term: String): List[Int] =
-    underlying.get(term).map(evenElems).getOrElse(Nil)
+    termIndex.get(term).map(evenElems).getOrElse(Nil)
 
   def docsWithTermTFIDF(term: String): List[(Int, Double)] =
-    underlying
+    termIndex
       .get(term)
       .map { arr =>
         var i = 0
