@@ -2,7 +2,7 @@ package io.pig.protosearch
 
 import scala.collection.mutable.ListBuffer
 
-class InvertedIndexWithTF(termIndex: Map[String, Array[Int]]) {
+class TermIndex(termIndex: Map[String, Array[Int]]) {
 
   val numTerms = termIndex.size
 
@@ -35,7 +35,7 @@ class InvertedIndexWithTF(termIndex: Map[String, Array[Int]]) {
           val tf = Math.log(1.0 + arr(i + 1))
           val idf: Double = 2.0 / arr.size.toDouble
           val tfidf: Double = tf * idf
-          println(s"tf: $tf, idf: $idf, tfidf: $tfidf")
+          // println(s"tf: $tf, idf: $idf, tfidf: $tfidf")
           bldr += (id -> tfidf)
           i += 2
         }
@@ -44,11 +44,11 @@ class InvertedIndexWithTF(termIndex: Map[String, Array[Int]]) {
       .getOrElse(Nil)
 
 }
-object InvertedIndexWithTF {
+object TermIndex {
   import scala.collection.mutable.{HashMap => MMap}
   import scala.collection.mutable.Stack
 
-  def apply(docs: List[List[String]]): InvertedIndexWithTF = {
+  def apply(docs: List[List[String]]): TermIndex = {
     val m = new MMap[String, Stack[Int]](
       initialCapacity = docs.size + docs.head.size,
       loadFactor = MMap.defaultLoadFactor,
@@ -75,6 +75,6 @@ object InvertedIndexWithTF {
       }
       docId += 1
     }
-    new InvertedIndexWithTF(m.view.mapValues(_.toArray).toMap)
+    new TermIndex(m.view.mapValues(_.toArray).toMap)
   }
 }

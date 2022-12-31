@@ -1,6 +1,6 @@
 package io.pig.protosearch
 
-class InvertedIndexWithTFSuite extends munit.FunSuite {
+class TermIndexSuite extends munit.FunSuite {
   def tokenize(s: String): List[String] =
     s.split(" ").toList
 
@@ -10,7 +10,7 @@ class InvertedIndexWithTFSuite extends munit.FunSuite {
     tokenize("a lazy cat sleeps all day"),
   )
 
-  lazy val index = InvertedIndexWithTF(docs)
+  lazy val index = TermIndex(docs)
 
   test("apply builds from list of lists of strings") {
     assertEquals(index.numTerms, 16)
@@ -41,7 +41,7 @@ class InvertedIndexWithTFSuite extends munit.FunSuite {
       tokenize("this is a sample"),
       tokenize("this is another example"),
     )
-    val index = InvertedIndexWithTF(samples)
+    val index = TermIndex(samples)
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))
   }
 
