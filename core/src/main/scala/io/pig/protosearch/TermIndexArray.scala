@@ -5,8 +5,8 @@ import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
-    private val termDict: Array[String],
-    private val tfData: Array[Array[Int]],
+    private val termDict: Vector[String],
+    private val tfData: Vector[Vector[Int]],
 ) {
 
   val numTerms = termDict.size
@@ -59,7 +59,7 @@ sealed abstract class TermIndexArray private (
       }
     }
 
-  private def evenElems(arr: Array[Int]): List[Int] = {
+  private def evenElems(arr: Vector[Int]): List[Int] = {
     require(
       arr.size >= 2 && arr.size % 2 == 0,
       "evenElems expects even sized arrays of 2 or greater",
@@ -107,15 +107,14 @@ object TermIndexArray {
       docId += 1
     }
     val keys = ArrayBuilder.make[String]
-    val values = ArrayBuilder.make[Array[Int]]
+    val values = ArrayBuilder.make[Vector[Int]]
     val size = m.size
     keys.sizeHint(size)
     values.sizeHint(size)
     m.foreachEntry { (k, v) =>
       keys.addOne(k)
-      values.addOne(v.toArray)
+      values.addOne(v.toVector)
     }
-    // val arr = m.view.mapValues(_.toArray).toArray.sortInPlaceBy(_._1)
-    new TermIndexArray(keys.result(), values.result()) {}
+    new TermIndexArray(keys.result().toVector, values.result().toVector) {}
   }
 }
