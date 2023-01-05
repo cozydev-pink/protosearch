@@ -10,6 +10,9 @@ sealed abstract class TermIndexArray private (
 ) {
 
   val numTerms = termDict.size
+  lazy val numData = tfData.map(_.size).sum / 2
+
+  override def toString(): String = s"TermIndexArray($numTerms terms, $numData term-doc pairs)"
 
   def docCount(term: String): Int = {
     val idx = termIndex(term)
