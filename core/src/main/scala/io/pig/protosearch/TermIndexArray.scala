@@ -5,8 +5,8 @@ import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
-    private val termDict: Vector[String],
-    private val tfData: Vector[Vector[Int]],
+    val termDict: Vector[String],
+    val tfData: Vector[Vector[Int]],
 ) {
 
   val numTerms = termDict.size
@@ -81,6 +81,9 @@ sealed abstract class TermIndexArray private (
 object TermIndexArray {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
+
+  def unsafeFromVecs(tfData: Vector[Vector[Int]], termDict: Vector[String]): TermIndexArray =
+    new TermIndexArray(termDict, tfData) {}
 
   def apply(docs: List[List[String]]): TermIndexArray = {
     val m = new MMap[String, Stack[Int]].empty

@@ -15,6 +15,10 @@ object Codec {
   val vint = codecs.vint
   val termV = codecs.vectorOfN(vint, vint)
   val vecTermV = codecs.vectorOfN(vint, termV)
+
+  val termIndex = (vecTermV ~ strNl).map { case (vec, terms) =>
+    TermIndexArray.unsafeFromVecs(vec, terms)
+  }
 }
 object CodecApp extends IOApp.Simple {
 
