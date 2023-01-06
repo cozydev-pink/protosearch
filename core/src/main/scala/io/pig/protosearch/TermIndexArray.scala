@@ -26,6 +26,37 @@ sealed abstract class TermIndexArray private (
     else evenElems(tfData(idx))
   }
 
+  def docsWithTermSet(term: String): Set[Int] = {
+    val idx = termIndex(term)
+    // println(s"looking for term: $term, idx: $idx")
+    if (idx < 0) Set.empty
+    else {
+      val x = Set.from(evenElems(tfData(idx)))
+      // println(s"returning set: $x")
+      x
+    }
+  }
+
+  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
+    if (docs.size == 0) Nil
+    else {
+      val bldr = ListBuffer.newBuilder[(Int, Double)]
+      bldr.sizeHint(docs.size)
+      docs.foreach { docId =>
+        val idx = termIndex(term)
+        val arr = tfData(idx)
+        val i = indexForDocId(arr, docId)
+        if (i >= 0) {
+          val tf = Math.log(1.0 + arr(i + 1))
+          val idf: Double = 2.0 / arr.size.toDouble
+          val tfidf: Double = tf * idf
+          // println(s"term($term) doc($docId) tf: $tf, idf: $idf, tfidf: $tfidf")
+          bldr += (docId -> tfidf)
+        }
+      }
+      bldr.result().sortBy(-_._2).toList
+    }
+
   def docsWithTermTFIDF(term: String): List[(Int, Double)] = {
     val idx = termIndex(term)
     if (idx < 0) Nil
@@ -78,6 +109,15 @@ sealed abstract class TermIndexArray private (
       }
       bldr.result().toList
     }
+  }
+
+  private def indexForDocId(arr: Vector[Int], id: Int): Int = {
+    var i = 0
+    while (i < arr.length) {
+      if (arr(i) == id) return i
+      i += 2
+    }
+    -1
   }
 
 }
