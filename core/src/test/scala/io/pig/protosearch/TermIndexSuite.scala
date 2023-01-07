@@ -1,16 +1,8 @@
 package io.pig.protosearch
 
 class TermIndexSuite extends munit.FunSuite {
-  def tokenize(s: String): List[String] =
-    s.split(" ").toList
 
-  val docs = List(
-    tokenize("the quick brown fox jumped over the lazy cat"),
-    tokenize("the very fast cat jumped across the room"),
-    tokenize("a lazy cat sleeps all day"),
-  )
-
-  lazy val index = TermIndex(docs)
+  val index = CatIndex.index
 
   test("apply builds from list of lists of strings") {
     assertEquals(index.numTerms, 16)
@@ -38,8 +30,8 @@ class TermIndexSuite extends munit.FunSuite {
 
   test("docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
     val samples = List(
-      tokenize("this is a sample"),
-      tokenize("this is another example"),
+      CatIndex.tokenize("this is a sample"),
+      CatIndex.tokenize("this is another example"),
     )
     val index = TermIndex(samples)
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))

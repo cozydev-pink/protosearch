@@ -7,18 +7,9 @@ import scodec.Attempt.Successful
 
 object SearchApp extends IOApp.Simple {
 
-  def tokenize(s: String): List[String] =
-    s.split(" ").toList
-
-  val docs = List(
-    tokenize("the quick brown fox jumped over the lazy cat"),
-    tokenize("the very fast cat jumped across the room"),
-    tokenize("a lazy cat sleeps all day"),
-  )
-
-  val index = TermIndexArray(docs)
+  val index = CatIndex.index
   val indexLog =
-    IO.println(s"Created index from ${docs.size} docs results in ${index.numTerms} terms")
+    IO.println(s"Created index from ${CatIndex.docs.size} docs results in ${index.numTerms} terms")
 
   val bytes = Codec.termIndex.encode(index.tfData, index.termDict)
   val bytesLog = IO.println(s"Encoded to ${bytes.toOption.get.size} bytes")
@@ -31,7 +22,7 @@ object SearchApp extends IOApp.Simple {
 
   val indexIO = IO.fromEither(decIndex.toEither.left.map(e => new Throwable(e.message)))
   def search(query: String) = {
-    val q = tokenize(query)
+    val q = CatIndex.tokenize(query)
     indexIO.flatMap(index => IO.println(q.map(index.docsWithTermTFIDF).mkString("\n")))
   }
 
