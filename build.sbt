@@ -16,6 +16,9 @@ ThisBuild / tlSonatypeUseLegacyHost := false
 // publish website from this branch
 ThisBuild / tlSitePublishBranch := Some("main")
 
+ThisBuild / resolvers +=
+  "SonaType Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+
 val Scala213 = "2.13.10"
 ThisBuild / crossScalaVersions := Seq(Scala213, "3.1.1")
 ThisBuild / scalaVersion := Scala213 // the default Scala
@@ -30,6 +33,7 @@ lazy val core = project
       "org.typelevel" %%% "cats-core" % "2.9.0",
       "org.typelevel" %%% "cats-effect" % "3.4.3",
       "org.scodec" %%% "scodec-core" % "1.11.10",
+      "io.pig" %%% "lucille" % "0.0-914b1e1-SNAPSHOT",
       "org.scalameta" %%% "munit" % "0.7.29" % Test,
       "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test,
     ),
