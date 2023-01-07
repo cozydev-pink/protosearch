@@ -7,6 +7,7 @@ import scala.collection.mutable.ListBuffer
 sealed abstract class TermIndexArray private (
     val termDict: Vector[String],
     val tfData: Vector[Vector[Int]],
+    val numDocs: Int,
 ) {
 
   val numTerms = termDict.size
@@ -125,8 +126,12 @@ object TermIndexArray {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
 
-  def unsafeFromVecs(tfData: Vector[Vector[Int]], termDict: Vector[String]): TermIndexArray =
-    new TermIndexArray(termDict, tfData) {}
+  def unsafeFromVecs(
+      tfData: Vector[Vector[Int]],
+      termDict: Vector[String],
+      numDocs: Int,
+  ): TermIndexArray =
+    new TermIndexArray(termDict, tfData, numDocs) {}
 
   def apply(docs: List[List[String]]): TermIndexArray = {
     val m = new MMap[String, Stack[Int]].empty
@@ -161,6 +166,6 @@ object TermIndexArray {
       keys.addOne(k)
       values.addOne(v.toVector)
     }
-    new TermIndexArray(keys.result().toVector, values.result().toVector) {}
+    new TermIndexArray(keys.result().toVector, values.result().toVector, docLen) {}
   }
 }

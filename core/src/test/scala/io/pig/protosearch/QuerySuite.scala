@@ -67,4 +67,13 @@ class QuerySuite extends munit.FunSuite {
     assertEquals(q.flatMap(q => BooleanQuery(index).search(q)), Right(results))
   }
 
+  test("cat AND NOT fast") {
+    val q = Parser.parseQ("cat AND NOT fast").map(_.head)
+    val results = List(
+      (0, 0.23104906018664842),
+      (2, 0.23104906018664842),
+    )
+    assertEquals(q.flatMap(q => BooleanQuery(index).search(q)), Right(results))
+  }
+
 }
