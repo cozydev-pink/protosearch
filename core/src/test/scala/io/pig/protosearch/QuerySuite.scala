@@ -9,7 +9,15 @@ class QuerySuite extends munit.FunSuite {
   test("TermQ") {
     val q = Parser.parseQ("fast").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery.search(index, q)),
+      q.flatMap(q => BooleanQuery(index).search(q)),
+      Right(List((1, 0.6931471805599453))),
+    )
+  }
+
+  test("multi TermQ") {
+    val q = Parser.parseQ("fast cat").map(_.head)
+    assertEquals(
+      q.flatMap(q => BooleanQuery(index).search(q)),
       Right(List((1, 0.6931471805599453))),
     )
   }
@@ -17,7 +25,7 @@ class QuerySuite extends munit.FunSuite {
   test("AndQ") {
     val q = Parser.parseQ("fast AND cat").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery.search(index, q)),
+      q.flatMap(q => BooleanQuery(index).search(q)),
       Right(List((1, 0.9241962407465937))),
     )
   }
@@ -25,7 +33,7 @@ class QuerySuite extends munit.FunSuite {
   test("Double AndQ") {
     val q = Parser.parseQ("the AND fast AND cat").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery.search(index, q)),
+      q.flatMap(q => BooleanQuery(index).search(q)),
       Right(List((1, 1.4735023850806486))),
     )
   }
@@ -37,7 +45,7 @@ class QuerySuite extends munit.FunSuite {
       (1, 0.9241962407465937),
       (2, 0.23104906018664842),
     )
-    assertEquals(q.flatMap(q => BooleanQuery.search(index, q)), Right(results))
+    assertEquals(q.flatMap(q => BooleanQuery(index).search(q)), Right(results))
   }
 
   test("Double OrQ") {
@@ -47,7 +55,16 @@ class QuerySuite extends munit.FunSuite {
       (1, 1.4735023850806486),
       (2, 0.23104906018664842),
     )
-    assertEquals(q.flatMap(q => BooleanQuery.search(index, q)), Right(results))
+    assertEquals(q.flatMap(q => BooleanQuery(index).search(q)), Right(results))
+  }
+
+  test("cat AND (fast OR quick)") {
+    val q = Parser.parseQ("cat AND (fast OR quick)").map(_.head)
+    val results = List(
+      (0, 0.9241962407465937),
+      (1, 0.9241962407465937),
+    )
+    assertEquals(q.flatMap(q => BooleanQuery(index).search(q)), Right(results))
   }
 
 }
