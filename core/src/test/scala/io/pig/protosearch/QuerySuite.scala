@@ -6,6 +6,14 @@ class QuerySuite extends munit.FunSuite {
 
   val index = CatIndex.index
 
+  test("TermQ") {
+    val q = Parser.parseQ("fast").map(_.head)
+    assertEquals(
+      q.flatMap(q => BooleanQuery.search(index, q)),
+      Right(List((1, 0.6931471805599453))),
+    )
+  }
+
   test("AndQ") {
     val q = Parser.parseQ("fast AND cat").map(_.head)
     assertEquals(
