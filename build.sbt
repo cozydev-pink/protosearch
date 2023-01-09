@@ -34,6 +34,7 @@ lazy val core = project
       "org.typelevel" %%% "cats-effect" % "3.4.3",
       "org.scodec" %%% "scodec-core" % "1.11.10",
       "io.pig" %%% "lucille" % "0.0-914b1e1-SNAPSHOT",
+      "org.planet42" %% "laika-core" % "0.19.0",
       "org.scalameta" %%% "munit" % "0.7.29" % Test,
       "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test,
     ),

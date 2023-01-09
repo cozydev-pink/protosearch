@@ -26,6 +26,7 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
       case _: Query.ProximityQ => Left("Unsupported query type")
       case _: Query.PrefixTerm => Left("Unsupported query type")
       case _: Query.FuzzyTerm => Left("Unsupported query type")
+      // Should normalize before we get here?
       case _: Query.UnaryPlus => Left("Unsupported query type")
       case _: Query.UnaryMinus => Left("Unsupported query type")
     }
