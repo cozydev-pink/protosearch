@@ -46,7 +46,11 @@ object Ingest {
     parseWithSections(input)
       .map(d =>
         d.content.collect { case Section(Header(_, Seq(Text(header, _)), _), content, _) =>
-          header
+          // build a Document with just this header + content
+          // don't worry about plaintext rendering here
+          // need to track position offsets
+          // perhaps need custom tokenizer
+          (header :: content :: Nil).mkString
         }
       )
 }
