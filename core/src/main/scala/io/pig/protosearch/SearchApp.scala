@@ -12,7 +12,7 @@ object SearchApp extends IOApp.Simple {
     IO.println(s"Created index from ${CatIndex.docs.size} docs results in ${index.numTerms} terms")
 
   val bytes = Codec.termIndex.encode((index.numData, index.tfData), index.termDict)
-  val bytesLog = IO.println(s"Encoded to ${bytes.toOption.get.size} bytes")
+  val bytesLog = IO.println(s"Encoded to ${bytes.toOption.get.size} bits")
 
   val decIndex = bytes.flatMap(Codec.termIndex.decodeValue)
   val decLog = decIndex match {
