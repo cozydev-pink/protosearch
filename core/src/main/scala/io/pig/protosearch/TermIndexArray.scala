@@ -133,7 +133,9 @@ object TermIndexArray {
   ): TermIndexArray =
     new TermIndexArray(termDict, tfData, numDocs) {}
 
-  def apply(docs: List[List[String]]): TermIndexArray = {
+  // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
+  // a Stream[F, A] with evidence of Indexable[A]
+  def apply(docs: Vector[Vector[String]]): TermIndexArray = {
     val m = new MMap[String, Stack[Int]].empty
     var docId = 0
     val docLen = docs.length

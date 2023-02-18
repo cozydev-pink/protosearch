@@ -1,5 +1,7 @@
 package io.pig.protosearch
 
+import TokenStream.tokenizeSpaceV
+
 class TermIndexArraySuite extends munit.FunSuite {
 
   val index = CatIndex.index
@@ -29,9 +31,9 @@ class TermIndexArraySuite extends munit.FunSuite {
   }
 
   test("docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
-    val samples = List(
-      CatIndex.tokenize("this is a sample"),
-      CatIndex.tokenize("this is another example"),
+    val samples = Vector(
+      tokenizeSpaceV("this is a sample"),
+      tokenizeSpaceV("this is another example"),
     )
     val index = TermIndexArray(samples)
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))

@@ -4,6 +4,7 @@ import cats.effect.IOApp
 import cats.effect.IO
 import scodec.Attempt.Failure
 import scodec.Attempt.Successful
+import TokenStream.tokenizeSpaceV
 
 object SearchApp extends IOApp.Simple {
 
@@ -22,7 +23,7 @@ object SearchApp extends IOApp.Simple {
 
   val indexIO = IO.fromEither(decIndex.toEither.left.map(e => new Throwable(e.message)))
   def search(query: String) = {
-    val q = CatIndex.tokenize(query)
+    val q = tokenizeSpaceV(query)
     indexIO.flatMap(index => IO.println(q.map(index.docsWithTermTFIDF).mkString("\n")))
   }
 

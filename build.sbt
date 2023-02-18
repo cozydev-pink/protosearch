@@ -32,6 +32,7 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % "2.9.0",
       "org.typelevel" %%% "cats-effect" % "3.4.3",
+      "co.fs2" %%% "fs2-core" % "3.5.0",
       "org.scodec" %%% "scodec-core" % "1.11.10",
       "io.pig" %%% "lucille" % "0.0-914b1e1-SNAPSHOT",
       "org.planet42" %%% "laika-core" % "0.19.0",
