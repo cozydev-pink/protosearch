@@ -1,5 +1,6 @@
 # manually added
 .direnv/
+.scala-build/
 
 # sbt
 target/
