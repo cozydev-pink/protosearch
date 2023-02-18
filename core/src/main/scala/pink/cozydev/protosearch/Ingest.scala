@@ -40,10 +40,10 @@ object Ingest {
   val astRenderer = Renderer.of(AST).build
   val htmlRenderer = Renderer.of(HTML).build
 
-  /** Creates a [[RewriteRules]] for a [[Document]] using the [[SectionBuilder]].
-    * Without the [[SectionBuilder]] an unresolved [[Document]] has [[Header]] nodes
+  /** Creates a `RewriteRules` for a `Document` using the `SectionBuilder`.
+    * Without the `SectionBuilder` an unresolved `Document` has `Header` nodes
     * separate from the content they introduce, afterwards they are grouped together
-    * in a [[Section]] node.
+    * in a `Section` node.
     *
     * @param doc
     * @return
