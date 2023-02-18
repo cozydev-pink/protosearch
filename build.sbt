@@ -13,9 +13,6 @@ ThisBuild / developers := List(
 // publish to s01.oss.sonatype.org (set to true to publish to oss.sonatype.org instead)
 ThisBuild / tlSonatypeUseLegacyHost := false
 
-// publish website from this branch
-ThisBuild / tlSitePublishBranch := Some("main")
-
 // do not publish to sonatype yet
 ThisBuild / tlCiReleaseBranches := Seq.empty
 
@@ -52,5 +49,3 @@ lazy val core = project
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
   )
-
-lazy val docs = project.in(file("site")).enablePlugins(TypelevelSitePlugin)
