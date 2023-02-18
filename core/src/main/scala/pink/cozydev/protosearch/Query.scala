@@ -45,6 +45,7 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
       // Should normalize before we get here?
       case _: Query.UnaryPlus => Left("Unsupported query type")
       case _: Query.UnaryMinus => Left("Unsupported query type")
+      case _: Query.RangeQ => Left("Unsupported query type")
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
