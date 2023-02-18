@@ -16,6 +16,9 @@ ThisBuild / tlSonatypeUseLegacyHost := false
 // publish website from this branch
 ThisBuild / tlSitePublishBranch := Some("main")
 
+// do not publish to sonatype yet
+ThisBuild / tlCiReleaseBranches := Seq.empty
+
 ThisBuild / resolvers +=
   "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
