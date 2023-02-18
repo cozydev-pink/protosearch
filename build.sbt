@@ -20,8 +20,17 @@ ThisBuild / resolvers +=
   "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
 val Scala213 = "2.13.10"
-ThisBuild / crossScalaVersions := Seq(Scala213, "3.1.1")
+ThisBuild / crossScalaVersions := Seq(Scala213, "3.2.2")
 ThisBuild / scalaVersion := Scala213 // the default Scala
+
+val catsV = "2.9.0"
+val catsEffectV = "3.4.7"
+val fs2V = "3.6.1"
+val laikaV = "0.19.0"
+val lucilleV = "0.0-afc5220-SNAPSHOT"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
+val munitV = "1.0.0-M6"
+val munitCatsEffectV = "2.0.0-M3"
 
 lazy val root = tlCrossRootProject.aggregate(core)
 
@@ -30,14 +39,14 @@ lazy val core = project
   .settings(
     name := "protosearch",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % "2.9.0",
-      "org.typelevel" %%% "cats-effect" % "3.4.7",
-      "co.fs2" %%% "fs2-core" % "3.6.1",
-      "org.scodec" %%% "scodec-core" % "1.11.10",
-      "pink.cozydev" %%% "lucille" % "0.0-afc5220-SNAPSHOT",
-      "org.planet42" %%% "laika-core" % "0.19.0",
-      "org.scalameta" %%% "munit" % "0.7.29" % Test,
-      "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test,
+      "org.typelevel" %%% "cats-core" % catsV,
+      "org.typelevel" %%% "cats-effect" % catsEffectV,
+      "co.fs2" %%% "fs2-core" % fs2V,
+      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+      "pink.cozydev" %%% "lucille" % lucilleV,
+      "org.planet42" %%% "laika-core" % laikaV,
+      "org.scalameta" %%% "munit" % munitV % Test,
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
   )
 

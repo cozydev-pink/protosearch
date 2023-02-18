@@ -22,16 +22,17 @@ import scodec.Attempt.Failure
 import scodec.Attempt.Successful
 import TokenStream.tokenizeSpaceV
 
+import pink.cozydev.protosearch.TermIndexCodec
 object SearchApp extends IOApp.Simple {
 
   val index = CatIndex.index
   val indexLog =
     IO.println(s"Created index from ${CatIndex.docs.size} docs results in ${index.numTerms} terms")
 
-  val bytes = Codec.termIndex.encode((index.numData, index.tfData), index.termDict)
+  val bytes = TermIndexCodec.termIndex.encode(index)
   val bytesLog = IO.println(s"Encoded to ${bytes.toOption.get.size} bits")
 
-  val decIndex = bytes.flatMap(Codec.termIndex.decodeValue)
+  val decIndex = bytes.flatMap(TermIndexCodec.termIndex.decodeValue)
   val decLog = decIndex match {
     case Failure(cause) => IO.println(s"failed to encode-decode with error: $cause")
     case Successful(value) => IO.println(s"encoded-decoded vector: ${value}")

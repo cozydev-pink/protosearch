@@ -16,14 +16,16 @@
 
 package pink.cozydev.protosearch
 
-import scodec._
-import scodec.bits.BitVector
 import cats.effect.IOApp
 import cats.effect.IO
 import scodec.Attempt.Failure
 import scodec.Attempt.Successful
 
-object Codec {
+import scodec._
+import scodec.compat._
+import scodec.bits.BitVector
+
+object TermIndexCodec {
   val nl = BitVector.fromByte('\n')
   val str = codecs.utf8
   val strNl = codecs.vectorDelimited(nl, str)
@@ -32,15 +34,18 @@ object Codec {
   val termV = codecs.vectorOfN(vint, vint)
   val vecTermV = codecs.vectorOfN(vint, termV)
 
-  val termIndex = (vint ~ vecTermV ~ strNl).map { case ((numDocs, vec), terms) =>
-    TermIndexArray.unsafeFromVecs(vec, terms, numDocs)
+  val termIndex: scodec.Codec[TermIndexArray] = (vint :: vecTermV :: strNl).xmapc {
+    case (numDocs *: vec *: terms *: EmptyTuple) =>
+      TermIndexArray.unsafeFromVecs(vec, terms, numDocs)
+  } { t =>
+    t.numDocs *: t.tfData *: t.termDict *: EmptyTuple
   }
 }
-object CodecApp extends IOApp.Simple {
+object TermIndexCodecApp extends IOApp.Simple {
 
   val xs = Vector("hello", "world")
-  val enc = Codec.strNl.encode(xs)
-  val dec = enc.flatMap(Codec.strNl.decodeValue)
+  val enc = TermIndexCodec.strNl.encode(xs)
+  val dec = enc.flatMap(TermIndexCodec.strNl.decodeValue)
   val prog = dec match {
     case Failure(cause) => IO.println(s"failed to encode-decode with error: $cause")
     case Successful(value) => IO.println(s"encoded-decoded vector: ${value}")
@@ -51,7 +56,8 @@ object CodecApp extends IOApp.Simple {
     Vector(1, 2, 3, 4),
     Vector(1, 2, 3, 4),
   )
-  val decV = Codec.vecTermV.encode(termVectors).flatMap(Codec.vecTermV.decodeValue)
+  val decV =
+    TermIndexCodec.vecTermV.encode(termVectors).flatMap(TermIndexCodec.vecTermV.decodeValue)
   val decProg = decV match {
     case Failure(cause) => IO.println(s"failed to encode-decode with error: $cause")
     case Successful(value) => IO.println(s"encoded-decoded vector: ${value}")
