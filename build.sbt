@@ -17,7 +17,7 @@ ThisBuild / tlSonatypeUseLegacyHost := false
 ThisBuild / tlSitePublishBranch := Some("main")
 
 ThisBuild / resolvers +=
-  "SonaType Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+  "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
 val Scala213 = "2.13.10"
 ThisBuild / crossScalaVersions := Seq(Scala213, "3.1.1")
