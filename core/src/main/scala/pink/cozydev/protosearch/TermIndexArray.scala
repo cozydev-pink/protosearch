@@ -142,12 +142,14 @@ object TermIndexArray {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
 
-  def unsafeFromVecs(
-      tfData: Vector[Vector[Int]],
-      termDict: Vector[String],
-      numDocs: Int,
-  ): TermIndexArray =
+  def unsafeFromTuple3(
+      num_data_terms: (Int, Vector[Vector[Int]], Vector[String])
+  ): TermIndexArray = {
+    val numDocs = num_data_terms._1
+    val tfData = num_data_terms._2
+    val termDict = num_data_terms._3
     new TermIndexArray(termDict, tfData, numDocs) {}
+  }
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]

@@ -22,7 +22,6 @@ import scodec.Attempt.Failure
 import scodec.Attempt.Successful
 
 import scodec._
-import scodec.compat._
 import scodec.bits.BitVector
 
 object TermIndexCodec {
@@ -34,12 +33,13 @@ object TermIndexCodec {
   val termV = codecs.vectorOfN(vint, vint)
   val vecTermV = codecs.vectorOfN(vint, termV)
 
-  val termIndex: scodec.Codec[TermIndexArray] = (vint :: vecTermV :: strNl).xmapc {
-    case (numDocs *: vec *: terms *: EmptyTuple) =>
-      TermIndexArray.unsafeFromVecs(vec, terms, numDocs)
-  } { t =>
-    t.numDocs *: t.tfData *: t.termDict *: EmptyTuple
-  }
+  val termIndex: Codec[TermIndexArray] =
+    (vint :: vecTermV :: strNl)
+      .as[(Int, Vector[Vector[Int]], Vector[String])]
+      .xmap(
+        TermIndexArray.unsafeFromTuple3,
+        ti => (ti.numDocs, ti.tfData, ti.termDict),
+      )
 }
 object TermIndexCodecApp extends IOApp.Simple {
 
