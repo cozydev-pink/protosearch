@@ -155,8 +155,8 @@ object TermIndexArray {
     val m = new MMap[String, Stack[Int]].empty
     var docId = 0
     val docLen = docs.length
-    while (docId < docLen) {
-      docs(docId).foreach { term =>
+    docs.foreach { doc =>
+      doc.foreach { term =>
         val s = m.getOrElseUpdate(term, Stack.empty)
         if (s.isEmpty) {
           // println(s"doc($docId), term($term), init freq = 1")
