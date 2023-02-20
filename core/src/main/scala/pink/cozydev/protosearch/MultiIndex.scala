@@ -32,11 +32,18 @@ case class MultiIndex(
     docs.map(_.toList.sorted)
   }
 
+  private val defaultIndex = indexes(defaultField)
   private val defaultBooleanQ =
     BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
 
+  private lazy val allDocs: Set[Int] = Set.from(Range(0, defaultIndex.numDocs))
+
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
+      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
+      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
+      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
+      case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
           BooleanQuery(index, analyzers(f), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
