@@ -38,6 +38,11 @@ lazy val core = project
   .in(file("core"))
   .settings(
     name := "protosearch",
+    Compile / run / fork := true,
+    // forward stdin to forked process
+    Compile / run / connectInput := true,
+    // send forked output to stdout
+    outputStrategy := Some(StdoutOutput),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,

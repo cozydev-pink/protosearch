@@ -47,8 +47,14 @@ object MultiSearchApp extends IOApp.Simple {
     result.map(hits => hits.map(i => corpus(i)))
   }
 
-  val msg = IO.println(s"Books:\n${corpus.mkString("\n")}\n\n") *>
-    IO.println("Try searching with a query like 'author:Suess'\n\n")
+  val msg =
+    s"""|Books:
+        |${corpus.mkString("\n")}
+        |
+        |Try searching with a query like 'author:Suess'
+        |
+        | --  To quit enter ':q' and then press Ctrl + C   --
+        |""".stripMargin
 
   def printResults(bs: List[Book]): String = {
     val bookLines = bs.map(b => s"  $b\n")
@@ -58,13 +64,16 @@ object MultiSearchApp extends IOApp.Simple {
         |""".stripMargin
   }
 
-  val loop = for {
-    qs <- IO.print("q> ") *> IO.readLine
+  val prompt: IO[Unit] = for {
+    _ <- IO.print("q> ")
+    qs <- IO.readLine
+    _ <- if (qs == ":q") IO(System.exit(0)) else IO.unit
     res = search(qs)
     _ <- res match {
       case Left(err) => IO.println(s"ERROR: $err")
       case Right(hits) => IO.println(printResults(hits))
     }
   } yield ()
-  val run = msg *> loop.foreverM
+
+  val run = IO.println(msg) *> prompt.foreverM
 }
