@@ -19,7 +19,6 @@ package pink.cozydev.protosearch
 import cats.effect.IOApp
 import cats.effect.IO
 import cats.syntax.all._
-import TokenStream.tokenizeSpaceV
 import pink.cozydev.lucille.Parser
 
 object MultiSearchApp extends IOApp.Simple {
@@ -35,9 +34,11 @@ object MultiSearchApp extends IOApp.Simple {
     Book("Green Eggs and Ham", "Dr. Suess"),
   )
 
+  val analyzer = Analyzer.default.withLowerCasing
+
   val index = MultiIndex.apply[Book](
-    ("title", _.title, tokenizeSpaceV),
-    ("author", _.author, tokenizeSpaceV),
+    ("title", _.title, analyzer),
+    ("author", _.author, analyzer),
   )(corpus)
 
   def search(qs: String): Either[String, List[Book]] = {

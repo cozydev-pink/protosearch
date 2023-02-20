@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
 
-case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
+case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 
@@ -32,7 +32,12 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.TermQ(q) => Right(index.docsWithTermSet(q))
+      // case Query.TermQ(q) => Right(index.docsWithTermSet(q))
+      case Query.TermQ(q) =>
+        val tokens = analyzer.tokenize(q)
+        // TODO painful
+        val sets = NonEmptyList.fromFoldable(tokens.map(t => index.docsWithTermSet(t)))
+        sets.toRight(s"Error analyzing TermQ: $q").map(defaultCombine)
       case Query.AndQ(qs) => qs.traverse(booleanModel).map(intersectSets)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
@@ -89,7 +94,10 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
     queries.flatTraverse {
       case Query.OrQ(qs) => onlyTerms(qs)
       case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) => Right(NonEmptyList.of(t))
+      case Query.TermQ(t) =>
+        NonEmptyList
+          .fromFoldable(analyzer.tokenize(t))
+          .toRight(s"Could not extract any terms from TermQ: $t")
       case Query.Group(qs) => onlyTerms(qs)
       case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
       case Query.RangeQ(left, right, _, _) =>

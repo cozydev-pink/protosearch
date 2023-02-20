@@ -22,6 +22,7 @@ import cats.data.NonEmptyList
 
 case class MultiIndex(
     indexes: Map[String, TermIndexArray],
+    analyzers: Map[String, Analyzer],
     numDocs: Int,
     defaultField: String,
     defaultOR: Boolean = true,
@@ -37,14 +38,17 @@ case class MultiIndex(
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
       // TODO use analyzer on TermQ
-      case Query.TermQ(q) => Right(indexes(defaultField).docsWithTermSet(q))
+      case _: Query.TermQ =>
+        BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
+          .search(q)
+          .map(xs => xs.map(_._1).toSet)
       case Query.AndQ(qs) => qs.traverse(booleanModel).map(intersectSets)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          BooleanQuery(index, defaultOR).search(q).map(xs => xs.map(_._1).toSet)
+          BooleanQuery(index, analyzers(f), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
         }
       case _: Query.PhraseQ => Left("Phrase queries require position data, which we don't have yet")
       case _: Query.ProximityQ => Left("Unsupported query type")
@@ -54,7 +58,9 @@ case class MultiIndex(
       case _: Query.UnaryPlus => Left("Unsupported query type")
       case _: Query.UnaryMinus => Left("Unsupported query type")
       case _: Query.RangeQ =>
-        BooleanQuery(indexes(defaultField), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
+        BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
+          .search(q)
+          .map(xs => xs.map(_._1).toSet)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
@@ -91,13 +97,13 @@ object MultiIndex {
   private case class Bldr[A](
       name: String,
       getter: A => String,
-      tokenizer: String => Vector[String],
+      analyzer: Analyzer,
       acc: ListBuffer[Vector[String]],
   )
 
   def apply[A](
-      head: (String, A => String, String => Vector[String]),
-      tail: (String, A => String, String => Vector[String])*
+      head: (String, A => String, Analyzer),
+      tail: (String, A => String, Analyzer)*
   ): Vector[A] => MultiIndex = {
 
     val bldrs = (head :: tail.toList).map { case (name, getter, tokenizer) =>
@@ -109,13 +115,14 @@ object MultiIndex {
       docs.foreach { doc =>
         numDocs += 1
         bldrs.foreach { bldr =>
-          bldr.acc.addOne(bldr.tokenizer(bldr.getter(doc)))
+          bldr.acc.addOne(bldr.analyzer.tokenize(bldr.getter(doc)))
         }
       }
       // TODO let's delay defining the default field even further
       // Also, let's make it optional, with no field meaning all fields?
       MultiIndex(
         bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toVector))).toMap,
+        bldrs.map(bldr => (bldr.name, bldr.analyzer)).toMap,
         numDocs,
         "title",
       )
