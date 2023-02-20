@@ -56,4 +56,19 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(fish)))
   }
 
+  test("AND with multiple fieldQ") {
+    val books = search("title:two AND author:Suess")
+    assertEquals(books, Right(List(fish)))
+  }
+
+  test("AND with field RangeQ") {
+    val books = search("two AND author:[A TO E]")
+    assertEquals(books, Right(List(mice, fish)))
+  }
+
+  test("OR with field RangeQ") {
+    val books = search("two author:[A TO C]")
+    assertEquals(books, Right(List(peter, mice, fish)))
+  }
+
 }

@@ -53,8 +53,10 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val leftI = index.termDict.indexWhere(_ >= l)
-            val rightI = index.termDict.indexWhere(_ >= r)
+            val left = analyzer.tokenize(l).head
+            val right = analyzer.tokenize(r).head
+            val leftI = index.termDict.indexWhere(_ >= left)
+            val rightI = index.termDict.indexWhere(_ >= right)
             Right(index.docsWithinRange(leftI, rightI))
           case _ => Left("Unsupport RangeQ error?")
         }
@@ -78,9 +80,12 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val leftI = index.termDict.indexWhere(_ >= l)
-            val rightI = index.termDict.indexWhere(_ >= r)
-            NonEmptyList.fromList(index.termDict.slice(leftI, rightI).toList).toRight("No terms")
+            val left = analyzer.tokenize(l).head
+            val right = analyzer.tokenize(r).head
+            val leftI = index.termDict.indexWhere(_ >= left)
+            val rightI = index.termDict.indexWhere(_ >= right)
+            val terms = index.termDict.slice(leftI, rightI)
+            NonEmptyList.fromFoldable(terms).toRight("No terms found while processing RangeQ")
           case _ => Left("Unsupport RangeQ error?")
         }
       case x => Left(s"Sorry bucko, only term queries supported today, not $x")
