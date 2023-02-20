@@ -22,17 +22,7 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Parser
 
 object MultiSearchApp extends IOApp.Simple {
-
-  case class Book(title: String, author: String) {
-    override def toString = s"\"$title\" by $author"
-  }
-
-  val corpus: Vector[Book] = Vector(
-    Book("The Tale of Peter Rabbit", "Beatrix Potter"),
-    Book("The Tale of Two Bad Mice", "Beatrix Potter"),
-    Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),
-    Book("Green Eggs and Ham", "Dr. Suess"),
-  )
+  import BookIndex.{Book, corpus}
 
   val analyzer = Analyzer.default.withLowerCasing
 
