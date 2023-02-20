@@ -23,7 +23,6 @@ import cats.data.NonEmptyList
 case class MultiIndex(
     indexes: Map[String, TermIndexArray],
     analyzers: Map[String, Analyzer],
-    numDocs: Int,
     defaultField: String,
     defaultOR: Boolean = true,
 ) {
@@ -69,10 +68,8 @@ object MultiIndex {
       Bldr(name, getter, tokenizer, ListBuffer.empty)
     }
 
-    var numDocs = 0
     docs => {
       docs.foreach { doc =>
-        numDocs += 1
         bldrs.foreach { bldr =>
           bldr.acc.addOne(bldr.analyzer.tokenize(bldr.getter(doc)))
         }
@@ -82,7 +79,6 @@ object MultiIndex {
       MultiIndex(
         bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toVector))).toMap,
         bldrs.map(bldr => (bldr.name, bldr.analyzer)).toMap,
-        numDocs,
         "title",
       )
     }
