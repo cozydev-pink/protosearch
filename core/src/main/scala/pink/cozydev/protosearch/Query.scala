@@ -38,8 +38,8 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
         // TODO painful
         val sets = NonEmptyList.fromFoldable(tokens.map(t => index.docsWithTermSet(t)))
         sets.toRight(s"Error analyzing TermQ: $q").map(defaultCombine)
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(intersectSets)
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(unionSets)
+      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
+      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case _: Query.FieldQ => Left("We only have one implicit field currently")
@@ -62,33 +62,7 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) unionSets(sets) else intersectSets(sets)
-
-  private def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (sets.size == 1) sets.head
-    else {
-      val setList = sets.tail
-      var s = sets.head
-      var i = 0
-      while (i < setList.size) {
-        s = s.intersect(setList(i))
-        i += 1
-      }
-      s
-    }
-
-  private def unionSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (sets.size == 1) sets.head
-    else {
-      val setList = sets.tail
-      var s = sets.head
-      var i = 0
-      while (i < setList.size) {
-        s = s.union(setList(i))
-        i += 1
-      }
-      s
-    }
+    if (defaultOR) BooleanQuery.unionSets(sets) else BooleanQuery.intersectSets(sets)
 
   private def onlyTerms(queries: NonEmptyList[Query]): Either[String, NonEmptyList[String]] =
     queries.flatTraverse {
@@ -121,4 +95,32 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
       .flatMap(t => index.scoreTFIDF(docs, t))
       .groupMapReduce(_._1)(_._2)(_ + _)
       .toList
+}
+object BooleanQuery {
+
+  def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
+    if (sets.size == 1) sets.head
+    else {
+      val setList = sets.tail
+      var s = sets.head
+      var i = 0
+      while (i < setList.size) {
+        s = s.intersect(setList(i))
+        i += 1
+      }
+      s
+    }
+
+  def unionSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
+    if (sets.size == 1) sets.head
+    else {
+      val setList = sets.tail
+      var s = sets.head
+      var i = 0
+      while (i < setList.size) {
+        s = s.union(setList(i))
+        i += 1
+      }
+      s
+    }
 }

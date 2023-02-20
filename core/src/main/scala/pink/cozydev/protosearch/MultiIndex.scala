@@ -28,69 +28,28 @@ case class MultiIndex(
     defaultOR: Boolean = true,
 ) {
 
-  private lazy val allDocs: Set[Int] = Set.from(Range(0, numDocs))
-
   def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
     val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
     docs.map(_.toList.sorted)
   }
 
+  private val defaultBooleanQ =
+    BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
+
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      // TODO use analyzer on TermQ
-      case _: Query.TermQ =>
-        BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
-          .search(q)
-          .map(xs => xs.map(_._1).toSet)
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(intersectSets)
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(unionSets)
-      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
-      case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
           BooleanQuery(index, analyzers(f), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
         }
-      case _: Query.PhraseQ => Left("Phrase queries require position data, which we don't have yet")
-      case _: Query.ProximityQ => Left("Unsupported query type")
-      case _: Query.PrefixTerm => Left("Unsupported query type")
-      case _: Query.FuzzyTerm => Left("Unsupported query type")
-      // Should normalize before we get here?
-      case _: Query.UnaryPlus => Left("Unsupported query type")
-      case _: Query.UnaryMinus => Left("Unsupported query type")
-      case _: Query.RangeQ =>
-        BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
+      case _ =>
+        defaultBooleanQ
           .search(q)
           .map(xs => xs.map(_._1).toSet)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) unionSets(sets) else intersectSets(sets)
-
-  private def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (sets.size == 1) sets.head
-    else {
-      val setList = sets.tail
-      var s = sets.head
-      var i = 0
-      while (i < setList.size) {
-        s = s.intersect(setList(i))
-        i += 1
-      }
-      s
-    }
-
-  private def unionSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (sets.size == 1) sets.head
-    else {
-      val setList = sets.tail
-      var s = sets.head
-      var i = 0
-      while (i < setList.size) {
-        s = s.union(setList(i))
-        i += 1
-      }
-      s
-    }
+    if (defaultOR) BooleanQuery.unionSets(sets) else BooleanQuery.intersectSets(sets)
 
 }
 object MultiIndex {
