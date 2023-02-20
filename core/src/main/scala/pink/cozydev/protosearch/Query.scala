@@ -32,7 +32,6 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      // case Query.TermQ(q) => Right(index.docsWithTermSet(q))
       case Query.TermQ(q) =>
         val tokens = analyzer.tokenize(q)
         // TODO painful
