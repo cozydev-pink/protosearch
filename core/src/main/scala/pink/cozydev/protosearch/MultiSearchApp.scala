@@ -36,8 +36,8 @@ object MultiSearchApp extends IOApp.Simple {
   )
 
   val index = MultiIndex.apply[Book](
-    ("title", d => tokenizeSpaceV(d.title)),
-    ("author", d => tokenizeSpaceV(d.author)),
+    ("title", _.title, tokenizeSpaceV),
+    ("author", _.author, tokenizeSpaceV),
   )(corpus)
 
   def search(qs: String): Either[String, List[Book]] = {

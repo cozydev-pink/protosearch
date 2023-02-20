@@ -36,6 +36,7 @@ case class MultiIndex(
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
+      // TODO use analyzer on TermQ
       case Query.TermQ(q) => Right(indexes(defaultField).docsWithTermSet(q))
       case Query.AndQ(qs) => qs.traverse(booleanModel).map(intersectSets)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(unionSets)
@@ -89,17 +90,18 @@ case class MultiIndex(
 object MultiIndex {
   private case class Bldr[A](
       name: String,
-      getter: A => Vector[String],
+      getter: A => String,
+      tokenizer: String => Vector[String],
       acc: ListBuffer[Vector[String]],
   )
 
   def apply[A](
-      head: (String, A => Vector[String]),
-      tail: (String, A => Vector[String])*
+      head: (String, A => String, String => Vector[String]),
+      tail: (String, A => String, String => Vector[String])*
   ): Vector[A] => MultiIndex = {
 
-    val bldrs = (head :: tail.toList).map { case (name, getter) =>
-      Bldr(name, getter, ListBuffer.empty)
+    val bldrs = (head :: tail.toList).map { case (name, getter, tokenizer) =>
+      Bldr(name, getter, tokenizer, ListBuffer.empty)
     }
 
     var numDocs = 0
@@ -107,7 +109,7 @@ object MultiIndex {
       docs.foreach { doc =>
         numDocs += 1
         bldrs.foreach { bldr =>
-          bldr.acc.addOne(bldr.getter(doc))
+          bldr.acc.addOne(bldr.tokenizer(bldr.getter(doc)))
         }
       }
       // TODO let's delay defining the default field even further
