@@ -54,6 +54,13 @@ sealed abstract class TermIndexArray private (
     }
   }
 
+  def docsWithinRange(left: Int, right: Int): Set[Int] = {
+    import scala.collection.mutable.HashSet
+    val bldr = HashSet.empty[Int]
+    Range(left, right).foreach(i => bldr.addAll(evenElems(tfData(i))))
+    bldr.toSet
+  }
+
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
     if (docs.size == 0) Nil
     else {

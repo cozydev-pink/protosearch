@@ -42,10 +42,18 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
       case _: Query.ProximityQ => Left("Unsupported query type")
       case _: Query.PrefixTerm => Left("Unsupported query type")
       case _: Query.FuzzyTerm => Left("Unsupported query type")
-      // Should normalize before we get here?
       case _: Query.UnaryPlus => Left("Unsupported query type")
       case _: Query.UnaryMinus => Left("Unsupported query type")
-      case _: Query.RangeQ => Left("Unsupported query type")
+      case Query.RangeQ(left, right, _, _) =>
+        (left, right) match {
+          case (Some(l), Some(r)) =>
+            // TODO handle inclusive / exclusive
+            // TODO optionality
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
+            Right(index.docsWithinRange(leftI, rightI))
+          case _ => Left("Unsupport RangeQ error?")
+        }
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
@@ -84,6 +92,16 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
       case Query.TermQ(t) => Right(NonEmptyList.of(t))
       case Query.Group(qs) => onlyTerms(qs)
       case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
+      case Query.RangeQ(left, right, _, _) =>
+        (left, right) match {
+          case (Some(l), Some(r)) =>
+            // TODO handle inclusive / exclusive
+            // TODO optionality
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
+            NonEmptyList.fromList(index.termDict.slice(leftI, rightI).toList).toRight("No terms")
+          case _ => Left("Unsupport RangeQ error?")
+        }
       case x => Left(s"Sorry bucko, only term queries supported today, not $x")
     }
 

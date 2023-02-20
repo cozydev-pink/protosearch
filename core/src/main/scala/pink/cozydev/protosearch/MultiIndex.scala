@@ -19,7 +19,6 @@ package pink.cozydev.protosearch
 import scala.collection.mutable.ListBuffer
 import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
-import cats.syntax.all._
 
 case class MultiIndex(
     indexes: Map[String, TermIndexArray],
@@ -53,7 +52,8 @@ case class MultiIndex(
       // Should normalize before we get here?
       case _: Query.UnaryPlus => Left("Unsupported query type")
       case _: Query.UnaryMinus => Left("Unsupported query type")
-      case _: Query.RangeQ => Left("Unsupported query type")
+      case _: Query.RangeQ =>
+        BooleanQuery(indexes(defaultField), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
@@ -85,15 +85,6 @@ case class MultiIndex(
       s
     }
 
-  private def onlyTerms(queries: NonEmptyList[Query]): Either[String, NonEmptyList[String]] =
-    queries.flatTraverse {
-      case Query.OrQ(qs) => onlyTerms(qs)
-      case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) => Right(NonEmptyList.of(t))
-      case Query.Group(qs) => onlyTerms(qs)
-      case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
-      case x => Left(s"Sorry bucko, only term queries supported today, not $x")
-    }
 }
 object MultiIndex {
   private case class Bldr[A](
