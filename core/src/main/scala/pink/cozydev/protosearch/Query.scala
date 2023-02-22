@@ -19,8 +19,67 @@ package pink.cozydev.protosearch
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
+import pink.cozydev.lucille.Parser
 
-case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Boolean = true) {
+case class QueryAnalyzer(
+    defaultField: String,
+    analyzers: Map[String, Analyzer],
+) {
+  private def analyzeQ(query: Query): Either[String, Query] =
+    query match {
+      case Query.TermQ(q) =>
+        // TODO This is a hack, the Lucille parser tokenizes on white space currently
+        // We really want to pass in our tokenizer somehow
+        val vqs: Vector[String] = analyzers(defaultField).tokenize(q)
+        NonEmptyList.fromFoldable(vqs) match {
+          case None => Left(s"Query analysis error, no terms found after tokenizing $query")
+          case Some(qs) => Right(Query.TermQ(qs.head)) // TODO return nel
+        }
+      case Query.FieldQ(fn, q) =>
+        analyzers.get(fn) match {
+          case None => Left(s"Query analysis error, field $fn is not supported in query $query")
+          case Some(a) =>
+            // Oops... I need to recurse over this query somehow
+            // I probably just need to separate out the leaf node processing and the tree traversal
+            // Make sure we don't use the default Analyzer on TermQs in a FieldQ
+            // e.g. myField:(oneTerm twoTerm)
+            // -->  FieldQ("myField", Group(TermQ("oneTerm"), TermQ("twoTerm")))
+            // I think we want to specify "leaf" functions with just an analyzer and a String => A??
+            // //val vqs: Vector[String] = a.tokenize(q)
+            // //NonEmptyList.fromFoldable(vqs) match {
+            // //  case None => Left(s"Query analysis error, no terms found after tokenizing $query")
+            // //  case Some(qs) => Right(Query.TermQ(qs.head)) // TODO return nel
+            // //}
+            Right(query)
+        }
+      case q => Right(q)
+    }
+
+  def parse(queryString: String): Either[String, NonEmptyList[Query]] = {
+    val q: Either[String, NonEmptyList[Query]] =
+      Parser
+        .parseQ(queryString)
+        .leftMap(err => s"Parse error before query analysis, err: $err")
+    q.flatMap(qs => qs.traverse(analyzeQ))
+  }
+}
+object QueryAnalyzer {
+  def apply(
+      defaultField: String,
+      head: (String, Analyzer),
+      tail: (String, Analyzer)*
+  ): QueryAnalyzer =
+    QueryAnalyzer(defaultField, (head :: tail.toList).toMap)
+}
+
+// QueryAnalyzer
+// input: (String, Analyzer) pairs for fields
+//        String for defaultField
+// output: String => Query, basically a new "query parser" ready for use
+// future: Lucille perhaps accepts the Analyzer in some form, and uses that during parsing
+//         instead of assuming whitespace tokenization
+
+case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 
@@ -32,11 +91,7 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.TermQ(q) =>
-        val tokens = analyzer.tokenize(q)
-        // TODO painful
-        val sets = NonEmptyList.fromFoldable(tokens.map(t => index.docsWithTermSet(t)))
-        sets.toRight(s"Error analyzing TermQ: $q").map(defaultCombine)
+      case Query.TermQ(q) => Right(index.docsWithTermSet(q))
       case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
@@ -53,10 +108,8 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val left = analyzer.tokenize(l).head
-            val right = analyzer.tokenize(r).head
-            val leftI = index.termDict.indexWhere(_ >= left)
-            val rightI = index.termDict.indexWhere(_ >= right)
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
             Right(index.docsWithinRange(leftI, rightI))
           case _ => Left("Unsupport RangeQ error?")
         }
@@ -69,10 +122,7 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
     queries.flatTraverse {
       case Query.OrQ(qs) => onlyTerms(qs)
       case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) =>
-        NonEmptyList
-          .fromFoldable(analyzer.tokenize(t))
-          .toRight(s"Could not extract any terms from TermQ: $t")
+      case Query.TermQ(t) => Right(NonEmptyList.of(t))
       case Query.Group(qs) => onlyTerms(qs)
       case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
       case Query.RangeQ(left, right, _, _) =>
@@ -80,12 +130,12 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val left = analyzer.tokenize(l).head
-            val right = analyzer.tokenize(r).head
-            val leftI = index.termDict.indexWhere(_ >= left)
-            val rightI = index.termDict.indexWhere(_ >= right)
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
             val terms = index.termDict.slice(leftI, rightI)
-            NonEmptyList.fromFoldable(terms).toRight("No terms found while processing RangeQ")
+            NonEmptyList
+              .fromFoldable(terms)
+              .toRight(s"No terms found while processing RangeQ: [$left, $right]")
           case _ => Left("Unsupport RangeQ error?")
         }
       case x => Left(s"Sorry bucko, only term queries supported today, not $x")
