@@ -41,6 +41,25 @@ object TermIndexCodec {
         ti => (ti.numDocs, ti.tfData, ti.termDict),
       )
 }
+
+object MultiIndexCodec {
+  import TermIndexCodec._
+
+  val indexes: Codec[Map[String, TermIndexArray]] =
+    codecs
+      .listOfN(vint, (str :: termIndex).as[(String, TermIndexArray)])
+      .xmap(_.toMap, _.toList)
+  val defaultField: Codec[String] = str
+  val defaultOr: Codec[Boolean] = codecs.bool
+  val multiIndex: Codec[MultiIndex] =
+    (indexes :: defaultField :: defaultOr)
+      .as[(Map[String, TermIndexArray], String, Boolean)]
+      .xmap(
+        { case (in, dF, dOr) => MultiIndex.apply(in, dF, dOr) },
+        mi => (mi.indexes, mi.defaultField, mi.defaultOR),
+      )
+
+}
 object TermIndexCodecApp extends IOApp.Simple {
 
   val xs = Vector("hello", "world")
