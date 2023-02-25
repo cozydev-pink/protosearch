@@ -58,8 +58,7 @@ object MultiSearchApp extends IOApp.Simple {
   }
 
   val prompt: IO[Unit] = for {
-    _ <- IO.print("q> ")
-    qs <- IO.readLine
+    qs <- IO.pure("Two AND author:suess")
     _ <- if (qs == ":q") IO(System.exit(0)) else IO.unit
     res = search(qs)
     _ <- res match {

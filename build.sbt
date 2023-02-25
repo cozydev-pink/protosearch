@@ -34,7 +34,8 @@ val munitCatsEffectV = "2.0.0-M3"
 
 lazy val root = tlCrossRootProject.aggregate(core)
 
-lazy val core = project
+lazy val core = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
   .in(file("core"))
   .settings(
     name := "protosearch",
