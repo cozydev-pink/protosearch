@@ -18,8 +18,6 @@ package pink.cozydev.protosearch
 
 import cats.effect.IOApp
 import cats.effect.IO
-import cats.syntax.all._
-import pink.cozydev.lucille.Parser
 
 object MultiSearchApp extends IOApp.Simple {
   import BookIndex.{Book, corpus}
@@ -27,12 +25,16 @@ object MultiSearchApp extends IOApp.Simple {
   val analyzer = Analyzer.default.withLowerCasing
 
   val index = MultiIndex.apply[Book](
+    "title",
     ("title", _.title, analyzer),
     ("author", _.author, analyzer),
   )(corpus)
 
+  val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
+
   def search(qs: String): Either[String, List[Book]] = {
-    val q = Parser.parseQ(qs).leftMap(_.toString)
+    val q = qAnalyzer.parse(qs)
+    println(s"+++ analyzed query: $q")
     val result = q.flatMap(index.search)
     // TODO vector index access is unsafe
     result.map(hits => hits.map(i => corpus(i)))

@@ -66,6 +66,7 @@ object MultiIndex {
   )
 
   def apply[A](
+      defaultField: String,
       head: (String, A => String, Analyzer),
       tail: (String, A => String, Analyzer)*
   ): Vector[A] => MultiIndex = {
@@ -84,7 +85,7 @@ object MultiIndex {
       // Also, let's make it optional, with no field meaning all fields?
       MultiIndex(
         bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toVector))).toMap,
-        "title",
+        defaultField,
       )
     }
   }
