@@ -17,19 +17,19 @@
 package pink.cozydev.protosearch
 
 import scodec._
-import scodec.bits.BitVector
 
 object TermIndexCodec {
-  val nl = BitVector.fromByte('\n')
-  val str = codecs.utf8
-  val strNl = codecs.vectorDelimited(nl, str)
-
   val vint = codecs.vint
-  val termV = codecs.vectorOfN(vint, vint)
-  val vecTermV = codecs.vectorOfN(vint, termV)
 
+  val str = codecs.utf8_32
+  val strNl = codecs.vectorOfN(vint, str).withContext("term list")
+
+  val termV = codecs.vectorOfN(vint, vint)
+  val vecTermV = codecs.vectorOfN(vint, termV).withContext("term frequencies")
+
+  val numDocs = vint.withContext("numDocs")
   val termIndex: Codec[TermIndexArray] =
-    (vint :: vecTermV :: strNl)
+    (numDocs :: vecTermV :: strNl)
       .as[(Int, Vector[Vector[Int]], Vector[String])]
       .xmap(
         TermIndexArray.unsafeFromTuple3,
@@ -42,10 +42,10 @@ object MultiIndexCodec {
 
   val indexes: Codec[Map[String, TermIndexArray]] =
     codecs
-      .listOfN(vint, (str :: termIndex).as[(String, TermIndexArray)])
+      .listOfN(vint, (codecs.utf8_32 :: termIndex).as[(String, TermIndexArray)])
       .xmap(_.toMap, _.toList)
-  val defaultField: Codec[String] = str
-  val defaultOr: Codec[Boolean] = codecs.bool
+  val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
+  val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
   val multiIndex: Codec[MultiIndex] =
     (indexes :: defaultField :: defaultOr)
       .as[(Map[String, TermIndexArray], String, Boolean)]

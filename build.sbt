@@ -47,6 +47,7 @@ lazy val core = project
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,
       "co.fs2" %%% "fs2-core" % fs2V,
+      "co.fs2" %%% "fs2-io" % fs2V,
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.planet42" %%% "laika-core" % laikaV,
