@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
 
-case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Boolean = true) {
+case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 
@@ -32,11 +32,7 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.TermQ(q) =>
-        val tokens = analyzer.tokenize(q)
-        // TODO painful
-        val sets = NonEmptyList.fromFoldable(tokens.map(t => index.docsWithTermSet(t)))
-        sets.toRight(s"Error analyzing TermQ: $q").map(defaultCombine)
+      case Query.TermQ(q) => Right(index.docsWithTermSet(q))
       case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
@@ -53,10 +49,8 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val left = analyzer.tokenize(l).head
-            val right = analyzer.tokenize(r).head
-            val leftI = index.termDict.indexWhere(_ >= left)
-            val rightI = index.termDict.indexWhere(_ >= right)
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
             Right(index.docsWithinRange(leftI, rightI))
           case _ => Left("Unsupport RangeQ error?")
         }
@@ -69,10 +63,7 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
     queries.flatTraverse {
       case Query.OrQ(qs) => onlyTerms(qs)
       case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) =>
-        NonEmptyList
-          .fromFoldable(analyzer.tokenize(t))
-          .toRight(s"Could not extract any terms from TermQ: $t")
+      case Query.TermQ(t) => Right(NonEmptyList.of(t))
       case Query.Group(qs) => onlyTerms(qs)
       case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
       case Query.RangeQ(left, right, _, _) =>
@@ -80,12 +71,12 @@ case class BooleanQuery(index: TermIndexArray, analyzer: Analyzer, defaultOR: Bo
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
-            val left = analyzer.tokenize(l).head
-            val right = analyzer.tokenize(r).head
-            val leftI = index.termDict.indexWhere(_ >= left)
-            val rightI = index.termDict.indexWhere(_ >= right)
+            val leftI = index.termDict.indexWhere(_ >= l)
+            val rightI = index.termDict.indexWhere(_ >= r)
             val terms = index.termDict.slice(leftI, rightI)
-            NonEmptyList.fromFoldable(terms).toRight("No terms found while processing RangeQ")
+            NonEmptyList
+              .fromFoldable(terms)
+              .toRight(s"No terms found while processing RangeQ: [$left, $right]")
           case _ => Left("Unsupport RangeQ error?")
         }
       case x => Left(s"Sorry bucko, only term queries supported today, not $x")

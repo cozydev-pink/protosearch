@@ -22,7 +22,6 @@ import cats.data.NonEmptyList
 
 case class MultiIndex(
     indexes: Map[String, TermIndexArray],
-    analyzers: Map[String, Analyzer],
     defaultField: String,
     defaultOR: Boolean = true,
 ) {
@@ -34,7 +33,7 @@ case class MultiIndex(
 
   private val defaultIndex = indexes(defaultField)
   private val defaultBooleanQ =
-    BooleanQuery(indexes(defaultField), analyzers(defaultField), defaultOR)
+    BooleanQuery(indexes(defaultField), defaultOR)
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, defaultIndex.numDocs))
 
@@ -46,7 +45,7 @@ case class MultiIndex(
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          BooleanQuery(index, analyzers(f), defaultOR).search(q).map(xs => xs.map(_._1).toSet)
+          BooleanQuery(index, defaultOR).search(q).map(xs => xs.map(_._1).toSet)
         }
       case _ =>
         defaultBooleanQ
@@ -67,6 +66,7 @@ object MultiIndex {
   )
 
   def apply[A](
+      defaultField: String,
       head: (String, A => String, Analyzer),
       tail: (String, A => String, Analyzer)*
   ): Vector[A] => MultiIndex = {
@@ -85,8 +85,7 @@ object MultiIndex {
       // Also, let's make it optional, with no field meaning all fields?
       MultiIndex(
         bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toVector))).toMap,
-        bldrs.map(bldr => (bldr.name, bldr.analyzer)).toMap,
-        "title",
+        defaultField,
       )
     }
   }

@@ -16,9 +16,6 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.lucille.Parser
-import cats.syntax.all._
-
 class MultiIndexSuite extends munit.FunSuite {
   import BookIndex.Book
 
@@ -31,12 +28,16 @@ class MultiIndexSuite extends munit.FunSuite {
 
   val analyzer = Analyzer.default.withLowerCasing
   val index = MultiIndex.apply[Book](
+    "title",
     ("title", _.title, analyzer),
     ("author", _.author, analyzer),
   )(allBooks)
 
+  val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
+
   def search(qs: String): Either[String, List[Book]] = {
-    val q = Parser.parseQ(qs).leftMap(_.toString)
+    val q = qAnalyzer.parse(qs)
+    // println(s"+++ analyzed query: $q")
     val result = q.flatMap(index.search)
     result.map(hits => hits.map(i => allBooks(i)))
   }
@@ -62,12 +63,12 @@ class MultiIndexSuite extends munit.FunSuite {
   }
 
   test("AND with field RangeQ") {
-    val books = search("two AND author:[A TO E]")
+    val books = search("TWO AND author:[a TO e]")
     assertEquals(books, Right(List(mice, fish)))
   }
 
   test("OR with field RangeQ") {
-    val books = search("two author:[A TO C]")
+    val books = search("two author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
   }
 
