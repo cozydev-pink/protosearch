@@ -39,7 +39,7 @@ case class QueryAnalyzer(
           case Some(ts) =>
             ts match {
               case NonEmptyList(head, Nil) => Right(Query.TermQ(head))
-              case terms => Right(Query.Group(terms.map(Query.TermQ)))
+              case terms => Right(Query.Group(terms.map(Query.TermQ.apply)))
             }
         }
       case q: Query.ProximityQ => Right(q)
@@ -73,7 +73,7 @@ case class QueryAnalyzer(
           case None => Left(s"Query analysis error, field $fn is not supported in query $query")
           case Some(a) => analyzeTermQ(a, q).map(qq => Query.FieldQ(fn, qq))
         }
-      case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ)
+      case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ.apply)
       case q => Left(s"Unsupported query encountered during analyzeQ: $q")
     }
 
