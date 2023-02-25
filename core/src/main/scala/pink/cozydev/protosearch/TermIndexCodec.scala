@@ -16,11 +16,6 @@
 
 package pink.cozydev.protosearch
 
-import cats.effect.IOApp
-import cats.effect.IO
-import scodec.Attempt.Failure
-import scodec.Attempt.Successful
-
 import scodec._
 import scodec.bits.BitVector
 
@@ -59,28 +54,4 @@ object MultiIndexCodec {
         mi => (mi.indexes, mi.defaultField, mi.defaultOR),
       )
 
-}
-object TermIndexCodecApp extends IOApp.Simple {
-
-  val xs = Vector("hello", "world")
-  val enc = TermIndexCodec.strNl.encode(xs)
-  val dec = enc.flatMap(TermIndexCodec.strNl.decodeValue)
-  val prog = dec match {
-    case Failure(cause) => IO.println(s"failed to encode-decode with error: $cause")
-    case Successful(value) => IO.println(s"encoded-decoded vector: ${value}")
-  }
-
-  val termVectors = Vector(
-    Vector(1, 2, 3, 4),
-    Vector(1, 2, 3, 4),
-    Vector(1, 2, 3, 4),
-  )
-  val decV =
-    TermIndexCodec.vecTermV.encode(termVectors).flatMap(TermIndexCodec.vecTermV.decodeValue)
-  val decProg = decV match {
-    case Failure(cause) => IO.println(s"failed to encode-decode with error: $cause")
-    case Successful(value) => IO.println(s"encoded-decoded vector: ${value}")
-  }
-
-  val run = prog *> decProg *> IO.println("- FIN -")
 }
