@@ -21,10 +21,41 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.Parser
 
+// TODO ok this is ready to try
+// TEST FAILING because we're not using it
+// We perhaps want a new "Search" class or something that connects the Index with the QueryAnalyzer
+// A "Search" should use a QueryAnalyzer, and then a QueryExecutor on an Index to return results
 case class QueryAnalyzer(
     defaultField: String,
     analyzers: Map[String, Analyzer],
 ) {
+  private def analyzeTermQ(a: Analyzer, query: Query): Either[String, Query] =
+    query match {
+      case q: Query.TermQ =>
+        val terms = NonEmptyList.fromFoldable(a.tokenize(q.q))
+        terms match {
+          case None => Left(s"Error tokenizing TermQ during analyzeTermQ: $q")
+          case Some(ts) =>
+            ts match {
+              case NonEmptyList(head, Nil) => Right(Query.TermQ(head))
+              case terms => Right(Query.Group(terms.map(Query.TermQ)))
+            }
+        }
+      case q: Query.ProximityQ => Right(q)
+      case q: Query.PrefixTerm => Right(q)
+      case q: Query.PhraseQ => Right(q)
+      case q: Query.RangeQ => Right(q)
+      case q: Query.NotQ =>
+        analyzeTermQ(a, q.q).map(qs => Query.NotQ(qs))
+      case q: Query.AndQ =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.AndQ(qs))
+      case q: Query.OrQ =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.OrQ(qs))
+      case q: Query.Group =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.Group(qs))
+      case q: Query.FieldQ => Left(s"Oops, nested field query?: $q")
+      case q => Left(s"Unsupported query encountered during analyzeTermQ: $q")
+    }
   private def analyzeQ(query: Query): Either[String, Query] =
     query match {
       case Query.TermQ(q) =>
@@ -38,19 +69,7 @@ case class QueryAnalyzer(
       case Query.FieldQ(fn, q) =>
         analyzers.get(fn) match {
           case None => Left(s"Query analysis error, field $fn is not supported in query $query")
-          case Some(a) =>
-            // Oops... I need to recurse over this query somehow
-            // I probably just need to separate out the leaf node processing and the tree traversal
-            // Make sure we don't use the default Analyzer on TermQs in a FieldQ
-            // e.g. myField:(oneTerm twoTerm)
-            // -->  FieldQ("myField", Group(TermQ("oneTerm"), TermQ("twoTerm")))
-            // I think we want to specify "leaf" functions with just an analyzer and a String => A??
-            // //val vqs: Vector[String] = a.tokenize(q)
-            // //NonEmptyList.fromFoldable(vqs) match {
-            // //  case None => Left(s"Query analysis error, no terms found after tokenizing $query")
-            // //  case Some(qs) => Right(Query.TermQ(qs.head)) // TODO return nel
-            // //}
-            Right(query)
+          case Some(a) => analyzeTermQ(a, q)
         }
       case q => Right(q)
     }
