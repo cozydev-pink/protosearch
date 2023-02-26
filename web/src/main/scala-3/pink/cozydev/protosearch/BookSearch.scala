@@ -20,8 +20,23 @@ import calico.*
 import calico.html.io.{*, given}
 import cats.effect.*
 import fs2.dom.*
+import fs2.concurrent.SignallingRef
 
 object BookSearch extends IOWebApp {
   def render: Resource[IO, HtmlElement[IO]] =
-    div("Toto, I've a feeling we're not in Kansas anymore.")
+    SignallingRef[IO].of("world").toResource.flatMap { name =>
+      div(
+        label("Your name: "),
+        input.withSelf { self =>
+          (
+            placeholder := "Enter your name here",
+            // here, input events are run through the given Pipe
+            // this starts background fibers within the lifecycle of the <input> element
+            onInput --> (_.foreach(_ => self.value.get.flatMap(name.set))),
+          )
+        },
+        span(" Hello, ", name.map(_.toUpperCase)),
+      )
+    }
+
 }
