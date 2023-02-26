@@ -29,10 +29,11 @@ val fs2V = "3.6.1"
 val laikaV = "0.19.0"
 val lucilleV = "0.0-afc5220-SNAPSHOT"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
+val scalajsDomV = "2.4.0"
 val munitV = "1.0.0-M6"
 val munitCatsEffectV = "2.0.0-M3"
 
-lazy val root = tlCrossRootProject.aggregate(core)
+lazy val root = tlCrossRootProject.aggregate(core, web)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -52,6 +53,27 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.planet42" %%% "laika-core" % laikaV,
+      "org.scalameta" %%% "munit" % munitV % Test,
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+    ),
+  )
+
+lazy val web = crossProject(JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("web"))
+  .dependsOn(core)
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    name := "protosearch-web",
+    scalaJSUseMainModuleInitializer := true,
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
+      "org.typelevel" %%% "cats-core" % catsV,
+      "org.typelevel" %%% "cats-effect" % catsEffectV,
+      "co.fs2" %%% "fs2-core" % fs2V,
+      "co.fs2" %%% "fs2-io" % fs2V,
+      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+      "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
