@@ -66,6 +66,8 @@ lazy val web = crossProject(JSPlatform)
   .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "protosearch-web",
+    scalacOptions := scalacOptions.value
+      .filterNot(_ == "-source:3.0-migration"),
     scalaJSUseMainModuleInitializer := true,
     Compile / mainClass := Some("pink.cozydev.protosearch.BookSearch"),
     libraryDependencies ++= Seq(
