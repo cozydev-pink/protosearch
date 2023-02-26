@@ -63,7 +63,6 @@ lazy val web = crossProject(JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("web"))
   .dependsOn(core)
-  .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "protosearch-web",
     scalacOptions := scalacOptions.value
