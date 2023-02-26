@@ -20,8 +20,9 @@ ThisBuild / resolvers +=
   "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
 val Scala213 = "2.13.10"
-ThisBuild / crossScalaVersions := Seq(Scala213, "3.2.2")
-ThisBuild / scalaVersion := Scala213 // the default Scala
+val Scala3 = "3.2.2"
+ThisBuild / crossScalaVersions := Seq(Scala3)
+ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val catsV = "2.9.0"
 val catsEffectV = "3.4.7"
@@ -64,8 +65,11 @@ lazy val web = crossProject(JSPlatform)
   .dependsOn(core)
   .enablePlugins(ScalaJSPlugin)
   .settings(
+    crossScalaVersions := Seq(Scala3),
+    scalaVersion := Scala3,
     name := "protosearch-web",
     scalaJSUseMainModuleInitializer := true,
+    Compile / mainClass := Some("pink.cozydev.protosearch.BookSearch"),
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
       "org.typelevel" %%% "cats-core" % catsV,
@@ -74,6 +78,7 @@ lazy val web = crossProject(JSPlatform)
       "co.fs2" %%% "fs2-io" % fs2V,
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
+      "com.armanbilge" %%% "calico" % "0.2.0-RC1",
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
