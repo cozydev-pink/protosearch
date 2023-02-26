@@ -21,7 +21,7 @@ ThisBuild / resolvers +=
 
 val Scala213 = "2.13.10"
 val Scala3 = "3.2.2"
-ThisBuild / crossScalaVersions := Seq(Scala3)
+ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val catsV = "2.9.0"
@@ -65,8 +65,6 @@ lazy val web = crossProject(JSPlatform)
   .dependsOn(core)
   .enablePlugins(ScalaJSPlugin)
   .settings(
-    crossScalaVersions := Seq(Scala3),
-    scalaVersion := Scala3,
     name := "protosearch-web",
     scalaJSUseMainModuleInitializer := true,
     Compile / mainClass := Some("pink.cozydev.protosearch.BookSearch"),
