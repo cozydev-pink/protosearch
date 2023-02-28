@@ -64,9 +64,9 @@ object RepoSearch extends IOWebApp {
         cls := "card",
         div(
           cls := "card-content",
-          p(cls := "title", repo.name),
+          p(cls := "title", a(href := repo.url, repo.name)),
+          p(cls := "subtitle", span(repo.fullName), span(s"  ✩ ${repo.stars}")),
           p(cls := "subtitle", repo.description),
-          p(cls := "subtitle", repo.fullName),
         ),
       )
     )
@@ -110,7 +110,7 @@ object RepoSearch extends IOWebApp {
       )(repos.toVector)
       val q = qAnalyzer.parse(qs)
       val results = q.flatMap(index.search)
-      results.map(hits => hits.map(i => repos(i)))
+      results.map(hits => hits.map(i => repos(i)).sortBy(-_.stars))
     }
 
     Resource
