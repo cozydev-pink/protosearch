@@ -60,6 +60,7 @@ object RepoSearch extends IOWebApp {
           cls := "card-content",
           p(cls := "title", repo.name),
           p(cls := "subtitle", repo.description),
+          p(cls := "subtitle", repo.fullName),
         ),
       )
     )
@@ -72,9 +73,31 @@ object RepoSearch extends IOWebApp {
           .stream(Request[IO](Method.GET, uri"/repo-dataset.jsonl"))
           .flatMap(r => r.body.through(Repo.parseRepos))).compile.toList
 
+    val analyzer = Analyzer.default.withLowerCasing
+    val qAnalyzer = QueryAnalyzer(
+      "description",
+      ("name", analyzer),
+      ("fullName", analyzer),
+      ("description", analyzer),
+      ("topics", analyzer),
+    )
+
+    def searchBldr(repos: List[Repo]): String => List[Repo] = qs => {
+      val index = MultiIndex.apply[Repo](
+        "description",
+        ("name", _.name, analyzer),
+        ("fullName", _.fullName, analyzer),
+        ("description", _.description.getOrElse(""), analyzer),
+        ("topics", _.topics.mkString(" "), analyzer),
+      )(repos.toVector)
+      val q = qAnalyzer.parse(qs)
+      val results = q.flatMap(index.search)
+      results.map(hits => hits.map(i => repos(i))).getOrElse(Nil)
+    }
+
     Resource
       .eval(repos)
-      .flatMap(repos => renderList(q => repos.filter(_.name == q)))
+      .flatMap(repos => renderList(searchBldr(repos)))
       .flatTap(_ => Resource.eval(IO.println("FIN")))
   }
 

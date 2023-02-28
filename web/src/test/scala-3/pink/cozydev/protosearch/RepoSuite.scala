@@ -37,7 +37,7 @@ class RepoSuite extends munit.FunSuite {
     val expected = Repo(
       "cats",
       "typelevel/cats",
-      "Lightweight, modular, and extensible library for functional programming.",
+      Some("Lightweight, modular, and extensible library for functional programming."),
       "https://github.com/typelevel/cats",
       Some("https://typelevel.org/cats/"),
       4860,
@@ -62,7 +62,7 @@ class RepoSuite extends munit.FunSuite {
     val expected = Repo(
       "cats",
       "typelevel/cats",
-      "Lightweight, modular, and extensible library for functional programming.",
+      Some("Lightweight, modular, and extensible library for functional programming."),
       "https://github.com/typelevel/cats",
       None,
       4860,
@@ -87,7 +87,7 @@ class RepoSuite extends munit.FunSuite {
     val expected = Repo(
       "cats",
       "typelevel/cats",
-      "Lightweight, modular, and extensible library for functional programming.",
+      Some("Lightweight, modular, and extensible library for functional programming."),
       "https://github.com/typelevel/cats",
       Some("https://typelevel.org/cats/"),
       4860,
