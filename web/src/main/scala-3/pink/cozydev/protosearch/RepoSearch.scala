@@ -30,7 +30,7 @@ import org.http4s.circe.CirceEntityCodec._
 
 object RepoSearch extends IOWebApp {
 
-  def renderList(search: String => List[Repo]): Resource[IO, HtmlDivElement[IO]] =
+  def renderList(search: String => Either[String, List[Repo]]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
         cls := "columns",
@@ -47,12 +47,18 @@ object RepoSearch extends IOWebApp {
               )
             },
           ),
-          ol(cls := "results", children <-- queryStr.map(q => search(q).map(result))),
+          ol(
+            cls := "results",
+            children <-- queryStr.map { q =>
+              val resultElems = search(q).map(rs => rs.map(renderListElem))
+              resultElems.fold(err => List(renderError(err)), identity)
+            },
+          ),
         ),
       )
     }
 
-  def result(repo: Repo): Resource[IO, HtmlLiElement[IO]] =
+  def renderListElem(repo: Repo): Resource[IO, HtmlLiElement[IO]] =
     li(
       div(
         cls := "card",
@@ -61,6 +67,18 @@ object RepoSearch extends IOWebApp {
           p(cls := "title", repo.name),
           p(cls := "subtitle", repo.description),
           p(cls := "subtitle", repo.fullName),
+        ),
+      )
+    )
+
+  def renderError(err: String): Resource[IO, HtmlLiElement[IO]] =
+    li(
+      div(
+        cls := "card has-background-danger-light",
+        div(
+          cls := "card-content",
+          p(cls := "title", "Error"),
+          p(cls := "subtitle has-text-danger", err),
         ),
       )
     )
@@ -82,7 +100,7 @@ object RepoSearch extends IOWebApp {
       ("topics", analyzer),
     )
 
-    def searchBldr(repos: List[Repo]): String => List[Repo] = qs => {
+    def searchBldr(repos: List[Repo]): String => Either[String, List[Repo]] = qs => {
       val index = MultiIndex.apply[Repo](
         "description",
         ("name", _.name, analyzer),
@@ -92,7 +110,7 @@ object RepoSearch extends IOWebApp {
       )(repos.toVector)
       val q = qAnalyzer.parse(qs)
       val results = q.flatMap(index.search)
-      results.map(hits => hits.map(i => repos(i))).getOrElse(Nil)
+      results.map(hits => hits.map(i => repos(i)))
     }
 
     Resource
