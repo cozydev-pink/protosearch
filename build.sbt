@@ -68,7 +68,7 @@ lazy val web = crossProject(JSPlatform)
     scalacOptions := scalacOptions.value
       .filterNot(_ == "-source:3.0-migration"),
     scalaJSUseMainModuleInitializer := true,
-    Compile / mainClass := Some("pink.cozydev.protosearch.BookSearch"),
+    Compile / mainClass := Some("pink.cozydev.protosearch.RepoSearch"),
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("3."))
         Seq(

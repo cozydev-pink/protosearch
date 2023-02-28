@@ -22,21 +22,48 @@ import cats.effect.*
 import fs2.dom.*
 import fs2.concurrent.SignallingRef
 
-object BookSearch extends IOWebApp {
-  def render: Resource[IO, HtmlElement[IO]] =
-    SignallingRef[IO].of("world").toResource.flatMap { name =>
+object RepoSearch extends IOWebApp {
+
+  case class Repo(name: String, desc: String)
+  val myRepos = List(
+    Repo("cats-effect", "The pure asynchronous runtime for Scala"),
+    Repo("fs2", "Compositional, streaming I/O library for Scala"),
+  )
+
+  def search(q: String): List[Repo] =
+    myRepos.filter(r => r.name == q)
+
+  def renderList =
+    SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
-        label("Your name: "),
-        input.withSelf { self =>
-          (
-            placeholder := "Enter your name here",
-            // here, input events are run through the given Pipe
-            // this starts background fibers within the lifecycle of the <input> element
-            onInput --> (_.foreach(_ => self.value.get.flatMap(name.set))),
-          )
-        },
-        span(" Hello, ", name.map(_.toUpperCase)),
+        cls := "columns",
+        div(
+          cls := "column is-8 is-offset-2",
+          sectionTag(
+            cls := "section",
+            input.withSelf { self =>
+              (
+                cls := "input is-medium",
+                typ := "text",
+                placeholder := "search repos...",
+                onInput --> (_.foreach(_ => self.value.get.flatMap(queryStr.set))),
+              )
+            },
+          ),
+          ol(cls := "results", children <-- queryStr.map(q => search(q).map(result))),
+        ),
       )
     }
+
+  def result(repo: Repo): Resource[IO, HtmlLiElement[IO]] =
+    li(
+      div(
+        cls := "card",
+        div(cls := "card-content", p(cls := "title", repo.name), p(cls := "subtitle", repo.desc)),
+      )
+    )
+
+  def render: Resource[IO, HtmlElement[IO]] =
+    renderList
 
 }
