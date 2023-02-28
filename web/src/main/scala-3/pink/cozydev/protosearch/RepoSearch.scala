@@ -30,14 +30,7 @@ import org.http4s.circe.CirceEntityCodec._
 
 object RepoSearch extends IOWebApp {
 
-  def getData = 
-    SignallingRef[IO].of(List.empty[Repo]).toResource.flatMap { repos =>
-      def search(q: String) =
-        repos.map(rs => rs.filter(r => r.name == q))
-      ???
-    }
-
-  def renderList(search: String => List[Repo]) =
+  def renderList(search: String => List[Repo]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
         cls := "columns",
@@ -73,12 +66,14 @@ object RepoSearch extends IOWebApp {
 
   def render: Resource[IO, HtmlElement[IO]] = {
     val client = FetchClientBuilder[IO].create
-    val repos: Stream[IO, Repo] =
-      Stream.eval(IO.println("fetching data...")) >>
-      client.stream(Request[IO](Method.GET, uri"/repo-dataset.jsonl"))
-        .flatMap(r => r.body.through(Repo.parseRepos))
-        .debug()
-    repos.compile.resource.toList
+    val repos: IO[List[Repo]] =
+      (Stream.eval(IO.println("fetching data...")) >>
+        client
+          .stream(Request[IO](Method.GET, uri"/repo-dataset.jsonl"))
+          .flatMap(r => r.body.through(Repo.parseRepos))).compile.toList
+
+    Resource
+      .eval(repos)
       .flatMap(repos => renderList(q => repos.filter(_.name == q)))
       .flatTap(_ => Resource.eval(IO.println("FIN")))
   }

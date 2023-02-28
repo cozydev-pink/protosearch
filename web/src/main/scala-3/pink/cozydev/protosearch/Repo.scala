@@ -25,7 +25,7 @@ import io.circe.fs2.*
 final case class Repo(
     name: String,
     fullName: String,
-    description: String,
+    description: Option[String],
     url: String,
     homepage: Option[String],
     stars: Int,
@@ -37,7 +37,7 @@ object Repo {
       for {
         name <- c.downField("name").as[String]
         fullName <- c.downField("full_name").as[String]
-        desc <- c.downField("description").as[String]
+        desc <- c.downField("description").as[Option[String]]
         url <- c.downField("html_url").as[String]
         h <- c.downField("homepage").as[Option[String]]
         homepage = h.filter(_.nonEmpty)
