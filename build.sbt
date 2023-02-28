@@ -80,6 +80,8 @@ lazy val web = crossProject(JSPlatform)
           "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
           "pink.cozydev" %%% "lucille" % lucilleV,
           "com.armanbilge" %%% "calico" % "0.2.0-RC1",
+          "io.circe" %%% "circe-core" % "0.14.4",
+          "io.circe" %%% "circe-parser" % "0.14.4",
           "org.scalameta" %%% "munit" % munitV % Test,
           "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
         )
