@@ -16,24 +16,28 @@
 
 package pink.cozydev.protosearch
 
+import cats.syntax.all._
 import calico.*
 import calico.html.io.{*, given}
 import cats.effect.*
+import fs2.Stream
 import fs2.dom.*
 import fs2.concurrent.SignallingRef
+import org.http4s.{Request, Method}
+import org.http4s.dom.FetchClientBuilder
+import org.http4s.implicits.uri
+import org.http4s.circe.CirceEntityCodec._
 
 object RepoSearch extends IOWebApp {
 
-  case class Repo(name: String, desc: String)
-  val myRepos = List(
-    Repo("cats-effect", "The pure asynchronous runtime for Scala"),
-    Repo("fs2", "Compositional, streaming I/O library for Scala"),
-  )
+  def getData = 
+    SignallingRef[IO].of(List.empty[Repo]).toResource.flatMap { repos =>
+      def search(q: String) =
+        repos.map(rs => rs.filter(r => r.name == q))
+      ???
+    }
 
-  def search(q: String): List[Repo] =
-    myRepos.filter(r => r.name == q)
-
-  def renderList =
+  def renderList(search: String => List[Repo]) =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
         cls := "columns",
@@ -59,11 +63,24 @@ object RepoSearch extends IOWebApp {
     li(
       div(
         cls := "card",
-        div(cls := "card-content", p(cls := "title", repo.name), p(cls := "subtitle", repo.desc)),
+        div(
+          cls := "card-content",
+          p(cls := "title", repo.name),
+          p(cls := "subtitle", repo.description),
+        ),
       )
     )
 
-  def render: Resource[IO, HtmlElement[IO]] =
-    renderList
+  def render: Resource[IO, HtmlElement[IO]] = {
+    val client = FetchClientBuilder[IO].create
+    val repos: Stream[IO, Repo] =
+      Stream.eval(IO.println("fetching data...")) >>
+      client.stream(Request[IO](Method.GET, uri"/repo-dataset.jsonl"))
+        .flatMap(r => r.body.through(Repo.parseRepos))
+        .debug()
+    repos.compile.resource.toList
+      .flatMap(repos => renderList(q => repos.filter(_.name == q)))
+      .flatTap(_ => Resource.eval(IO.println("FIN")))
+  }
 
 }

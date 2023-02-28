@@ -82,6 +82,11 @@ lazy val web = crossProject(JSPlatform)
           "com.armanbilge" %%% "calico" % "0.2.0-RC1",
           "io.circe" %%% "circe-core" % "0.14.4",
           "io.circe" %%% "circe-parser" % "0.14.4",
+          "io.circe" %%% "circe-fs2" % "0.14.1",
+          "org.http4s" %%% "http4s-dom" % "0.2.7",
+          "org.http4s" %%% "http4s-core" % "0.23.18",
+          "org.http4s" %%% "http4s-circe" % "0.23.18",
+          "org.http4s" %%% "http4s-dsl" % "0.23.18",
           "org.scalameta" %%% "munit" % munitV % Test,
           "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
         )

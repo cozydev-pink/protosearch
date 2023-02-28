@@ -16,7 +16,11 @@
 
 package pink.cozydev.protosearch
 
+import cats.effect.IO
+import fs2.Stream
+import fs2.io.file.{Files, Path}
 import io.circe.{Decoder, Encoder, HCursor, Json}
+import io.circe.fs2.*
 
 final case class Repo(
     name: String,
@@ -41,5 +45,8 @@ object Repo {
         topics <- c.downField("topics").as[List[String]]
       } yield Repo(name, fullName, desc, url, homepage, stars, topics)
   }
+
+  def parseRepos(bytes: Stream[IO, Byte]): Stream[IO, Repo] =
+    bytes.through(byteStreamParser).through(decoder[IO, Repo])
 
 }
