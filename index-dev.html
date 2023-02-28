@@ -1,12 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>BookSearch</title>
-  </head>
-  <body>
-    <!-- Include Scala.js compiled code -->
-    <div id="app"></div>
-    <script type="text/javascript" src="web/.js/target/scala-3.2.2/protosearch-web-fastopt/main.js"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8">
+  <title>BookSearch</title>
+  <link href=" https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css " rel="stylesheet">
+</head>
+
+<body>
+  <!-- Include Scala.js compiled code -->
+  <div id="app"></div>
+  <script type="text/javascript" src="web/.js/target/scala-3.2.2/protosearch-web-fastopt/main.js"></script>
+
+
+  <div class="columns">
+    <div class="column is-8 is-offset-2">
+      <section class="section">
+        <input class="input is-medium" type="text" placeholder="search...">
+      </section>
+      <ol class="suggestions">
+        <li id="result-1">
+          <div class="card">
+            <div class="card-content">
+              <p class="title">
+                cats-effect
+              </p>
+              <p class="subtitle">
+                The pure asynchronous runtime for Scala
+              </p>
+            </div>
+          </div>
+        </li>
+        <li id="result-2">
+          <div class="card">
+            <div class="card-content">
+              <p class="title">
+                fs2
+              </p>
+              <p class="subtitle">
+                Compositional, streaming I/O library for Scala
+              </p>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</body>
+
 </html>
