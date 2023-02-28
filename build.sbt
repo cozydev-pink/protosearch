@@ -20,8 +20,9 @@ ThisBuild / resolvers +=
   "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 
 val Scala213 = "2.13.10"
-ThisBuild / crossScalaVersions := Seq(Scala213, "3.2.2")
-ThisBuild / scalaVersion := Scala213 // the default Scala
+val Scala3 = "3.2.2"
+ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
+ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val catsV = "2.9.0"
 val catsEffectV = "3.4.7"
@@ -62,19 +63,33 @@ lazy val web = crossProject(JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("web"))
   .dependsOn(core)
-  .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "protosearch-web",
+    scalacOptions := scalacOptions.value
+      .filterNot(_ == "-source:3.0-migration"),
     scalaJSUseMainModuleInitializer := true,
-    libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
-      "org.typelevel" %%% "cats-core" % catsV,
-      "org.typelevel" %%% "cats-effect" % catsEffectV,
-      "co.fs2" %%% "fs2-core" % fs2V,
-      "co.fs2" %%% "fs2-io" % fs2V,
-      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
-      "pink.cozydev" %%% "lucille" % lucilleV,
-      "org.scalameta" %%% "munit" % munitV % Test,
-      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-    ),
+    Compile / mainClass := Some("pink.cozydev.protosearch.RepoSearch"),
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("3."))
+        Seq(
+          "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
+          "org.typelevel" %%% "cats-core" % catsV,
+          "org.typelevel" %%% "cats-effect" % catsEffectV,
+          "co.fs2" %%% "fs2-core" % fs2V,
+          "co.fs2" %%% "fs2-io" % fs2V,
+          "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+          "pink.cozydev" %%% "lucille" % lucilleV,
+          "com.armanbilge" %%% "calico" % "0.2.0-RC1",
+          "io.circe" %%% "circe-core" % "0.14.4",
+          "io.circe" %%% "circe-parser" % "0.14.4",
+          "io.circe" %%% "circe-fs2" % "0.14.1",
+          "org.http4s" %%% "http4s-dom" % "0.2.7",
+          "org.http4s" %%% "http4s-core" % "0.23.18",
+          "org.http4s" %%% "http4s-circe" % "0.23.18",
+          "org.http4s" %%% "http4s-dsl" % "0.23.18",
+          "org.scalameta" %%% "munit" % munitV % Test,
+          "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+        )
+      else Seq()
+    },
   )
