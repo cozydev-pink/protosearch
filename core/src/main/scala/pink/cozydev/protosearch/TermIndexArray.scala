@@ -54,10 +54,25 @@ sealed abstract class TermIndexArray private (
     }
   }
 
-  def docsWithinRange(left: Int, right: Int): Set[Int] = {
+  /** Find where the term would fit in the term list. */
+  def termIndexWhere(term: String): Int = {
+    val idx = termDict.indexWhere(_ >= term)
+    if (idx == -1) termDict.length else idx
+  }
+
+  /** Get the list of terms between left and right. */
+  def termsForRange(left: String, right: String): List[String] = {
+    val li = termIndexWhere(left)
+    val ri = termIndexWhere(right)
+    termDict.slice(li, ri).toList
+  }
+
+  /** For every term between left and right, get the docs using those terms. */
+  def docsForRange(left: String, right: String): Set[Int] = {
     import scala.collection.mutable.HashSet
     val bldr = HashSet.empty[Int]
-    Range(left, right).foreach(i => bldr.addAll(evenElems(tfData(i))))
+    Range(termIndexWhere(left), termIndexWhere(right))
+      .foreach(i => bldr.addAll(evenElems(tfData(i))))
     bldr.toSet
   }
 
