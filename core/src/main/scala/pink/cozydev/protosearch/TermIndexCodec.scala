@@ -21,16 +21,15 @@ import scodec._
 object TermIndexCodec {
   val vint = codecs.vint
 
-  val str = codecs.utf8_32
-  val strNl = codecs.vectorOfN(vint, str).withContext("term list")
+  val terms = TermListCodec.termList
 
   val termV = codecs.vectorOfN(vint, vint)
   val vecTermV = codecs.vectorOfN(vint, termV).withContext("term frequencies")
 
   val numDocs = vint.withContext("numDocs")
   val termIndex: Codec[TermIndexArray] =
-    (numDocs :: vecTermV :: strNl)
-      .as[(Int, Vector[Vector[Int]], Vector[String])]
+    (numDocs :: vecTermV :: terms)
+      .as[(Int, Vector[Vector[Int]], Array[String])]
       .xmap(
         TermIndexArray.unsafeFromTuple3,
         ti => ti.serializeToTuple3,

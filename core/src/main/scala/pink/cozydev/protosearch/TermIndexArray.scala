@@ -21,7 +21,7 @@ import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
-    private val termDict: Vector[String],
+    private val termDict: Array[String],
     val tfData: Vector[Vector[Int]],
     val numDocs: Int,
 ) {
@@ -159,7 +159,7 @@ sealed abstract class TermIndexArray private (
     -1
   }
 
-  private[protosearch] lazy val serializeToTuple3: (Int, Vector[Vector[Int]], Vector[String]) =
+  private[protosearch] lazy val serializeToTuple3: (Int, Vector[Vector[Int]], Array[String]) =
     (numDocs, tfData, termDict)
 
 }
@@ -168,7 +168,7 @@ object TermIndexArray {
   import scala.collection.mutable.Stack
 
   def unsafeFromTuple3(
-      num_data_terms: (Int, Vector[Vector[Int]], Vector[String])
+      num_data_terms: (Int, Vector[Vector[Int]], Array[String])
   ): TermIndexArray = {
     val numDocs = num_data_terms._1
     val tfData = num_data_terms._2
@@ -211,6 +211,6 @@ object TermIndexArray {
       keys.addOne(k)
       values.addOne(v.toVector)
     }
-    new TermIndexArray(keys.result().toVector, values.result().toVector, docLen) {}
+    new TermIndexArray(keys.result(), values.result().toVector, docLen) {}
   }
 }
