@@ -21,7 +21,7 @@ import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
-    val termDict: Vector[String],
+    private val termDict: Vector[String],
     val tfData: Vector[Vector[Int]],
     val numDocs: Int,
 ) {
@@ -158,6 +158,9 @@ sealed abstract class TermIndexArray private (
     }
     -1
   }
+
+  private[protosearch] lazy val serializeToTuple3: (Int, Vector[Vector[Int]], Vector[String]) =
+    (numDocs, tfData, termDict)
 
 }
 object TermIndexArray {

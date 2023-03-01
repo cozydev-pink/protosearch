@@ -33,7 +33,7 @@ object TermIndexCodec {
       .as[(Int, Vector[Vector[Int]], Vector[String])]
       .xmap(
         TermIndexArray.unsafeFromTuple3,
-        ti => (ti.numDocs, ti.tfData, ti.termDict),
+        ti => ti.serializeToTuple3,
       )
 }
 
