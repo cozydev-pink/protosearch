@@ -21,7 +21,6 @@ import scodec.bits.BitVector
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 
-
 private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
     extends Codec[Array[A]] {
 
