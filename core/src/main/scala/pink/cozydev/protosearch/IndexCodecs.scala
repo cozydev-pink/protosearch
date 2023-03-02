@@ -34,5 +34,21 @@ object IndexCodecs {
       )
       .withToString(s"termListOfN($countCodec, $strCodec)")
 
+  def postingsOfN(countCodec: Codec[Int], intCodec: Codec[Int]): Codec[Array[Array[Int]]] =
+    countCodec
+      .flatZip(count => new PostingsCodec(intCodec, Some(count)))
+      .narrow(
+        { case (cnt, xs) =>
+          if (xs.size == cnt) Attempt.successful(xs)
+          else {
+            val valueBits = intCodec.sizeBound.exact.getOrElse(intCodec.sizeBound.lowerBound)
+            Attempt.failure(Err.insufficientBits(cnt * valueBits, xs.size * valueBits))
+          }
+        },
+        (xs: Array[Array[Int]]) => (xs.size, xs),
+      )
+      .withToString(s"postingsOfN($countCodec, $intCodec)")
+
   val termList = termListOfN(codecs.vint, codecs.utf8_32)
+  val postings = postingsOfN(codecs.vint, codecs.vint)
 }

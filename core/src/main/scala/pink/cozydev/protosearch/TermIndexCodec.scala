@@ -22,14 +22,12 @@ object TermIndexCodec {
   val vint = codecs.vint
 
   val terms = IndexCodecs.termList
-
-  val termV = codecs.vectorOfN(vint, vint)
-  val vecTermV = codecs.vectorOfN(vint, termV).withContext("term frequencies")
-
+  val postings = IndexCodecs.postings
   val numDocs = vint.withContext("numDocs")
+
   val termIndex: Codec[TermIndexArray] =
-    (numDocs :: vecTermV :: terms)
-      .as[(Int, Vector[Vector[Int]], Array[String])]
+    (numDocs :: postings :: terms)
+      .as[(Int, Array[Array[Int]], Array[String])]
       .xmap(
         TermIndexArray.unsafeFromTuple3,
         ti => ti.serializeToTuple3,

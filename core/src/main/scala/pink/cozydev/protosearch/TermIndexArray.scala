@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
     private val termDict: Array[String],
-    val tfData: Vector[Vector[Int]],
+    private val tfData: Array[Array[Int]],
     val numDocs: Int,
 ) {
 
@@ -132,7 +132,7 @@ sealed abstract class TermIndexArray private (
       }
     }
 
-  private def evenElems(arr: Vector[Int]): List[Int] = {
+  private def evenElems(arr: Array[Int]): List[Int] = {
     require(
       arr.size >= 2 && arr.size % 2 == 0,
       "evenElems expects even sized arrays of 2 or greater",
@@ -150,7 +150,7 @@ sealed abstract class TermIndexArray private (
     }
   }
 
-  private def indexForDocId(arr: Vector[Int], id: Int): Int = {
+  private def indexForDocId(arr: Array[Int], id: Int): Int = {
     var i = 0
     while (i < arr.length) {
       if (arr(i) == id) return i
@@ -159,7 +159,7 @@ sealed abstract class TermIndexArray private (
     -1
   }
 
-  private[protosearch] lazy val serializeToTuple3: (Int, Vector[Vector[Int]], Array[String]) =
+  private[protosearch] lazy val serializeToTuple3: (Int, Array[Array[Int]], Array[String]) =
     (numDocs, tfData, termDict)
 
 }
@@ -168,7 +168,7 @@ object TermIndexArray {
   import scala.collection.mutable.Stack
 
   def unsafeFromTuple3(
-      num_data_terms: (Int, Vector[Vector[Int]], Array[String])
+      num_data_terms: (Int, Array[Array[Int]], Array[String])
   ): TermIndexArray = {
     val numDocs = num_data_terms._1
     val tfData = num_data_terms._2
@@ -203,14 +203,14 @@ object TermIndexArray {
       docId += 1
     }
     val keys = ArrayBuilder.make[String]
-    val values = ArrayBuilder.make[Vector[Int]]
+    val values = ArrayBuilder.make[Array[Int]]
     val size = m.size
     keys.sizeHint(size)
     values.sizeHint(size)
     m.foreachEntry { (k, v) =>
       keys.addOne(k)
-      values.addOne(v.toVector)
+      values.addOne(v.toArray)
     }
-    new TermIndexArray(keys.result(), values.result().toVector, docLen) {}
+    new TermIndexArray(keys.result(), values.result(), docLen) {}
   }
 }
