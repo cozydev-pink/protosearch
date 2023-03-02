@@ -166,15 +166,7 @@ sealed abstract class TermIndexArray private (
 object TermIndexArray {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
-
-  def unsafeFromTuple3(
-      num_data_terms: (Int, Array[Array[Int]], Array[String])
-  ): TermIndexArray = {
-    val numDocs = num_data_terms._1
-    val tfData = num_data_terms._2
-    val termDict = num_data_terms._3
-    new TermIndexArray(termDict, tfData, numDocs) {}
-  }
+  import scodec.{Codec, codecs}
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]
@@ -212,5 +204,18 @@ object TermIndexArray {
       values.addOne(v.toArray)
     }
     new TermIndexArray(keys.result(), values.result(), docLen) {}
+  }
+
+  val codec: Codec[TermIndexArray] = {
+    val terms = IndexCodecs.termList
+    val postings = IndexCodecs.postings
+    val numDocs = codecs.vint.withContext("numDocs")
+
+    (numDocs :: postings :: terms)
+      .as[(Int, Array[Array[Int]], Array[String])]
+      .xmap(
+        { case (numDocs, tfData, terms) => new TermIndexArray(terms, tfData, numDocs) {} },
+        ti => ti.serializeToTuple3,
+      )
   }
 }

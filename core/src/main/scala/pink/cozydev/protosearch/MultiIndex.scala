@@ -58,6 +58,8 @@ case class MultiIndex(
 
 }
 object MultiIndex {
+  import scodec.{Codec, codecs}
+
   private case class Bldr[A](
       name: String,
       getter: A => String,
@@ -88,5 +90,23 @@ object MultiIndex {
         defaultField,
       )
     }
+  }
+
+  val codec: Codec[MultiIndex] = {
+
+    val indexes: Codec[Map[String, TermIndexArray]] =
+      codecs
+        .listOfN(codecs.vint, (codecs.utf8_32 :: TermIndexArray.codec).as[(String, TermIndexArray)])
+        .xmap(_.toMap, _.toList)
+    val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
+    val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
+    val multiIndex: Codec[MultiIndex] =
+      (indexes :: defaultField :: defaultOr)
+        .as[(Map[String, TermIndexArray], String, Boolean)]
+        .xmap(
+          { case (in, dF, dOr) => MultiIndex.apply(in, dF, dOr) },
+          mi => (mi.indexes, mi.defaultField, mi.defaultOR),
+        )
+    multiIndex
   }
 }
