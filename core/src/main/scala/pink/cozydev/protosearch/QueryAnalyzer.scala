@@ -63,8 +63,8 @@ case class QueryAnalyzer(
       case Query.TermQ(q) =>
         // TODO This is a hack, the Lucille parser tokenizes on white space currently
         // We really want to pass in our tokenizer somehow
-        val vqs: Vector[String] = analyzers(defaultField).tokenize(q)
-        NonEmptyList.fromFoldable(vqs) match {
+        val qs: List[String] = analyzers(defaultField).tokenize(q)
+        NonEmptyList.fromList(qs) match {
           case None => Left(s"Query analysis error, no terms found after tokenizing $query")
           case Some(qs) => Right(Query.TermQ(qs.head)) // TODO return nel
         }

@@ -24,7 +24,7 @@ class MultiIndexSuite extends munit.FunSuite {
   val fish = Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess")
   val eggs = Book("Green Eggs and Ham", "Dr. Suess")
 
-  val allBooks = Vector(peter, mice, fish, eggs)
+  val allBooks = List(peter, mice, fish, eggs)
 
   val analyzer = Analyzer.default.withLowerCasing
   val index = MultiIndex.apply[Book](

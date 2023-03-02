@@ -64,14 +64,14 @@ object MultiIndex {
       name: String,
       getter: A => String,
       analyzer: Analyzer,
-      acc: ListBuffer[Vector[String]],
+      acc: ListBuffer[List[String]],
   )
 
   def apply[A](
       defaultField: String,
       head: (String, A => String, Analyzer),
       tail: (String, A => String, Analyzer)*
-  ): Vector[A] => MultiIndex = {
+  ): List[A] => MultiIndex = {
 
     val bldrs = (head :: tail.toList).map { case (name, getter, tokenizer) =>
       Bldr(name, getter, tokenizer, ListBuffer.empty)
@@ -86,7 +86,7 @@ object MultiIndex {
       // TODO let's delay defining the default field even further
       // Also, let's make it optional, with no field meaning all fields?
       MultiIndex(
-        bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toVector))).toMap,
+        bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toList))).toMap,
         defaultField,
       )
     }

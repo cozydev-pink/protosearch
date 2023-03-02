@@ -21,7 +21,7 @@ object BookIndex {
     override def toString = s"\"$title\" by $author"
   }
 
-  val corpus: Vector[Book] = Vector(
+  val corpus: List[Book] = List(
     Book("The Tale of Peter Rabbit", "Beatrix Potter"),
     Book("The Tale of Two Bad Mice", "Beatrix Potter"),
     Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),

@@ -17,13 +17,13 @@
 package pink.cozydev.protosearch
 
 sealed class Analyzer private (
-    tokenizer: (String) => Vector[String],
+    tokenizer: (String) => List[String],
     lowerCase: Boolean,
     stopWords: Set[String],
 ) {
 
   def copy(
-      tokenizer: (String => Vector[String]) = tokenizer,
+      tokenizer: (String => List[String]) = tokenizer,
       lowerCase: Boolean = lowerCase,
       stopWords: Set[String] = stopWords,
   ): Analyzer =
@@ -32,10 +32,10 @@ sealed class Analyzer private (
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
 
-  def withTokenizer(tk: (String) => Vector[String]): Analyzer =
+  def withTokenizer(tk: (String) => List[String]): Analyzer =
     copy(tokenizer = tk)
 
-  def tokenize(s: String): Vector[String] =
+  def tokenize(s: String): List[String] =
     if (lowerCase)
       tokenizer(s.toLowerCase())
     else
@@ -44,7 +44,7 @@ sealed class Analyzer private (
 object Analyzer {
   def default: Analyzer =
     new Analyzer(
-      TokenStream.tokenizeSpaceV,
+      TokenStream.tokenizeSpaceL,
       lowerCase = false,
       stopWords = Set.empty,
     ) {}
