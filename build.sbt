@@ -25,13 +25,13 @@ ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val catsV = "2.9.0"
-val catsEffectV = "3.4.7"
+val catsEffectV = "3.4.8"
 val fs2V = "3.6.1"
 val laikaV = "0.19.0"
 val lucilleV = "0.0-dacd035-SNAPSHOT"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 val scalajsDomV = "2.4.0"
-val munitV = "1.0.0-M6"
+val munitV = "1.0.0-M7"
 val munitCatsEffectV = "2.0.0-M3"
 
 lazy val root = tlCrossRootProject.aggregate(core, web)
@@ -79,7 +79,7 @@ lazy val web = crossProject(JSPlatform)
           "co.fs2" %%% "fs2-io" % fs2V,
           "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
           "pink.cozydev" %%% "lucille" % lucilleV,
-          "com.armanbilge" %%% "calico" % "0.2.0-RC1",
+          "com.armanbilge" %%% "calico" % "0.2.0-RC2",
           "io.circe" %%% "circe-core" % "0.14.4",
           "io.circe" %%% "circe-parser" % "0.14.4",
           "io.circe" %%% "circe-fs2" % "0.14.1",
