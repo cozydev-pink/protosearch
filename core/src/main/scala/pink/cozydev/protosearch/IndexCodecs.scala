@@ -20,21 +20,6 @@ import scodec._
 import scala.reflect.ClassTag
 
 object IndexCodecs {
-  def termListOfN(countCodec: Codec[Int], strCodec: Codec[String]): Codec[Array[String]] =
-    countCodec
-      .flatZip(count => new TermListCodec(strCodec, Some(count)))
-      .narrow(
-        { case (cnt, xs) =>
-          if (xs.size == cnt) Attempt.successful(xs)
-          else {
-            val valueBits = strCodec.sizeBound.exact.getOrElse(strCodec.sizeBound.lowerBound)
-            Attempt.failure(Err.insufficientBits(cnt * valueBits, xs.size * valueBits))
-          }
-        },
-        (xs: Array[String]) => (xs.size, xs),
-      )
-      .withToString(s"termListOfN($countCodec, $strCodec)")
-
   def arrayOfN[A: ClassTag](countCodec: Codec[Int], valueCodec: Codec[A]): Codec[Array[A]] =
     countCodec
       .flatZip(count => new ArrayCodec(valueCodec, Some(count)))
@@ -48,8 +33,8 @@ object IndexCodecs {
         },
         (xs: Array[A]) => (xs.size, xs),
       )
-      .withToString(s"postingsOfN($countCodec, $valueCodec)")
+      .withToString(s"arrayOfN($countCodec, $valueCodec)")
 
-  val termList = termListOfN(codecs.vint, codecs.utf8_32)
-  val postings = arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint))
+  val termList = arrayOfN(codecs.vint, codecs.utf8_32).withContext("termList")
+  val postings = arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint)).withContext("postings")
 }
