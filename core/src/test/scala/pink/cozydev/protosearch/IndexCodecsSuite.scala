@@ -17,17 +17,23 @@
 package pink.cozydev.protosearch
 
 class IndexCodecsSuite extends munit.FunSuite {
-  val index = CatIndex.index
+  val termL = List(
+    "hi",
+    "hello",
+    "goodbye",
+  )
 
-  test("TermIndexCodec.termIndex encodes") {
-    val bytes = TermIndexArray.codec.encode(index)
+  test("IndexCodecs.termList encodes") {
+    val terms = termL.toArray
+    val bytes = IndexCodecs.termList.encode(terms)
     assert(bytes.isSuccessful)
   }
 
-  test("TermIndexCodec.termIndex round trips") {
-    val bytes = TermIndexArray.codec.encode(index)
-    val indexDecoded = bytes.flatMap(TermIndexArray.codec.decodeValue)
-    assert(indexDecoded.isSuccessful)
+  test("IndexCodecs.termList round trips") {
+    val terms = termL.toArray
+    val bytes = IndexCodecs.termList.encode(terms)
+    val termsDecoded = bytes.flatMap(IndexCodecs.termList.decodeValue)
+    assert(termsDecoded.isSuccessful)
   }
 
 }
