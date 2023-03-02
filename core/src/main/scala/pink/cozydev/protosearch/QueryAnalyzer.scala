@@ -82,6 +82,19 @@ case class QueryAnalyzer(
           case None => Left(s"Query analysis error, field $fn is not supported in query $query")
           case Some(a) => analyzeTermQ(a, q).map(qq => Query.FieldQ(fn, qq))
         }
+      case Query.PhraseQ(q) =>
+        // TODO This is also a hack, we don't really support phrase queries yet
+        // But if the phrase contains a single term, we can do it!
+        val qs: List[String] = analyzers(defaultField).tokenize(q)
+        NonEmptyList.fromList(qs) match {
+          case None => Left(s"Query analysis error, no terms found after tokenizing $query")
+          case Some(qs) =>
+            if (qs.length == 1) Right(Query.PhraseQ(qs.head))
+            else
+              Left(
+                s"Query analysis error, PhraseQ tokenized into multiple terms, this should be supported, but isn't yet"
+              )
+        }
       case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ.apply)
       case q: Query.OrQ => q.qs.traverse(analyzeQ).map(Query.OrQ.apply)
       case q: Query.Group => q.qs.traverse(analyzeQ).map(Query.Group.apply)
@@ -90,7 +103,6 @@ case class QueryAnalyzer(
       case q: Query.UnaryPlus => analyzeQ(q.q).map(Query.UnaryPlus.apply)
       case q: Query.ProximityQ => Right(q)
       case q: Query.PrefixTerm => Right(q)
-      case q: Query.PhraseQ => Right(q)
       case q: Query.RangeQ => Right(q)
       case q: Query.FuzzyTerm => Right(q)
     }

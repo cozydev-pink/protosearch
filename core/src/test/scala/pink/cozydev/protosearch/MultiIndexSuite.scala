@@ -97,4 +97,19 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(eggs)))
   }
 
+  test("single term phrase query (original casing)") {
+    val books = search("\"Eggs\"")
+    assertEquals(books, Right(List(eggs)))
+  }
+
+  test("single term phrase query") {
+    val books = search("\"eggs\"")
+    assertEquals(books, Right(List(eggs)))
+  }
+
+  test("multi term phrase query fails") {
+    val books = search("\"Green Eggs\"")
+    assert(books.isLeft)
+  }
+
 }
