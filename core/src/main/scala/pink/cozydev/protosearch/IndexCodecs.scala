@@ -17,6 +17,7 @@
 package pink.cozydev.protosearch
 
 import scodec._
+import scala.reflect.ClassTag
 
 object IndexCodecs {
   def termListOfN(countCodec: Codec[Int], strCodec: Codec[String]): Codec[Array[String]] =
@@ -34,21 +35,21 @@ object IndexCodecs {
       )
       .withToString(s"termListOfN($countCodec, $strCodec)")
 
-  def postingsOfN(countCodec: Codec[Int], intCodec: Codec[Int]): Codec[Array[Array[Int]]] =
+  def arrayOfN[A: ClassTag](countCodec: Codec[Int], valueCodec: Codec[A]): Codec[Array[A]] =
     countCodec
-      .flatZip(count => new PostingsCodec(intCodec, Some(count)))
+      .flatZip(count => new ArrayCodec(valueCodec, Some(count)))
       .narrow(
         { case (cnt, xs) =>
           if (xs.size == cnt) Attempt.successful(xs)
           else {
-            val valueBits = intCodec.sizeBound.exact.getOrElse(intCodec.sizeBound.lowerBound)
+            val valueBits = valueCodec.sizeBound.exact.getOrElse(valueCodec.sizeBound.lowerBound)
             Attempt.failure(Err.insufficientBits(cnt * valueBits, xs.size * valueBits))
           }
         },
-        (xs: Array[Array[Int]]) => (xs.size, xs),
+        (xs: Array[A]) => (xs.size, xs),
       )
-      .withToString(s"postingsOfN($countCodec, $intCodec)")
+      .withToString(s"postingsOfN($countCodec, $valueCodec)")
 
   val termList = termListOfN(codecs.vint, codecs.utf8_32)
-  val postings = postingsOfN(codecs.vint, codecs.vint)
+  val postings = arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint))
 }

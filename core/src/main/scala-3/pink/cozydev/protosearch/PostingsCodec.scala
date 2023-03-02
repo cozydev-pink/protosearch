@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import scodec._
 import scodec.bits.BitVector
+import scala.reflect.ClassTag
 
 private[protosearch] final class ArrayIntCodec(codec: Codec[Int], limit: Option[Int] = None)
     extends Codec[Array[Int]] {
@@ -35,19 +36,19 @@ private[protosearch] final class ArrayIntCodec(codec: Codec[Int], limit: Option[
   override def toString = s"arrayInt($codec)"
 }
 
-private[protosearch] final class PostingsCodec(codec: Codec[Int], limit: Option[Int] = None)
-    extends Codec[Array[Array[Int]]] {
+private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
+    extends Codec[Array[A]] {
 
   def sizeBound: SizeBound = limit match {
     case None => SizeBound.unknown
     case Some(lim) => codec.sizeBound * lim.toLong
   }
 
-  def encode(array2: Array[Array[Int]]) =
-    (new ArrayIntCodec(codec, limit)).encodeAll(array2)
+  def encode(array: Array[A]) =
+    codec.encodeAll(array)
 
   def decode(buffer: BitVector) =
-    (new ArrayIntCodec(codec, limit)).collect[Array, Array[Int]](buffer, limit)
+    codec.collect[Array, A](buffer, limit)
 
-  override def toString = s"postings($codec)"
+  override def toString = s"arrayCodec($codec)"
 }

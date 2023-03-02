@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 import scodec._
 import scodec.bits.BitVector
 import scala.collection.immutable.ArraySeq
+import scala.reflect.ClassTag
 
 private[protosearch] final class ArrayIntCodec(codec: Codec[Int], limit: Option[Int] = None)
     extends Codec[Array[Int]] {
@@ -36,20 +37,20 @@ private[protosearch] final class ArrayIntCodec(codec: Codec[Int], limit: Option[
   override def toString = s"arrayInt($codec)"
 }
 
-private[protosearch] final class PostingsCodec(codec: Codec[Int], limit: Option[Int] = None)
-    extends Codec[Array[Array[Int]]] {
+private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
+    extends Codec[Array[A]] {
 
   def sizeBound: SizeBound = limit match {
     case None => SizeBound.unknown
     case Some(lim) => codec.sizeBound * lim.toLong
   }
 
-  def encode(array2: Array[Array[Int]]) =
+  def encode(array: Array[A]) =
     // safe, encodeSeq does not mutate the array
-    Encoder.encodeSeq(new ArrayIntCodec(codec, limit))(ArraySeq.unsafeWrapArray(array2))
+    Encoder.encodeSeq(codec)(ArraySeq.unsafeWrapArray(array))
 
   def decode(buffer: BitVector) =
-    Decoder.decodeCollect[Array, Array[Int]](new ArrayIntCodec(codec, limit), limit)(buffer)
+    Decoder.decodeCollect[Array, A](codec, limit)(buffer)
 
-  override def toString = s"postings($codec)"
+  override def toString = s"arrayCodec($codec)"
 }
