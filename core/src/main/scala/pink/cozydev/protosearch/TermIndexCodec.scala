@@ -21,7 +21,7 @@ import scodec._
 object TermIndexCodec {
   val vint = codecs.vint
 
-  val terms = TermListCodec.termList
+  val terms = IndexCodecs.termList
 
   val termV = codecs.vectorOfN(vint, vint)
   val vecTermV = codecs.vectorOfN(vint, termV).withContext("term frequencies")

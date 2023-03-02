@@ -33,21 +33,3 @@ private[protosearch] final class TermListCodec(codec: Codec[String], limit: Opti
 
   override def toString = s"termList($codec)"
 }
-object TermListCodec {
-  def termListOfN(countCodec: Codec[Int], strCodec: Codec[String]): Codec[Array[String]] =
-    countCodec
-      .flatZip(count => new TermListCodec(strCodec, Some(count)))
-      .narrow(
-        { case (cnt, xs) =>
-          if (xs.size == cnt) Attempt.successful(xs)
-          else {
-            val valueBits = strCodec.sizeBound.exact.getOrElse(strCodec.sizeBound.lowerBound)
-            Attempt.failure(Err.insufficientBits(cnt * valueBits, xs.size * valueBits))
-          }
-        },
-        xs => (xs.size, xs),
-      )
-      .withToString(s"termListOfN($countCodec, $strCodec)")
-
-  val termList = termListOfN(codecs.vint, codecs.utf8_32)
-}

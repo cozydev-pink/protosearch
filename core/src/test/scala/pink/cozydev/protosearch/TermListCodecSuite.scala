@@ -24,7 +24,7 @@ class TermListCodecSuite extends munit.FunSuite {
   )
   test("TermListCodec.termList") {
     val terms = termL.toArray
-    val bytes = TermListCodec.termList.encode(terms)
+    val bytes = IndexCodecs.termList.encode(terms)
     assert(bytes.isSuccessful)
   }
 
