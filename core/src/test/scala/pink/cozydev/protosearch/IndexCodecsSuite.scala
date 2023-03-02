@@ -16,6 +16,8 @@
 
 package pink.cozydev.protosearch
 
+import scodec.{Attempt, Codec, codecs}
+
 class IndexCodecsSuite extends munit.FunSuite {
   val termL = List(
     "hi",
@@ -34,6 +36,30 @@ class IndexCodecsSuite extends munit.FunSuite {
     val bytes = IndexCodecs.termList.encode(terms)
     val termsDecoded = bytes.flatMap(IndexCodecs.termList.decodeValue)
     assert(termsDecoded.isSuccessful)
+  }
+
+  val intArray = Array(1, 2, 3, 30, 20, 10, 100, 200, 300)
+
+  test("IndexCodecs.arrayOfN builds round tripping codecs") {
+    val codec: Codec[Array[Int]] = IndexCodecs.arrayOfN(codecs.vint, codecs.vint)
+    val bytes = codec.encode(intArray)
+    val arrayDecoded = bytes.flatMap(codec.decodeValue)
+    val decodedList = arrayDecoded.map(_.toList)
+    val expected = Attempt.Successful(intArray.toList)
+    assertEquals(decodedList, expected)
+  }
+
+  test("IndexCodecs.postings round trips") {
+    val array2 = Array(
+      Array(345, 678),
+      intArray,
+      Array(0, 9, 7),
+    )
+    val bytes = IndexCodecs.postings.encode(array2)
+    val array2Decoded = bytes.flatMap(IndexCodecs.postings.decodeValue)
+    val decodedList = array2Decoded.map(aa => aa.map(_.toList).toList)
+    val expected = Attempt.Successful(array2.map(_.toList).toList)
+    assertEquals(decodedList, expected)
   }
 
 }
