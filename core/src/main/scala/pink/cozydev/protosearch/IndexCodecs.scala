@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import scodec._
+import scodec.{Attempt, Codec, Err, codecs}
 import scala.reflect.ClassTag
 
 object IndexCodecs {
@@ -35,6 +35,9 @@ object IndexCodecs {
       )
       .withToString(s"arrayOfN($countCodec, $valueCodec)")
 
-  val termList = arrayOfN(codecs.vint, codecs.utf8_32).withContext("termList")
-  val postings = arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint)).withContext("postings")
+  val termList: Codec[Array[String]] =
+    arrayOfN(codecs.vint, codecs.utf8_32).withContext("termList")
+
+  val postings: Codec[Array[Array[Int]]] =
+    arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint)).withContext("postings")
 }
