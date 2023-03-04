@@ -38,7 +38,13 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case _: Query.FieldQ => Left("We only have one implicit field currently")
-      case _: Query.PhraseQ => Left("Phrase queries require position data, which we don't have yet")
+      case Query.PhraseQ(q) =>
+        // Optimistic phrase query handling
+        // In case the user added quotes to a single term
+        val resultSet = index.docsWithTermSet(q)
+        if (resultSet.nonEmpty) Right(resultSet)
+        else
+          Left("Phrase queries require position data, which we don't have yet")
       case _: Query.ProximityQ => Left("Unsupported query type")
       case _: Query.PrefixTerm => Left("Unsupported query type")
       case _: Query.FuzzyTerm => Left("Unsupported query type")
@@ -77,6 +83,7 @@ case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
               )
           case _ => Left("Unsupport RangeQ error?")
         }
+      case Query.PhraseQ(qs) => Right(NonEmptyList.one(qs))
       case x => Left(s"Sorry bucko, only term queries supported today, not $x")
     }
 
