@@ -42,20 +42,24 @@ case class QueryAnalyzer(
               case terms => Right(Query.Group(terms.map(Query.TermQ.apply)))
             }
         }
-      case q: Query.ProximityQ => Right(q)
-      case q: Query.PrefixTerm => Right(q)
-      case q: Query.PhraseQ => Right(q)
-      case q: Query.RangeQ => Right(q)
-      case q: Query.NotQ =>
-        analyzeTermQ(a, q.q).map(qs => Query.NotQ(qs))
+      case q: Query.FieldQ => Left(s"Oops, nested field query?: $q")
       case q: Query.AndQ =>
         q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.AndQ(qs))
       case q: Query.OrQ =>
         q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.OrQ(qs))
       case q: Query.Group =>
         q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.Group(qs))
-      case q: Query.FieldQ => Left(s"Oops, nested field query?: $q")
-      case q => Left(s"Unsupported query encountered during analyzeTermQ: $q")
+      case q: Query.NotQ =>
+        analyzeTermQ(a, q.q).map(qs => Query.NotQ(qs))
+      case q: Query.UnaryMinus =>
+        analyzeTermQ(a, q.q).map(qs => Query.UnaryMinus(qs))
+      case q: Query.UnaryPlus =>
+        analyzeTermQ(a, q.q).map(qs => Query.UnaryPlus(qs))
+      case q: Query.ProximityQ => Right(q)
+      case q: Query.PrefixTerm => Right(q)
+      case q: Query.PhraseQ => Right(q)
+      case q: Query.RangeQ => Right(q)
+      case q: Query.FuzzyTerm => Right(q)
     }
 
   private def analyzeQ(query: Query): Either[String, Query] =
@@ -66,7 +70,12 @@ case class QueryAnalyzer(
         val qs: List[String] = analyzers(defaultField).tokenize(q)
         NonEmptyList.fromList(qs) match {
           case None => Left(s"Query analysis error, no terms found after tokenizing $query")
-          case Some(qs) => Right(Query.TermQ(qs.head)) // TODO return nel
+          case Some(qs) =>
+            if (qs.length == 1) Right(Query.TermQ(qs.head))
+            else
+              Left(
+                s"Query analysis error, TermQ tokenized into multiple terms, this should be supported, but isn't yet"
+              )
         }
       case Query.FieldQ(fn, q) =>
         analyzers.get(fn) match {
@@ -74,7 +83,16 @@ case class QueryAnalyzer(
           case Some(a) => analyzeTermQ(a, q).map(qq => Query.FieldQ(fn, qq))
         }
       case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ.apply)
-      case q => Left(s"Unsupported query encountered during analyzeQ: $q")
+      case q: Query.OrQ => q.qs.traverse(analyzeQ).map(Query.OrQ.apply)
+      case q: Query.Group => q.qs.traverse(analyzeQ).map(Query.Group.apply)
+      case q: Query.NotQ => analyzeQ(q.q).map(Query.NotQ.apply)
+      case q: Query.UnaryMinus => analyzeQ(q.q).map(Query.UnaryMinus.apply)
+      case q: Query.UnaryPlus => analyzeQ(q.q).map(Query.UnaryPlus.apply)
+      case q: Query.ProximityQ => Right(q)
+      case q: Query.PrefixTerm => Right(q)
+      case q: Query.PhraseQ => Right(q)
+      case q: Query.RangeQ => Right(q)
+      case q: Query.FuzzyTerm => Right(q)
     }
 
   def parse(queryString: String): Either[String, NonEmptyList[Query]] = {

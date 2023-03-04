@@ -62,14 +62,39 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(fish)))
   }
 
+  test("AND NOT field RangeQ") {
+    val books = search("TWO AND NOT author:[r TO t]")
+    assertEquals(books, Right(List(mice)))
+  }
+
   test("AND with field RangeQ") {
     val books = search("TWO AND author:[a TO e]")
     assertEquals(books, Right(List(mice, fish)))
   }
 
-  test("OR with field RangeQ") {
+  test("implicit OR with field RangeQ") {
     val books = search("two author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
+  }
+
+  test("explicit OR with field RangeQ") {
+    val books = search("two OR author:[a TO c]")
+    assertEquals(books, Right(List(peter, mice, fish)))
+  }
+
+  test("field Group") {
+    val books = search("author:(potter suess)")
+    assertEquals(books, Right(List(peter, mice, fish, eggs)))
+  }
+
+  test("field Group with NOT") {
+    val books = search("author:(potter suess) AND NOT eggs")
+    assertEquals(books, Right(List(peter, mice, fish)))
+  }
+
+  test("nested Groups") {
+    val books = search("(eggs AND ham AND author:(potter SUESS))")
+    assertEquals(books, Right(List(eggs)))
   }
 
 }
