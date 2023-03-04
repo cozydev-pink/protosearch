@@ -24,16 +24,20 @@ val Scala3 = "3.2.2"
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
-val catsV = "2.9.0"
+val calicoV = "0.2.0-RC2"
 val catsEffectV = "3.4.8"
+val catsV = "2.9.0"
+val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
 val fs2V = "3.6.1"
+val http4sDomV = "0.2.7"
+val http4sV = "0.23.18"
 val laikaV = "0.19.0"
 val lucilleV = "0.0-dacd035-SNAPSHOT"
-def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
-val scalajsDomV = "2.4.0"
-val munitV = "1.0.0-M7"
 val munitCatsEffectV = "2.0.0-M3"
+val munitV = "1.0.0-M7"
+val scalajsDomV = "2.4.0"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 
 lazy val root = tlCrossRootProject.aggregate(core, web)
 
@@ -80,14 +84,14 @@ lazy val web = crossProject(JSPlatform)
           "co.fs2" %%% "fs2-io" % fs2V,
           "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
           "pink.cozydev" %%% "lucille" % lucilleV,
-          "com.armanbilge" %%% "calico" % "0.2.0-RC2",
+          "com.armanbilge" %%% "calico" % calicoV,
           "io.circe" %%% "circe-core" % circeV,
           "io.circe" %%% "circe-parser" % circeV,
-          "io.circe" %%% "circe-fs2" % "0.14.1",
-          "org.http4s" %%% "http4s-dom" % "0.2.7",
-          "org.http4s" %%% "http4s-core" % "0.23.18",
-          "org.http4s" %%% "http4s-circe" % "0.23.18",
-          "org.http4s" %%% "http4s-dsl" % "0.23.18",
+          "io.circe" %%% "circe-fs2" % circeFs2V,
+          "org.http4s" %%% "http4s-dom" % http4sDomV,
+          "org.http4s" %%% "http4s-core" % http4sV,
+          "org.http4s" %%% "http4s-circe" % http4sV,
+          "org.http4s" %%% "http4s-dsl" % http4sV,
           "org.scalameta" %%% "munit" % munitV % Test,
           "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
         )
