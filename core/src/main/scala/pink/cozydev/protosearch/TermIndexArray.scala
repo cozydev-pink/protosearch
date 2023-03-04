@@ -21,8 +21,8 @@ import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
 sealed abstract class TermIndexArray private (
-    val termDict: Vector[String],
-    val tfData: Vector[Vector[Int]],
+    private val termDict: Array[String],
+    private val tfData: Array[Array[Int]],
     val numDocs: Int,
 ) {
 
@@ -54,10 +54,25 @@ sealed abstract class TermIndexArray private (
     }
   }
 
-  def docsWithinRange(left: Int, right: Int): Set[Int] = {
+  /** Find where the term would fit in the term list. */
+  def termIndexWhere(term: String): Int = {
+    val idx = termDict.indexWhere(_ >= term)
+    if (idx == -1) termDict.length else idx
+  }
+
+  /** Get the list of terms between left and right. */
+  def termsForRange(left: String, right: String): List[String] = {
+    val li = termIndexWhere(left)
+    val ri = termIndexWhere(right)
+    termDict.slice(li, ri).toList
+  }
+
+  /** For every term between left and right, get the docs using those terms. */
+  def docsForRange(left: String, right: String): Set[Int] = {
     import scala.collection.mutable.HashSet
     val bldr = HashSet.empty[Int]
-    Range(left, right).foreach(i => bldr.addAll(evenElems(tfData(i))))
+    Range(termIndexWhere(left), termIndexWhere(right))
+      .foreach(i => bldr.addAll(evenElems(tfData(i))))
     bldr.toSet
   }
 
@@ -117,7 +132,7 @@ sealed abstract class TermIndexArray private (
       }
     }
 
-  private def evenElems(arr: Vector[Int]): List[Int] = {
+  private def evenElems(arr: Array[Int]): List[Int] = {
     require(
       arr.size >= 2 && arr.size % 2 == 0,
       "evenElems expects even sized arrays of 2 or greater",
@@ -135,7 +150,7 @@ sealed abstract class TermIndexArray private (
     }
   }
 
-  private def indexForDocId(arr: Vector[Int], id: Int): Int = {
+  private def indexForDocId(arr: Array[Int], id: Int): Int = {
     var i = 0
     while (i < arr.length) {
       if (arr(i) == id) return i
@@ -144,23 +159,18 @@ sealed abstract class TermIndexArray private (
     -1
   }
 
+  private[protosearch] lazy val serializeToTuple3: (Int, Array[Array[Int]], Array[String]) =
+    (numDocs, tfData, termDict)
+
 }
 object TermIndexArray {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
-
-  def unsafeFromTuple3(
-      num_data_terms: (Int, Vector[Vector[Int]], Vector[String])
-  ): TermIndexArray = {
-    val numDocs = num_data_terms._1
-    val tfData = num_data_terms._2
-    val termDict = num_data_terms._3
-    new TermIndexArray(termDict, tfData, numDocs) {}
-  }
+  import scodec.{Codec, codecs}
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]
-  def apply(docs: Vector[Vector[String]]): TermIndexArray = {
+  def apply(docs: List[List[String]]): TermIndexArray = {
     val m = new MMap[String, Stack[Int]].empty
     var docId = 0
     val docLen = docs.length
@@ -185,14 +195,27 @@ object TermIndexArray {
       docId += 1
     }
     val keys = ArrayBuilder.make[String]
-    val values = ArrayBuilder.make[Vector[Int]]
+    val values = ArrayBuilder.make[Array[Int]]
     val size = m.size
     keys.sizeHint(size)
     values.sizeHint(size)
     m.foreachEntry { (k, v) =>
       keys.addOne(k)
-      values.addOne(v.toVector)
+      values.addOne(v.toArray)
     }
-    new TermIndexArray(keys.result().toVector, values.result().toVector, docLen) {}
+    new TermIndexArray(keys.result(), values.result(), docLen) {}
+  }
+
+  val codec: Codec[TermIndexArray] = {
+    val terms = IndexCodecs.termList
+    val postings = IndexCodecs.postings
+    val numDocs = codecs.vint.withContext("numDocs")
+
+    (numDocs :: postings :: terms)
+      .as[(Int, Array[Array[Int]], Array[String])]
+      .xmap(
+        { case (numDocs, tfData, terms) => new TermIndexArray(terms, tfData, numDocs) {} },
+        ti => ti.serializeToTuple3,
+      )
   }
 }

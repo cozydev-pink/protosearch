@@ -16,14 +16,14 @@
 
 package pink.cozydev.protosearch
 
-import TokenStream.tokenizeSpaceV
+import TokenStream.tokenizeSpaceL
 
 object CatIndex {
-  val docs: Vector[Vector[String]] =
-    Vector(
-      tokenizeSpaceV("the quick brown fox jumped over the lazy cat"),
-      tokenizeSpaceV("the very fast cat jumped across the room"),
-      tokenizeSpaceV("a lazy cat sleeps all day"),
+  val docs: List[List[String]] =
+    List(
+      tokenizeSpaceL("the quick brown fox jumped over the lazy cat"),
+      tokenizeSpaceL("the very fast cat jumped across the room"),
+      tokenizeSpaceL("a lazy cat sleeps all day"),
     )
 
   lazy val index = TermIndexArray(docs)

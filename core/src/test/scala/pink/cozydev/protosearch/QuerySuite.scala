@@ -91,4 +91,13 @@ class QuerySuite extends munit.FunSuite {
     )
   }
 
+  test("[a TO z]") {
+    val q = Parser.parseQ("[a TO z]").map(_.head)
+    val results = List(0, 1, 2)
+    assertEquals(
+      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      Right(results),
+    )
+  }
+
 }

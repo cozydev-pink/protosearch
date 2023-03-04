@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import TokenStream.tokenizeSpaceV
+import TokenStream.tokenizeSpaceL
 
 class TermIndexArraySuite extends munit.FunSuite {
 
@@ -47,9 +47,9 @@ class TermIndexArraySuite extends munit.FunSuite {
   }
 
   test("docsWithTermTFIDF returns list of docIDs and tf-idf scores") {
-    val samples = Vector(
-      tokenizeSpaceV("this is a sample"),
-      tokenizeSpaceV("this is another example"),
+    val samples = List(
+      tokenizeSpaceL("this is a sample"),
+      tokenizeSpaceL("this is another example"),
     )
     val index = TermIndexArray(samples)
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))

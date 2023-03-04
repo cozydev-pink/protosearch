@@ -16,15 +16,18 @@
 
 package pink.cozydev.protosearch
 
-object BookIndex {
-  case class Book(title: String, author: String) {
-    override def toString = s"\"$title\" by $author"
+class TermIndexArrayCodecSuite extends munit.FunSuite {
+  val index = CatIndex.index
+
+  test("TermIndexArray.codec encodes") {
+    val bytes = TermIndexArray.codec.encode(index)
+    assert(bytes.isSuccessful)
   }
 
-  val corpus: List[Book] = List(
-    Book("The Tale of Peter Rabbit", "Beatrix Potter"),
-    Book("The Tale of Two Bad Mice", "Beatrix Potter"),
-    Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),
-    Book("Green Eggs and Ham", "Dr. Suess"),
-  )
+  test("TermIndexArray.codec round trips") {
+    val bytes = TermIndexArray.codec.encode(index)
+    val indexDecoded = bytes.flatMap(TermIndexArray.codec.decodeValue)
+    assert(indexDecoded.isSuccessful)
+  }
+
 }

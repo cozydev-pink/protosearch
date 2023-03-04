@@ -107,7 +107,7 @@ object RepoSearch extends IOWebApp {
         ("fullName", _.fullName, analyzer),
         ("description", _.description.getOrElse(""), analyzer),
         ("topics", _.topics.mkString(" "), analyzer),
-      )(repos.toVector)
+      )(repos)
       val q = qAnalyzer.parse(qs)
       val results = q.flatMap(index.search)
       results.map(hits => hits.map(i => repos(i)).sortBy(-_.stars))

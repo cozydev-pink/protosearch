@@ -16,15 +16,23 @@
 
 package pink.cozydev.protosearch
 
-object BookIndex {
-  case class Book(title: String, author: String) {
-    override def toString = s"\"$title\" by $author"
+import scodec._
+import scodec.bits.BitVector
+import scala.reflect.ClassTag
+
+private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
+    extends Codec[Array[A]] {
+
+  def sizeBound: SizeBound = limit match {
+    case None => SizeBound.unknown
+    case Some(lim) => codec.sizeBound * lim.toLong
   }
 
-  val corpus: List[Book] = List(
-    Book("The Tale of Peter Rabbit", "Beatrix Potter"),
-    Book("The Tale of Two Bad Mice", "Beatrix Potter"),
-    Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),
-    Book("Green Eggs and Ham", "Dr. Suess"),
-  )
+  def encode(array: Array[A]) =
+    codec.encodeAll(array)
+
+  def decode(buffer: BitVector) =
+    codec.collect[Array, A](buffer, limit)
+
+  override def toString = s"arrayCodec($codec)"
 }

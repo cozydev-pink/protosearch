@@ -25,6 +25,6 @@ object TokenStream {
   def tokenizeSpace(s: String): Stream[Pure, String] =
     Stream.chunk(splitSpace(s))
 
-  def tokenizeSpaceV(s: String): Vector[String] =
-    s.split(" ").toVector
+  def tokenizeSpaceL(s: String): List[String] =
+    s.split(" ").toList
 }

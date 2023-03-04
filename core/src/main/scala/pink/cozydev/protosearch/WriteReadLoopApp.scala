@@ -36,7 +36,7 @@ object WriteIndexApp extends IOApp.Simple {
     ("author", _.author, analyzer),
   )(corpus)
 
-  val indexBytes = MultiIndexCodec.multiIndex.encode(index).map(_.bytes)
+  val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 
   val file = Path("book-index.dat")
   val writer = Files[IO].writeAll(file)
@@ -67,7 +67,7 @@ object ReadIndexApp extends IOApp.Simple {
 
   val indexIO = reader.compile
     .to(ByteVector)
-    .map(bv => MultiIndexCodec.multiIndex.decodeValue(bv.bits))
+    .map(bv => MultiIndex.codec.decodeValue(bv.bits))
     .map(_.toTry)
     .flatMap(IO.fromTry)
 
