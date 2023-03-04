@@ -26,6 +26,7 @@ ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val catsV = "2.9.0"
 val catsEffectV = "3.4.8"
+val circeV = "0.14.5"
 val fs2V = "3.6.1"
 val laikaV = "0.19.0"
 val lucilleV = "0.0-dacd035-SNAPSHOT"
@@ -80,8 +81,8 @@ lazy val web = crossProject(JSPlatform)
           "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
           "pink.cozydev" %%% "lucille" % lucilleV,
           "com.armanbilge" %%% "calico" % "0.2.0-RC2",
-          "io.circe" %%% "circe-core" % "0.14.4",
-          "io.circe" %%% "circe-parser" % "0.14.4",
+          "io.circe" %%% "circe-core" % circeV,
+          "io.circe" %%% "circe-parser" % circeV,
           "io.circe" %%% "circe-fs2" % "0.14.1",
           "org.http4s" %%% "http4s-dom" % "0.2.7",
           "org.http4s" %%% "http4s-core" % "0.23.18",
