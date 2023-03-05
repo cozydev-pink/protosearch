@@ -20,6 +20,7 @@ import scala.collection.mutable.ListBuffer
 import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
 
+import pink.cozydev.protosearch.analysis.Analyzer
 case class MultiIndex(
     indexes: Map[String, TermIndexArray],
     defaultField: String,

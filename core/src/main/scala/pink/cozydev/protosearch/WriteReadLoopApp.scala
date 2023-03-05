@@ -25,6 +25,7 @@ import scodec.Attempt.Successful
 import fs2.Chunk
 import scodec.bits.ByteVector
 
+import pink.cozydev.protosearch.analysis.Analyzer
 object WriteIndexApp extends IOApp.Simple {
   import BookIndex.{Book, corpus}
 

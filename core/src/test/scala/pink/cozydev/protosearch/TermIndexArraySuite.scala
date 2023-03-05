@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import TokenStream.tokenizeSpaceL
+import pink.cozydev.protosearch.analysis.TokenStream.tokenizeSpaceL
 
 class TermIndexArraySuite extends munit.FunSuite {
 

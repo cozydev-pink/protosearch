@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
+import pink.cozydev.protosearch.analysis.TokenStream
 sealed class Analyzer private (
     tokenizer: (String) => List[String],
     lowerCase: Boolean,

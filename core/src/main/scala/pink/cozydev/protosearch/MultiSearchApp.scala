@@ -19,6 +19,7 @@ package pink.cozydev.protosearch
 import cats.effect.IOApp
 import cats.effect.IO
 
+import pink.cozydev.protosearch.analysis.Analyzer
 object MultiSearchApp extends IOApp.Simple {
   import BookIndex.{Book, corpus}
 
