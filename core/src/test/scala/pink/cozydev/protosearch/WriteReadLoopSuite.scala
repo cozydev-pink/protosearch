@@ -21,38 +21,40 @@ import pink.cozydev.protosearch.analysis.Analyzer
 class WriteReadLoopSuite extends munit.FunSuite {
   import BookIndex.{Book, allBooks, fish}
 
-  val analyzer = Analyzer.default.withLowerCasing
+  test("Can write bytes, read bytes, and search") {
+    val analyzer = Analyzer.default.withLowerCasing
 
-  val index = MultiIndex.apply[Book](
-    "title",
-    ("title", _.title, analyzer),
-    ("author", _.author, analyzer),
-  )(allBooks)
+    val index = MultiIndex.apply[Book](
+      "title",
+      ("title", _.title, analyzer),
+      ("author", _.author, analyzer),
+    )(allBooks)
 
-  val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
+    val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 
-  val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
+    val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
 
-  def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
-    val q = qAnalyzer.parse(qs)
-    println(s"+++ analyzed query: $q")
-    val result = q.flatMap(index.search)
-    // TODO vector index access is unsafe
-    result.map(hits => hits.map(i => allBooks(i)))
-  }
-
-  val indexRead = indexBytes
-    .flatMap(bv => MultiIndex.codec.decodeValue(bv.bits))
-    .toEither
-    .left
-    .map(_.toString)
-
-  val results = indexRead.map(index =>
-    search(index)("Two AND author:suess") match {
-      case Left(_) => List.empty[Book]
-      case Right(hits) => hits
+    def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
+      val q = qAnalyzer.parse(qs)
+      println(s"+++ analyzed query: $q")
+      val result = q.flatMap(index.search)
+      // TODO vector index access is unsafe
+      result.map(hits => hits.map(i => allBooks(i)))
     }
-  )
 
-  assertEquals(results, Right(List(fish)))
+    val indexRead = indexBytes
+      .flatMap(bv => MultiIndex.codec.decodeValue(bv.bits))
+      .toEither
+      .left
+      .map(_.toString)
+
+    val results = indexRead.map(index =>
+      search(index)("Two AND author:suess") match {
+        case Left(_) => List.empty[Book]
+        case Right(hits) => hits
+      }
+    )
+
+    assertEquals(results, Right(List(fish)))
+  }
 }
