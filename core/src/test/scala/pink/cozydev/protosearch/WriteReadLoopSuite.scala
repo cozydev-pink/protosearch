@@ -16,9 +16,6 @@
 
 package pink.cozydev.protosearch
 
-import scodec.Attempt.{Failure, Successful}
-import scodec.bits.ByteVector
-
 import pink.cozydev.protosearch.analysis.Analyzer
 
 class WriteReadLoopSuite extends munit.FunSuite {
