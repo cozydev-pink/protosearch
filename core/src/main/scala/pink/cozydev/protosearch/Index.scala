@@ -20,7 +20,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
-sealed abstract class TermIndexArray private (
+sealed abstract class Index private (
     private val termDict: Array[String],
     private val tfData: Array[Array[Int]],
     val numDocs: Int,
@@ -163,14 +163,14 @@ sealed abstract class TermIndexArray private (
     (numDocs, tfData, termDict)
 
 }
-object TermIndexArray {
+object Index {
   import scala.collection.mutable.{TreeMap => MMap}
   import scala.collection.mutable.Stack
   import scodec.{Codec, codecs}
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]
-  def apply(docs: List[List[String]]): TermIndexArray = {
+  def apply(docs: List[List[String]]): Index = {
     val m = new MMap[String, Stack[Int]].empty
     var docId = 0
     val docLen = docs.length
@@ -203,10 +203,10 @@ object TermIndexArray {
       keys.addOne(k)
       values.addOne(v.toArray)
     }
-    new TermIndexArray(keys.result(), values.result(), docLen) {}
+    new Index(keys.result(), values.result(), docLen) {}
   }
 
-  val codec: Codec[TermIndexArray] = {
+  val codec: Codec[Index] = {
     val terms = IndexCodecs.termList
     val postings = IndexCodecs.postings
     val numDocs = codecs.vint.withContext("numDocs")
@@ -214,7 +214,7 @@ object TermIndexArray {
     (numDocs :: postings :: terms)
       .as[(Int, Array[Array[Int]], Array[String])]
       .xmap(
-        { case (numDocs, tfData, terms) => new TermIndexArray(terms, tfData, numDocs) {} },
+        { case (numDocs, tfData, terms) => new Index(terms, tfData, numDocs) {} },
         ti => ti.serializeToTuple3,
       )
   }

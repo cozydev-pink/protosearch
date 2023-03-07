@@ -22,7 +22,7 @@ import cats.data.NonEmptyList
 
 import pink.cozydev.protosearch.analysis.Analyzer
 case class MultiIndex(
-    indexes: Map[String, TermIndexArray],
+    indexes: Map[String, Index],
     defaultField: String,
     defaultOR: Boolean = true,
 ) {
@@ -87,7 +87,7 @@ object MultiIndex {
       // TODO let's delay defining the default field even further
       // Also, let's make it optional, with no field meaning all fields?
       MultiIndex(
-        bldrs.map(bldr => (bldr.name, TermIndexArray(bldr.acc.toList))).toMap,
+        bldrs.map(bldr => (bldr.name, Index(bldr.acc.toList))).toMap,
         defaultField,
       )
     }
@@ -95,15 +95,15 @@ object MultiIndex {
 
   val codec: Codec[MultiIndex] = {
 
-    val indexes: Codec[Map[String, TermIndexArray]] =
+    val indexes: Codec[Map[String, Index]] =
       codecs
-        .listOfN(codecs.vint, (codecs.utf8_32 :: TermIndexArray.codec).as[(String, TermIndexArray)])
+        .listOfN(codecs.vint, (codecs.utf8_32 :: Index.codec).as[(String, Index)])
         .xmap(_.toMap, _.toList)
     val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
     val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
     val multiIndex: Codec[MultiIndex] =
       (indexes :: defaultField :: defaultOr)
-        .as[(Map[String, TermIndexArray], String, Boolean)]
+        .as[(Map[String, Index], String, Boolean)]
         .xmap(
           { case (in, dF, dOr) => MultiIndex.apply(in, dF, dOr) },
           mi => (mi.indexes, mi.defaultField, mi.defaultOR),

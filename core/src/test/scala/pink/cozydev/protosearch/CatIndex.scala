@@ -26,5 +26,5 @@ object CatIndex {
       tokenizeSpaceL("a lazy cat sleeps all day"),
     )
 
-  lazy val index = TermIndexArray(docs)
+  lazy val index = Index(docs)
 }
