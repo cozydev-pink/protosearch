@@ -16,13 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import cats.effect.IOApp
-import cats.effect.IO
-import fs2.Stream
-import fs2.io.file.{Files, Path}
-import scodec.Attempt.Failure
-import scodec.Attempt.Successful
-import fs2.Chunk
+import scodec.Attempt.{Failure, Successful}
 import scodec.bits.ByteVector
 
 import pink.cozydev.protosearch.analysis.Analyzer
