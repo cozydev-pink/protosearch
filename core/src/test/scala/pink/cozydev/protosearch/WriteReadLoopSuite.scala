@@ -49,7 +49,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
 
   val results = indexRead.map(index =>
     search(index)("Two AND author:suess") match {
-      case Left(err) => List.empty[Book]
+      case Left(_) => List.empty[Book]
       case Right(hits) => hits
     }
   )
