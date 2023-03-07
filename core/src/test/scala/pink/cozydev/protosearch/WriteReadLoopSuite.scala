@@ -26,8 +26,9 @@ import fs2.Chunk
 import scodec.bits.ByteVector
 
 import pink.cozydev.protosearch.analysis.Analyzer
-object WriteIndexApp extends IOApp.Simple {
-  import BookIndex.{Book, corpus}
+
+class WriteReadLoopSuite extends munit.FunSuite {
+  import BookIndex.{Book, allBooks, fish}
 
   val analyzer = Analyzer.default.withLowerCasing
 
@@ -35,27 +36,10 @@ object WriteIndexApp extends IOApp.Simple {
     "title",
     ("title", _.title, analyzer),
     ("author", _.author, analyzer),
-  )(corpus)
+  )(allBooks)
 
   val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 
-  val file = Path("book-index.dat")
-  val writer = Files[IO].writeAll(file)
-
-  val run = (indexBytes match {
-    case Failure(err) => Stream.eval(IO.println(s"Error encoding index: $err"))
-    case Successful(bytes) => Stream.chunk(Chunk.byteVector(bytes)).through(writer)
-  }).compile.drain
-
-}
-
-object ReadIndexApp extends IOApp.Simple {
-  import BookIndex.{Book, corpus}
-
-  val file = Path("book-index.dat")
-  val reader: Stream[IO, Byte] = Files[IO].readAll(file)
-
-  val analyzer = Analyzer.default.withLowerCasing
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
 
   def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
@@ -63,20 +47,21 @@ object ReadIndexApp extends IOApp.Simple {
     println(s"+++ analyzed query: $q")
     val result = q.flatMap(index.search)
     // TODO vector index access is unsafe
-    result.map(hits => hits.map(i => corpus(i)))
+    result.map(hits => hits.map(i => allBooks(i)))
   }
 
-  val indexIO = reader.compile
-    .to(ByteVector)
-    .map(bv => MultiIndex.codec.decodeValue(bv.bits))
-    .map(_.toTry)
-    .flatMap(IO.fromTry)
+  val indexRead = indexBytes
+    .flatMap(bv => MultiIndex.codec.decodeValue(bv.bits))
+    .toEither
+    .left
+    .map(_.toString)
 
-  val run =
-    indexIO.flatMap { index =>
-      search(index)("Two AND author:suess") match {
-        case Left(err) => IO.println(s"Error while searching: $err")
-        case Right(hits) => IO.println(s"Found: $hits")
-      }
+  val results = indexRead.map(index =>
+    search(index)("Two AND author:suess") match {
+      case Left(err) => List.empty[Book]
+      case Right(hits) => hits
     }
+  )
+
+  assertEquals(results, Right(List(fish)))
 }

@@ -21,10 +21,10 @@ object BookIndex {
     override def toString = s"\"$title\" by $author"
   }
 
-  val corpus: List[Book] = List(
-    Book("The Tale of Peter Rabbit", "Beatrix Potter"),
-    Book("The Tale of Two Bad Mice", "Beatrix Potter"),
-    Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),
-    Book("Green Eggs and Ham", "Dr. Suess"),
-  )
+  val peter = Book("The Tale of Peter Rabbit", "Beatrix Potter")
+  val mice = Book("The Tale of Two Bad Mice", "Beatrix Potter")
+  val fish = Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess")
+  val eggs = Book("Green Eggs and Ham", "Dr. Suess")
+
+  val allBooks = List(peter, mice, fish, eggs)
 }
