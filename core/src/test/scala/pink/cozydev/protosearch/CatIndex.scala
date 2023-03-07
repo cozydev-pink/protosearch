@@ -16,15 +16,15 @@
 
 package pink.cozydev.protosearch
 
-object BookIndex {
-  case class Book(title: String, author: String) {
-    override def toString = s"\"$title\" by $author"
-  }
+import pink.cozydev.protosearch.analysis.TokenStream.tokenizeSpaceL
 
-  val corpus: List[Book] = List(
-    Book("The Tale of Peter Rabbit", "Beatrix Potter"),
-    Book("The Tale of Two Bad Mice", "Beatrix Potter"),
-    Book("One Fish, Two Fish, Red Fish, Blue Fish", "Dr. Suess"),
-    Book("Green Eggs and Ham", "Dr. Suess"),
-  )
+object CatIndex {
+  val docs: List[List[String]] =
+    List(
+      tokenizeSpaceL("the quick brown fox jumped over the lazy cat"),
+      tokenizeSpaceL("the very fast cat jumped across the room"),
+      tokenizeSpaceL("a lazy cat sleeps all day"),
+    )
+
+  lazy val index = Index(docs)
 }

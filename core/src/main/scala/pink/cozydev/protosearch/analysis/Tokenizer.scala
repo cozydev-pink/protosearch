@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
 import fs2.{Chunk, Pure, Stream}
 

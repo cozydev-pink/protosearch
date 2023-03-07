@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
 
-case class BooleanQuery(index: TermIndexArray, defaultOR: Boolean = true) {
+case class BooleanQuery(index: Index, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 

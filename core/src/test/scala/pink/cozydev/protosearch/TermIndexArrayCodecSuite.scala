@@ -20,13 +20,13 @@ class TermIndexArrayCodecSuite extends munit.FunSuite {
   val index = CatIndex.index
 
   test("TermIndexArray.codec encodes") {
-    val bytes = TermIndexArray.codec.encode(index)
+    val bytes = Index.codec.encode(index)
     assert(bytes.isSuccessful)
   }
 
   test("TermIndexArray.codec round trips") {
-    val bytes = TermIndexArray.codec.encode(index)
-    val indexDecoded = bytes.flatMap(TermIndexArray.codec.decodeValue)
+    val bytes = Index.codec.encode(index)
+    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
     assert(indexDecoded.isSuccessful)
   }
 

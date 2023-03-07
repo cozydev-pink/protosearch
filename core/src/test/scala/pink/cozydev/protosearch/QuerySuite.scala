@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch
 
+import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.Parser
 
 class QuerySuite extends munit.FunSuite {

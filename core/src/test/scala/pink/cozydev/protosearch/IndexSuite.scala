@@ -16,9 +16,9 @@
 
 package pink.cozydev.protosearch
 
-import TokenStream.tokenizeSpaceL
+import pink.cozydev.protosearch.analysis.TokenStream.tokenizeSpaceL
 
-class TermIndexArraySuite extends munit.FunSuite {
+class IndexSuite extends munit.FunSuite {
 
   val index = CatIndex.index
 
@@ -51,7 +51,7 @@ class TermIndexArraySuite extends munit.FunSuite {
       tokenizeSpaceL("this is a sample"),
       tokenizeSpaceL("this is another example"),
     )
-    val index = TermIndexArray(samples)
+    val index = Index(samples)
     assertEquals(index.docsWithTermTFIDF("example").sorted, List((1, 0.6931471805599453)))
   }
 

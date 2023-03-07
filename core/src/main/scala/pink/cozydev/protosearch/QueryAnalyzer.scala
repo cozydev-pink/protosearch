@@ -21,6 +21,7 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.Parser
 
+import pink.cozydev.protosearch.analysis.Analyzer
 // TODO ok this is ready to try
 // TEST FAILING because we're not using it
 // We perhaps want a new "Search" class or something that connects the Index with the QueryAnalyzer
