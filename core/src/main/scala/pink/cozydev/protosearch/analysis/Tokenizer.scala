@@ -18,6 +18,7 @@ package pink.cozydev.protosearch.analysis
 
 import fs2.{Chunk, Pure, Stream}
 
+// Temporary, this should live in textmogrify
 object TokenStream {
   private def splitSpace(s: String): Chunk[String] =
     Chunk.array(s.split(" "))
