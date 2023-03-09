@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
-class IngestSuite extends munit.FunSuite {
+class IngestMarkdownSuite extends munit.FunSuite {
   val doc = """|
                |# Title
                |
@@ -32,7 +32,7 @@ class IngestSuite extends munit.FunSuite {
                |""".stripMargin
 
   test("laika extracts headings".fail) {
-    val x = Ingest.transform(doc)
+    val x = IngestMarkdown.transform(doc)
     val headings = List("H2 Section", "Second H2", "Title")
     assertEquals(x, Right(headings))
   }

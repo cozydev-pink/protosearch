@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
 import cats.syntax.all._
 import laika.api.MarkupParser
@@ -33,7 +33,8 @@ import laika.ast.Header
 import laika.ast.Text
 import laika.ast.Section
 
-object Ingest {
+// Similar to the other misfits in `analysis` this shouldn't live here
+object IngestMarkdown {
 
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
