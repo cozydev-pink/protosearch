@@ -1,3 +1,8 @@
 protosearch
 Copyright 2022 CozyDev
 Licensed under Apache License 2.0 (see LICENSE)
+
+This software contains portions of code derived from scodec
+https://github.com/scodec/scodec
+Copyright (c) 2013-2014, Michael Pilquist and Paul Chiusano
+Licensed under BSD 3-Clause "New" or "Revised" License (see licenses/LICENSE_scodec)

@@ -21,6 +21,8 @@ import scodec.bits.BitVector
 import scala.collection.immutable.ArraySeq
 import scala.reflect.ClassTag
 
+// Derived from scodec VectorCodec
+// https://github.com/scodec/scodec/blob/series/1.11.x/shared/src/main/scala/scodec/codecs/VectorCodec.scala
 private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
     extends Codec[Array[A]] {
 
