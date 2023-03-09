@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.analysis.Analyzer
+import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 
 class MultiIndexSuite extends munit.FunSuite {
   import BookIndex._
