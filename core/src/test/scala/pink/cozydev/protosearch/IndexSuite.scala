@@ -59,4 +59,15 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.docsWithTermTFIDF("lazy").map(_._1), List(2, 0))
   }
 
+  test("Index.codec encodes") {
+    val bytes = Index.codec.encode(index)
+    assert(bytes.isSuccessful)
+  }
+
+  test("Index.codec round trips") {
+    val bytes = Index.codec.encode(index)
+    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
+    assert(indexDecoded.isSuccessful)
+  }
+
 }
