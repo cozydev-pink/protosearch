@@ -17,6 +17,8 @@
 package pink.cozydev.protosearch.analysis
 
 import pink.cozydev.protosearch.analysis.TokenStream
+
+// Hopefully temporary, this should probably live in textmogrify
 sealed class Analyzer private (
     tokenizer: (String) => List[String],
     lowerCase: Boolean,
