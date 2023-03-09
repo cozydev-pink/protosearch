@@ -28,7 +28,8 @@ import org.http4s.dom.FetchClientBuilder
 import org.http4s.implicits.uri
 import org.http4s.circe.CirceEntityCodec._
 
-import pink.cozydev.protosearch.analysis.Analyzer
+import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+
 object RepoSearch extends IOWebApp {
 
   def renderList(search: String => Either[String, List[Repo]]): Resource[IO, HtmlDivElement[IO]] =
