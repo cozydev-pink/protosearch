@@ -20,6 +20,8 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 
+import pink.cozydev.protosearch.codecs.IndexCodecs
+
 sealed abstract class Index private (
     private val termDict: Array[String],
     private val tfData: Array[Array[Int]],

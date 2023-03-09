@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.codecs
 
 import scodec.{Attempt, Codec, codecs}
 
