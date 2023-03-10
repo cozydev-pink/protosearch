@@ -37,19 +37,20 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
-      case _: Query.FieldQ => Left("We only have one implicit field currently")
+      case Query.FieldQ(fn, q) =>
+        Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
       case Query.PhraseQ(q) =>
         // Optimistic phrase query handling
         // In case the user added quotes to a single term
         val resultSet = index.docsWithTermSet(q)
         if (resultSet.nonEmpty) Right(resultSet)
         else
-          Left("Phrase queries require position data, which we don't have yet")
-      case _: Query.ProximityQ => Left("Unsupported query type")
-      case _: Query.PrefixTerm => Left("Unsupported query type")
-      case _: Query.FuzzyTerm => Left("Unsupported query type")
-      case _: Query.UnaryPlus => Left("Unsupported query type")
-      case _: Query.UnaryMinus => Left("Unsupported query type")
+          Left(s"Phrase queries require position data, which we don't have yet. q: $q")
+      case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
+      case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm in BooleanRetrieval: $q")
+      case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
+      case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
+      case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
       case Query.RangeQ(left, right, _, _) =>
         (left, right) match {
           case (Some(l), Some(r)) =>
