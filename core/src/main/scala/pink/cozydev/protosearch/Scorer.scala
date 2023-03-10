@@ -48,7 +48,12 @@ case class Scorer(index: Index, defaultOR: Boolean = true) {
           case _ => Left("Unsupport RangeQ error?")
         }
       case Query.PhraseQ(qs) => Right(NonEmptyList.one(qs))
-      case x => Left(s"Sorry bucko, only term queries supported today, not $x")
+      case Query.UnaryMinus(q) => onlyTerms(NonEmptyList.one(q))
+      case Query.UnaryPlus(q) => onlyTerms(NonEmptyList.one(q))
+      case Query.FieldQ(_, q) => onlyTerms(NonEmptyList.one(q))
+      case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
+      case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm encountered in Scorer: $q")
+      case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
     }
 
   private def scoreEm(
