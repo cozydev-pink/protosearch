@@ -21,6 +21,8 @@ import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
 
 import pink.cozydev.protosearch.analysis.Analyzer
+import pink.cozydev.protosearch.BooleanRetrieval
+
 case class MultiIndex(
     indexes: Map[String, Index],
     defaultField: String,
@@ -34,19 +36,19 @@ case class MultiIndex(
 
   private val defaultIndex = indexes(defaultField)
   private val defaultBooleanQ =
-    BooleanQuery(indexes(defaultField), defaultOR)
+    BooleanRetrieval(indexes(defaultField), defaultOR)
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, defaultIndex.numDocs))
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
+      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          BooleanQuery(index, defaultOR).search(q).map(xs => xs.map(_._1).toSet)
+          BooleanRetrieval(index, defaultOR).search(q).map(xs => xs.map(_._1).toSet)
         }
       case _ =>
         defaultBooleanQ
@@ -55,7 +57,7 @@ case class MultiIndex(
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) BooleanQuery.unionSets(sets) else BooleanQuery.intersectSets(sets)
+    if (defaultOR) BooleanRetrieval.unionSets(sets) else BooleanRetrieval.intersectSets(sets)
 
 }
 object MultiIndex {

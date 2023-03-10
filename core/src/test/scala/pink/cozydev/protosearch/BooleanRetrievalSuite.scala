@@ -27,7 +27,7 @@ class QuerySuite extends munit.FunSuite {
   test("TermQ") {
     val q = Parser.parseQ("fast").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(List(1)),
     )
   }
@@ -35,7 +35,7 @@ class QuerySuite extends munit.FunSuite {
   test("multi TermQ") {
     val q = Parser.parseQ("fast cat").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(List(1)),
     )
   }
@@ -43,7 +43,7 @@ class QuerySuite extends munit.FunSuite {
   test("AndQ") {
     val q = Parser.parseQ("fast AND cat").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(List(1)),
     )
   }
@@ -51,7 +51,7 @@ class QuerySuite extends munit.FunSuite {
   test("Double AndQ") {
     val q = Parser.parseQ("the AND fast AND cat").map(_.head)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(List(1)),
     )
   }
@@ -60,7 +60,7 @@ class QuerySuite extends munit.FunSuite {
     val q = Parser.parseQ("fast OR cat").map(_.head)
     val results = List(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(results),
     )
   }
@@ -69,7 +69,7 @@ class QuerySuite extends munit.FunSuite {
     val q = Parser.parseQ("the OR fast OR cat").map(_.head)
     val results = List(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(results),
     )
   }
@@ -78,7 +78,7 @@ class QuerySuite extends munit.FunSuite {
     val q = Parser.parseQ("cat AND (fast OR quick)").map(_.head)
     val results = List(0, 1)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(results),
     )
   }
@@ -87,7 +87,7 @@ class QuerySuite extends munit.FunSuite {
     val q = Parser.parseQ("cat AND NOT fast").map(_.head)
     val results = List(0, 2)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(results),
     )
   }
@@ -96,7 +96,7 @@ class QuerySuite extends munit.FunSuite {
     val q = Parser.parseQ("[a TO z]").map(_.head)
     val results = List(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanQuery(index).search(q)).map(hits => hits.map(_._1)),
+      q.flatMap(q => BooleanRetrieval(index).search(q)).map(hits => hits.map(_._1)),
       Right(results),
     )
   }
