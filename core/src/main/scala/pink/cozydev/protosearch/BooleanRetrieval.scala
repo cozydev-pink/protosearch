@@ -21,13 +21,11 @@ import pink.cozydev.lucille.Query
 
 case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
-  val scorer = Scorer(index, defaultOR)
-
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 
-  def search(q: Query): Either[String, List[(Int, Double)]] = {
+  def search(q: Query): Either[String, Set[Int]] = {
     val docs = booleanModel(q)
-    docs.flatMap(ds => scorer.score(q, ds))
+    docs
   }
 
   def booleanModel(q: Query): Either[String, Set[Int]] =

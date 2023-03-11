@@ -48,12 +48,9 @@ case class MultiIndex(
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.FieldQ(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          BooleanRetrieval(index, defaultOR).search(q).map(xs => xs.map(_._1).toSet)
+          BooleanRetrieval(index, defaultOR).search(q)
         }
-      case _ =>
-        defaultBooleanQ
-          .search(q)
-          .map(xs => xs.map(_._1).toSet)
+      case _ => defaultBooleanQ.search(q)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
