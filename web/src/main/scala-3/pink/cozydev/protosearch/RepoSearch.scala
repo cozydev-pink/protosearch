@@ -118,7 +118,7 @@ object RepoSearch extends IOWebApp {
       ("topics", analyzer),
     )
 
-    def searchBldr(repos: List[Repo]): String => Either[String, List[Hit]] = qs => {
+    def searchBldr(repos: List[Repo]): String => Either[String, List[Hit]] = {
       val index = MultiIndex.apply[Repo](
         "description",
         ("name", _.name, analyzer),
@@ -127,12 +127,16 @@ object RepoSearch extends IOWebApp {
         ("topics", _.topics.mkString(" "), analyzer),
       )(repos)
       val scorer = Scorer(index)
-      val aq = qAnalyzer.parse(qs)
-      val results: Either[String, List[(Int, Double)]] = aq.flatMap { q =>
-        val docScores = index.search(q).flatMap(ds => scorer.score(q, ds.toSet))
-        docScores.map(ds => ds.sortBy(-_._2))
-      }
-      results.map(hits => hits.map((i, score) => Hit(repos(i), score)))
+      qs =>
+        if (qs.isEmpty) Right(Nil)
+        else {
+          val aq = qAnalyzer.parse(qs)
+          val results: Either[String, List[(Int, Double)]] = aq.flatMap { q =>
+            val docScores = index.search(q).flatMap(ds => scorer.score(q, ds.toSet))
+            docScores.map(ds => ds.sortBy(-_._2))
+          }
+          results.map(hits => hits.map((i, score) => Hit(repos(i), score)))
+        }
     }
 
     Resource
