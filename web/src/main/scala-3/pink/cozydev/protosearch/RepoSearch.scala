@@ -106,7 +106,7 @@ object RepoSearch extends IOWebApp {
     val repos: IO[List[Repo]] =
       (Stream.eval(IO.println("fetching data...")) >>
         client
-          .stream(Request[IO](Method.GET, uri"/repo-dataset.jsonl"))
+          .stream(Request[IO](Method.GET, uri"/reposearch/repo-dataset.jsonl"))
           .flatMap(r => r.body.through(Repo.parseRepos))).compile.toList
 
     val analyzer = Analyzer.default.withLowerCasing

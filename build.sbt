@@ -65,15 +65,20 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     ),
   )
 
-lazy val web = crossProject(JSPlatform)
-  .crossType(CrossType.Pure)
+lazy val web = project
   .in(file("web"))
-  .dependsOn(core)
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .dependsOn(core.js)
   .settings(
     name := "protosearch-web",
+    scalaJSUseMainModuleInitializer := true,
+    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
+      import org.scalajs.linker.interface.ModuleSplitStyle
+      _.withModuleKind(ModuleKind.ESModule)
+        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("reposearch")))
+    },
     scalacOptions := scalacOptions.value
       .filterNot(_ == "-source:3.0-migration"),
-    scalaJSUseMainModuleInitializer := true,
     Compile / mainClass := Some("pink.cozydev.protosearch.RepoSearch"),
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("3."))
@@ -104,7 +109,6 @@ import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm)
   .settings(
     tlSiteRelatedProjects := Seq(
       "lucene" -> url("https://lucene.apache.org/"),
@@ -118,5 +122,19 @@ lazy val docs = project
           HeliumIcon.github,
         )
       )
+    },
+    laikaInputs := {
+      import laika.ast.Path.Root
+      val jsArtifact = (web / Compile / fullOptJS / artifactPath).value
+      val sourcemap = jsArtifact.getName + ".map"
+      laikaInputs.value.delegate
+        .addFile(
+          jsArtifact,
+          Root / "reposearch" / "index.js",
+        )
+        .addFile(
+          jsArtifact.toPath.resolveSibling(sourcemap).toFile,
+          Root / "reposearch" / sourcemap,
+        )
     },
   )

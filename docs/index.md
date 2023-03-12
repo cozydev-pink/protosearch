@@ -11,3 +11,7 @@ libraryDependencies ++= Seq(
   "pink.cozydev" %% "protosearch" % "@VERSION@"
 )
 ```
+
+### Demo
+
+Checkout our demo search application, [Repo Search](../reposearch/index.html)
