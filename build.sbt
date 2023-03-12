@@ -7,14 +7,15 @@ ThisBuild / startYear := Some(2022)
 ThisBuild / licenses := Seq(License.Apache2)
 ThisBuild / developers := List(
   // your GitHub handle and name
-  tlGitHubDev("valencik", "Andrew Valencik")
+  tlGitHubDev("valencik", "Andrew Valencik"),
+  tlGitHubDev("samspills", "Sam Pillsworth"),
 )
 
 // publish to s01.oss.sonatype.org (set to true to publish to oss.sonatype.org instead)
 ThisBuild / tlSonatypeUseLegacyHost := false
 
-// do not publish to sonatype yet
-ThisBuild / tlCiReleaseBranches := Seq.empty
+// publish website from this branch
+ThisBuild / tlSitePublishBranch := Some("main")
 
 ThisBuild / resolvers +=
   "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
@@ -96,5 +97,26 @@ lazy val web = crossProject(JSPlatform)
           "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
         )
       else Seq()
+    },
+  )
+
+import laika.helium.config.{IconLink, HeliumIcon}
+lazy val docs = project
+  .in(file("site"))
+  .enablePlugins(TypelevelSitePlugin)
+  .dependsOn(core.jvm)
+  .settings(
+    tlSiteRelatedProjects := Seq(
+      "lucene" -> url("https://lucene.apache.org/"),
+      "lucille" -> url("https://github.com/cozydev-pink/lucille"),
+      "textmogrify" -> url("https://github.com/valencik/textmogrify"),
+    ),
+    tlSiteHeliumConfig := {
+      tlSiteHeliumConfig.value.site.topNavigationBar(
+        homeLink = IconLink.external(
+          "https://github.com/cozydev-pink/protosearch",
+          HeliumIcon.github,
+        )
+      )
     },
   )
