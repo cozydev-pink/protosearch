@@ -19,49 +19,59 @@ package pink.cozydev.protosearch
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
+import scala.collection.mutable.{HashMap => MMap}
 
-case class Scorer(index: Index, defaultOR: Boolean = true) {
+case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
-  def score(q: Query, docs: Set[Int]): Either[String, List[(Int, Double)]] = {
-    val terms = onlyTerms(NonEmptyList.of(q))
-    terms.map(terms => scoreEm(terms, docs))
+  def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
+    // TODO unsafe
+    val defaultIdx: Index = index.indexes(index.defaultField)
+    def accScore(
+        idx: Index,
+        queries: NonEmptyList[Query],
+    ): Either[String, NonEmptyList[Map[Int, Double]]] =
+      queries.flatTraverse {
+        case Query.OrQ(qs) => accScore(idx, qs)
+        case Query.AndQ(qs) => accScore(idx, qs)
+        case Query.TermQ(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
+        case Query.Group(qs) => accScore(idx, qs)
+        case Query.NotQ(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.RangeQ(left, right, _, _) =>
+          (left, right) match {
+            case (Some(l), Some(r)) =>
+              // TODO handle inclusive / exclusive
+              // TODO optionality
+              // TODO left might also require special handling
+              NonEmptyList
+                .fromList(idx.termsForRange(l, r))
+                .toRight(
+                  s"No terms found while processing RangeQ: [$left, $right]"
+                )
+                .map(ts => ts.map(t => idx.scoreTFIDF(docs, t).toMap))
+            case _ => Left("Unsupport RangeQ error?")
+          }
+        case Query.PhraseQ(p) =>
+          // TODO Hack, only works for single term phrase
+          Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
+        case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
+        case Query.FieldQ(fn, q) =>
+          index.indexes.get(fn) match {
+            case None => Left(s"Field not found")
+            case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
+          }
+        case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
+        case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm encountered in Scorer: $q")
+        case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
+      }
+    accScore(defaultIdx, qs).map(combineMaps)
   }
 
-  private def onlyTerms(queries: NonEmptyList[Query]): Either[String, NonEmptyList[String]] =
-    queries.flatTraverse {
-      case Query.OrQ(qs) => onlyTerms(qs)
-      case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) => Right(NonEmptyList.of(t))
-      case Query.Group(qs) => onlyTerms(qs)
-      case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
-      case Query.RangeQ(left, right, _, _) =>
-        (left, right) match {
-          case (Some(l), Some(r)) =>
-            // TODO handle inclusive / exclusive
-            // TODO optionality
-            // TODO left might also require special handling
-            NonEmptyList
-              .fromList(index.termsForRange(l, r))
-              .toRight(
-                s"No terms found while processing RangeQ: [$left, $right]"
-              )
-          case _ => Left("Unsupport RangeQ error?")
-        }
-      case Query.PhraseQ(qs) => Right(NonEmptyList.one(qs))
-      case Query.UnaryMinus(q) => onlyTerms(NonEmptyList.one(q))
-      case Query.UnaryPlus(q) => onlyTerms(NonEmptyList.one(q))
-      case Query.FieldQ(_, q) => onlyTerms(NonEmptyList.one(q))
-      case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
-      case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm encountered in Scorer: $q")
-      case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
-    }
-
-  private def scoreEm(
-      terms: NonEmptyList[String],
-      docs: Set[Int],
-  ): List[(Int, Double)] =
-    terms.toList
-      .flatMap(t => index.scoreTFIDF(docs, t))
-      .groupMapReduce(_._1)(_._2)(_ + _)
-      .toList
+  private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
+    val mb = MMap.from(ms.head)
+    ms.tail.foreach(m1 =>
+      m1.foreachEntry((k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)))
+    )
+    mb.iterator.toList
+  }
 }
