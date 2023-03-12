@@ -127,8 +127,9 @@ object RepoSearch extends IOWebApp {
         ("topics", _.topics.mkString(" "), analyzer),
       )(repos)
       val scorer = Scorer(index)
+      val allHits = repos.map(r => Hit(r, 0.001)).sortBy(-_.repo.stars)
       qs =>
-        if (qs.isEmpty) Right(Nil)
+        if (qs.isEmpty) Right(allHits)
         else {
           val aq = qAnalyzer.parse(qs)
           val results: Either[String, List[(Int, Double)]] =
