@@ -17,39 +17,38 @@
 package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
 import pink.cozydev.lucille.Query
 
-case class BooleanQuery(index: Index, defaultOR: Boolean = true) {
+case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
 
-  def search(q: Query): Either[String, List[(Int, Double)]] = {
-    val terms = onlyTerms(NonEmptyList.of(q))
+  def search(q: Query): Either[String, Set[Int]] = {
     val docs = booleanModel(q)
-    terms.flatMap(terms => docs.map(ds => scoreEm(terms, ds)))
+    docs
   }
 
   def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
       case Query.TermQ(q) => Right(index.docsWithTermSet(q))
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.intersectSets)
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanQuery.unionSets)
+      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
-      case _: Query.FieldQ => Left("We only have one implicit field currently")
+      case Query.FieldQ(fn, q) =>
+        Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
       case Query.PhraseQ(q) =>
         // Optimistic phrase query handling
         // In case the user added quotes to a single term
         val resultSet = index.docsWithTermSet(q)
         if (resultSet.nonEmpty) Right(resultSet)
         else
-          Left("Phrase queries require position data, which we don't have yet")
-      case _: Query.ProximityQ => Left("Unsupported query type")
-      case _: Query.PrefixTerm => Left("Unsupported query type")
-      case _: Query.FuzzyTerm => Left("Unsupported query type")
-      case _: Query.UnaryPlus => Left("Unsupported query type")
-      case _: Query.UnaryMinus => Left("Unsupported query type")
+          Left(s"Phrase queries require position data, which we don't have yet. q: $q")
+      case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
+      case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm in BooleanRetrieval: $q")
+      case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
+      case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
+      case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
       case Query.RangeQ(left, right, _, _) =>
         (left, right) match {
           case (Some(l), Some(r)) =>
@@ -61,42 +60,10 @@ case class BooleanQuery(index: Index, defaultOR: Boolean = true) {
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) BooleanQuery.unionSets(sets) else BooleanQuery.intersectSets(sets)
+    if (defaultOR) BooleanRetrieval.unionSets(sets) else BooleanRetrieval.intersectSets(sets)
 
-  private def onlyTerms(queries: NonEmptyList[Query]): Either[String, NonEmptyList[String]] =
-    queries.flatTraverse {
-      case Query.OrQ(qs) => onlyTerms(qs)
-      case Query.AndQ(qs) => onlyTerms(qs)
-      case Query.TermQ(t) => Right(NonEmptyList.of(t))
-      case Query.Group(qs) => onlyTerms(qs)
-      case Query.NotQ(q) => onlyTerms(NonEmptyList.of(q))
-      case Query.RangeQ(left, right, _, _) =>
-        (left, right) match {
-          case (Some(l), Some(r)) =>
-            // TODO handle inclusive / exclusive
-            // TODO optionality
-            // TODO left might also require special handling
-            NonEmptyList
-              .fromList(index.termsForRange(l, r))
-              .toRight(
-                s"No terms found while processing RangeQ: [$left, $right]"
-              )
-          case _ => Left("Unsupport RangeQ error?")
-        }
-      case Query.PhraseQ(qs) => Right(NonEmptyList.one(qs))
-      case x => Left(s"Sorry bucko, only term queries supported today, not $x")
-    }
-
-  private def scoreEm(
-      terms: NonEmptyList[String],
-      docs: Set[Int],
-  ): List[(Int, Double)] =
-    terms.toList
-      .flatMap(t => index.scoreTFIDF(docs, t))
-      .groupMapReduce(_._1)(_._2)(_ + _)
-      .toList
 }
-object BooleanQuery {
+object BooleanRetrieval {
 
   def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =
     if (sets.size == 1) sets.head

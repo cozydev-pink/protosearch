@@ -30,9 +30,11 @@ import org.http4s.circe.CirceEntityCodec._
 
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 
+case class Hit(repo: Repo, score: Double)
+
 object RepoSearch extends IOWebApp {
 
-  def renderList(search: String => Either[String, List[Repo]]): Resource[IO, HtmlDivElement[IO]] =
+  def renderList(search: String => Either[String, List[Hit]]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
         cls := "columns",
@@ -60,15 +62,29 @@ object RepoSearch extends IOWebApp {
       )
     }
 
-  def renderListElem(repo: Repo): Resource[IO, HtmlLiElement[IO]] =
+  def renderListElem(hit: Hit): Resource[IO, HtmlLiElement[IO]] =
     li(
       div(
         cls := "card",
         div(
           cls := "card-content",
-          p(cls := "title", a(href := repo.url, repo.name)),
-          p(cls := "subtitle", span(repo.fullName), span(s"  ✩ ${repo.stars}")),
-          p(cls := "subtitle", repo.description),
+          div(
+            cls := "level",
+            div(
+              cls := "level-left",
+              p(cls := "title", a(href := hit.repo.url, hit.repo.name)),
+            ),
+            div(
+              cls := "level-right has-text-grey-light",
+              p(f"${hit.score * 1000}%.2f"),
+            ),
+          ), // level
+          p(
+            cls := "subtitle",
+            span(hit.repo.fullName),
+            span(s"  ✩ ${hit.repo.stars}"),
+          ),
+          p(cls := "subtitle", hit.repo.description),
         ),
       )
     )
@@ -102,7 +118,7 @@ object RepoSearch extends IOWebApp {
       ("topics", analyzer),
     )
 
-    def searchBldr(repos: List[Repo]): String => Either[String, List[Repo]] = qs => {
+    def searchBldr(repos: List[Repo]): String => Either[String, List[Hit]] = {
       val index = MultiIndex.apply[Repo](
         "description",
         ("name", _.name, analyzer),
@@ -110,9 +126,19 @@ object RepoSearch extends IOWebApp {
         ("description", _.description.getOrElse(""), analyzer),
         ("topics", _.topics.mkString(" "), analyzer),
       )(repos)
-      val q = qAnalyzer.parse(qs)
-      val results = q.flatMap(index.search)
-      results.map(hits => hits.map(i => repos(i)).sortBy(-_.stars))
+      val scorer = Scorer(index)
+      qs =>
+        if (qs.isEmpty) Right(Nil)
+        else {
+          val aq = qAnalyzer.parse(qs)
+          val results: Either[String, List[(Int, Double)]] =
+            aq.flatMap(q => index.search(q).flatMap(ds => scorer.score(q, ds.toSet)))
+          results.map(hits =>
+            hits
+              .map((i, score) => Hit(repos(i), score))
+              .sortBy(h => (-h.score, -h.repo.stars))
+          )
+        }
     }
 
     Resource
