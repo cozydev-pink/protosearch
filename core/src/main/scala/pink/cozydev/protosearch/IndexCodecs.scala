@@ -19,6 +19,8 @@ package pink.cozydev.protosearch
 import scodec.{Attempt, Codec, Err, codecs}
 import scala.reflect.ClassTag
 
+// Derived from scodec vectorOfN
+// https://github.com/scodec/scodec/blob/v2.2.1/shared/src/main/scala/scodec/codecs/codecs.scala#L1106
 object IndexCodecs {
   def arrayOfN[A: ClassTag](countCodec: Codec[Int], valueCodec: Codec[A]): Codec[Array[A]] =
     countCodec
