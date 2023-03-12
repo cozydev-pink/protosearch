@@ -137,4 +137,5 @@ lazy val docs = project
           Root / "reposearch" / sourcemap,
         )
     },
+    laikaSite := laikaSite.dependsOn(web / Compile / fullOptJS).value,
   )
