@@ -85,6 +85,9 @@ object RepoSearch extends IOWebApp {
             span(s"  ✩ ${hit.repo.stars}"),
           ),
           p(cls := "subtitle", hit.repo.description),
+          p(
+           hit.repo.topics.map(t => span(cls := "tag", t))
+          ),
         ),
       )
     )
