@@ -131,11 +131,13 @@ object RepoSearch extends IOWebApp {
         if (qs.isEmpty) Right(Nil)
         else {
           val aq = qAnalyzer.parse(qs)
-          val results: Either[String, List[(Int, Double)]] = aq.flatMap { q =>
-            val docScores = index.search(q).flatMap(ds => scorer.score(q, ds.toSet))
-            docScores.map(ds => ds.sortBy(-_._2))
-          }
-          results.map(hits => hits.map((i, score) => Hit(repos(i), score)))
+          val results: Either[String, List[(Int, Double)]] =
+            aq.flatMap(q => index.search(q).flatMap(ds => scorer.score(q, ds.toSet)))
+          results.map(hits =>
+            hits
+              .map((i, score) => Hit(repos(i), score))
+              .sortBy(h => (-h.score, -h.repo.stars))
+          )
         }
     }
 
