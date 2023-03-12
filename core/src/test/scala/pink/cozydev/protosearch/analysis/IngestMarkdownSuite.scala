@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
-class TermIndexArrayCodecSuite extends munit.FunSuite {
-  val index = CatIndex.index
+class IngestMarkdownSuite extends munit.FunSuite {
+  val doc = """|
+               |# Title
+               |
+               |sub title line
+               |
+               |## H2 Section
+               |
+               |h2 section text
+               |
+               |## Second H2
+               |
+               |second section text
+               |""".stripMargin
 
-  test("TermIndexArray.codec encodes") {
-    val bytes = Index.codec.encode(index)
-    assert(bytes.isSuccessful)
-  }
-
-  test("TermIndexArray.codec round trips") {
-    val bytes = Index.codec.encode(index)
-    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
-    assert(indexDecoded.isSuccessful)
+  test("laika extracts headings".fail) {
+    val x = IngestMarkdown.transform(doc)
+    val headings = List("H2 Section", "Second H2", "Title")
+    assertEquals(x, Right(headings))
   }
 
 }

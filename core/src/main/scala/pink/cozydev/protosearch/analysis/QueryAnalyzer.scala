@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.analysis
 
 import cats.data.NonEmptyList
 import cats.syntax.all._
@@ -22,10 +22,10 @@ import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.Parser
 
 import pink.cozydev.protosearch.analysis.Analyzer
-// TODO ok this is ready to try
-// TEST FAILING because we're not using it
-// We perhaps want a new "Search" class or something that connects the Index with the QueryAnalyzer
-// A "Search" should use a QueryAnalyzer, and then a QueryExecutor on an Index to return results
+
+// TODO This is a hack, the Lucille parser tokenizes on white space only currently
+// We perhaps want Lucille to use a tokenizer from textmogrify
+// In the meantime, we rewrite the Query with our `Analyzer`
 case class QueryAnalyzer(
     defaultField: String,
     analyzers: Map[String, Analyzer],
@@ -66,8 +66,6 @@ case class QueryAnalyzer(
   private def analyzeQ(query: Query): Either[String, Query] =
     query match {
       case Query.TermQ(q) =>
-        // TODO This is a hack, the Lucille parser tokenizes on white space currently
-        // We really want to pass in our tokenizer somehow
         val qs: List[String] = analyzers(defaultField).tokenize(q)
         NonEmptyList.fromList(qs) match {
           case None => Left(s"Query analysis error, no terms found after tokenizing $query")
