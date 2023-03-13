@@ -36,7 +36,6 @@ class WriteReadLoopSuite extends munit.FunSuite {
 
     def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
       val q = qAnalyzer.parse(qs)
-      println(s"+++ analyzed query: $q")
       val result = q.flatMap(index.search)
       // TODO vector index access is unsafe
       result.map(hits => hits.map(i => allBooks(i)))
