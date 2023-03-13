@@ -60,8 +60,12 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
+        case Query.PrefixTerm(p) =>
+          NonEmptyList.fromList(idx.termsForPrefix(p)) match {
+            case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+            case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
+          }
         case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
-        case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm encountered in Scorer: $q")
         case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
       }
     accScore(defaultIdx, qs).map(combineMaps)

@@ -92,6 +92,20 @@ sealed abstract class Index private (
     } else Set.empty
   }
 
+  /** Get the list of terms starting with prefix . */
+  def termsForPrefix(prefix: String): List[String] = {
+    var i = termIndexWhere(prefix)
+    if (termDict(i).startsWith(prefix)) {
+      val bldr = ListBuffer.empty[String]
+      while (i < termDict.size)
+        if (termDict(i).startsWith(prefix)) {
+          bldr.addOne(termDict(i))
+          i += 1
+        } else return bldr.toList
+      bldr.toList
+    } else Nil
+  }
+
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
     if (docs.size == 0) Nil
     else {
