@@ -101,4 +101,22 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
+  test("fas*") {
+    val q = Parser.parseQ("fas*").map(_.head)
+    val results = Set(1)
+    assertEquals(
+      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      Right(results),
+    )
+  }
+
+  test("sleeps*") {
+    val q = Parser.parseQ("sleeps*").map(_.head)
+    val results = Set(2)
+    assertEquals(
+      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      Right(results),
+    )
+  }
+
 }

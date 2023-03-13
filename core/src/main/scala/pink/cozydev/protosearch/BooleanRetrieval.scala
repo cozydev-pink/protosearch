@@ -45,10 +45,10 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
         else
           Left(s"Phrase queries require position data, which we don't have yet. q: $q")
       case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
-      case q: Query.PrefixTerm => Left(s"Unsupported PrefixTerm in BooleanRetrieval: $q")
       case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
+      case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
       case Query.RangeQ(left, right, _, _) =>
         (left, right) match {
           case (Some(l), Some(r)) =>
