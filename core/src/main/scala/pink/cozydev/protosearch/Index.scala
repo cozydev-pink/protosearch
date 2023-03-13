@@ -101,27 +101,6 @@ sealed abstract class Index private (
       }
     }
 
-  def docsWithTermTFIDF(term: String): List[(Int, Double)] = {
-    val idx = termIndex(term)
-    if (idx < 0) Nil
-    else {
-      val arr = tfData(idx)
-      var i = 0
-      val bldr = ListBuffer.newBuilder[(Int, Double)]
-      bldr.sizeHint(arr.size / 2)
-      while (i < arr.length) {
-        val id = arr(i)
-        val tf = Math.log(1.0 + arr(i + 1))
-        val idf: Double = 2.0 / arr.size.toDouble
-        val tfidf: Double = tf * idf
-        // println(s"tf: $tf, idf: $idf, tfidf: $tfidf")
-        bldr += (id -> tfidf)
-        i += 2
-      }
-      bldr.result().sortBy(-_._2).toList
-    }
-  }
-
   private def termIndex(term: String): Int =
     binarySearch(term, 0, numTerms)
 
