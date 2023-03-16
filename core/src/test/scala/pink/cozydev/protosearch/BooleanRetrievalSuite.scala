@@ -19,7 +19,7 @@ package pink.cozydev.protosearch
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.Parser
 
-class QuerySuite extends munit.FunSuite {
+class BooleanRetrievalSuite extends munit.FunSuite {
 
   val index = CatIndex.index
   val analyzer = Analyzer.default
@@ -95,6 +95,24 @@ class QuerySuite extends munit.FunSuite {
   test("[a TO z]") {
     val q = Parser.parseQ("[a TO z]").map(_.head)
     val results = Set(0, 1, 2)
+    assertEquals(
+      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      Right(results),
+    )
+  }
+
+  test("f*") {
+    val q = Parser.parseQ("f*").map(_.head)
+    val results = Set(0, 1)
+    assertEquals(
+      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      Right(results),
+    )
+  }
+
+  test("sleeps*") {
+    val q = Parser.parseQ("sleeps*").map(_.head)
+    val results = Set(2)
     assertEquals(
       q.flatMap(q => BooleanRetrieval(index).search(q)),
       Right(results),

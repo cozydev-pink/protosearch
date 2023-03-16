@@ -19,6 +19,7 @@ package pink.cozydev.protosearch
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.HashSet
 
 import pink.cozydev.protosearch.codecs.IndexCodecs
 
@@ -71,11 +72,38 @@ sealed abstract class Index private (
 
   /** For every term between left and right, get the docs using those terms. */
   def docsForRange(left: String, right: String): Set[Int] = {
-    import scala.collection.mutable.HashSet
     val bldr = HashSet.empty[Int]
     Range(termIndexWhere(left), termIndexWhere(right))
       .foreach(i => bldr.addAll(evenElems(tfData(i))))
     bldr.toSet
+  }
+
+  /** For every term starting with prefix, get the docs using those terms. */
+  def docsForPrefix(prefix: String): Set[Int] = {
+    var i = termIndexWhere(prefix)
+    if (termDict(i).startsWith(prefix)) {
+      val bldr = HashSet.empty[Int]
+      while (i < termDict.size)
+        if (termDict(i).startsWith(prefix)) {
+          bldr.addAll(evenElems(tfData(i)))
+          i += 1
+        } else return bldr.toSet
+      bldr.toSet
+    } else Set.empty
+  }
+
+  /** Get the list of terms starting with prefix . */
+  def termsForPrefix(prefix: String): List[String] = {
+    var i = termIndexWhere(prefix)
+    if (termDict(i).startsWith(prefix)) {
+      val bldr = ListBuffer.empty[String]
+      while (i < termDict.size)
+        if (termDict(i).startsWith(prefix)) {
+          bldr.addOne(termDict(i))
+          i += 1
+        } else return bldr.toList
+      bldr.toList
+    } else Nil
   }
 
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =

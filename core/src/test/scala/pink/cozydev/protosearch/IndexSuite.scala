@@ -44,6 +44,14 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
   }
 
+  test("termsForPrefix returns all terms starting with prefix") {
+    assertEquals(index.termsForPrefix("f"), List("fast", "fox"))
+  }
+
+  test("termsForPrefix returns term if it exactly matches prefix") {
+    assertEquals(index.termsForPrefix("sleeps"), List("sleeps"))
+  }
+
   test("Index.codec encodes") {
     val bytes = Index.codec.encode(index)
     assert(bytes.isSuccessful)
