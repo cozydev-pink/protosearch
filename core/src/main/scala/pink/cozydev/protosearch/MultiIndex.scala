@@ -69,11 +69,11 @@ object MultiIndex {
 
   def apply[A](
       defaultField: String,
-      head: (String, A => String, Analyzer),
-      tail: (String, A => String, Analyzer)*
+      head: (String, (A => String, Analyzer)),
+      tail: (String, (A => String, Analyzer))*
   ): List[A] => MultiIndex = {
 
-    val bldrs = (head :: tail.toList).map { case (name, getter, tokenizer) =>
+    val bldrs = (head :: tail.toList).map { case (name, (getter, tokenizer)) =>
       Bldr(name, getter, tokenizer, ListBuffer.empty)
     }
 

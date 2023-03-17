@@ -124,22 +124,16 @@ object RepoSearch extends IOWebApp {
           .flatMap(r => r.body.through(Repo.parseRepos))).compile.toList
 
     val analyzer = Analyzer.default.withLowerCasing
-    val qAnalyzer = QueryAnalyzer(
-      "description",
-      ("name", analyzer),
-      ("fullName", analyzer),
-      ("description", analyzer),
-      ("topics", analyzer),
+    val searchSchema = SearchSchema[Repo](
+      "name" -> (_.name, analyzer),
+      "fullName" -> (_.fullName, analyzer),
+      "description" -> (_.description.getOrElse(""), analyzer),
+      "topics" -> (_.topics.mkString(" "), analyzer),
     )
 
     def searchBldr(repos: List[Repo]): String => Either[String, List[Hit]] = {
-      val index = MultiIndex.apply[Repo](
-        "description",
-        ("name", _.name, analyzer),
-        ("fullName", _.fullName, analyzer),
-        ("description", _.description.getOrElse(""), analyzer),
-        ("topics", _.topics.mkString(" "), analyzer),
-      )(repos)
+      val index = searchSchema.indexBldr("description")(repos)
+      val qAnalyzer = searchSchema.queryAnalyzer("description")
       val scorer = Scorer(index)
       val allHits = repos.map(r => Hit(r, 0.001)).sortBy(-_.repo.stars)
       qs =>
