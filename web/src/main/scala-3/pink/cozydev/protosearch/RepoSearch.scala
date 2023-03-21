@@ -125,10 +125,10 @@ object RepoSearch extends IOWebApp {
 
     val analyzer = Analyzer.default.withLowerCasing
     val searchSchema = SearchSchema[Repo](
-      "name" -> (_.name, analyzer),
-      "fullName" -> (_.fullName, analyzer),
-      "description" -> (_.description.getOrElse(""), analyzer),
-      "topics" -> (_.topics.mkString(" "), analyzer),
+      ("name", _.name, analyzer),
+      ("fullName", _.fullName, analyzer),
+      ("description", _.description.getOrElse(""), analyzer),
+      ("topics", _.topics.mkString(" "), analyzer),
     )
 
     def searchBldr(repos: List[Repo]): String => Either[String, List[Hit]] = {
