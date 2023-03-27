@@ -54,7 +54,10 @@ object RepoSearch extends IOWebApp {
           ol(
             cls := "results",
             children <-- queryStr.map { q =>
-              val resultElems = search(q).map(rs => rs.map(renderListElem))
+              val resultElems = search(q).map {
+                case Nil => List(renderNoResult)
+                case rs => rs.map(renderListElem)
+              }
               resultElems.fold(err => List(renderError(err)), identity)
             },
           ),
@@ -92,16 +95,24 @@ object RepoSearch extends IOWebApp {
       )
     )
 
-  def renderError(err: String): Resource[IO, HtmlLiElement[IO]] =
-    li(
+  def renderNoResult: Resource[IO, HtmlDivElement[IO]] =
+    div(
+      cls := "card",
       div(
-        cls := "card has-background-danger-light",
-        div(
-          cls := "card-content",
-          p(cls := "title", "Error"),
-          p(cls := "subtitle has-text-danger", err),
-        ),
-      )
+        cls := "card-content",
+        p(cls := "title", "No results"),
+        p(cls := "subtitle", "Try a different query."),
+      ),
+    )
+
+  def renderError(err: String): Resource[IO, HtmlDivElement[IO]] =
+    div(
+      cls := "card has-background-danger-light",
+      div(
+        cls := "card-content",
+        p(cls := "title", "Error"),
+        p(cls := "subtitle has-text-danger", err),
+      ),
     )
 
   def render: Resource[IO, HtmlElement[IO]] = {
