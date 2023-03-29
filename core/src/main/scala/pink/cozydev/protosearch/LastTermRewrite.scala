@@ -24,6 +24,7 @@ object LastTermRewrite {
   def termToPrefix(q: Query): Query =
     q match {
       case Query.TermQ(t) => Query.PrefixTerm(t)
+      case Query.FieldQ(fn, Query.TermQ(t)) => Query.FieldQ(fn, Query.PrefixTerm(t))
       case _ => q
     }
 
