@@ -43,23 +43,23 @@ case class QueryAnalyzer(
               case terms => Right(Query.Group(terms.map(Query.TermQ.apply)))
             }
         }
-      case q: Query.FieldQ => Left(s"Oops, nested field query?: $q")
-      case q: Query.AndQ =>
-        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.AndQ(qs))
+      case q: Query.PrefixTerm => Right(q)
+      case q: Query.RangeQ => Right(q)
+      case q: Query.PhraseQ => Right(q)
       case q: Query.OrQ =>
         q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.OrQ(qs))
-      case q: Query.Group =>
-        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.Group(qs))
+      case q: Query.AndQ =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.AndQ(qs))
       case q: Query.NotQ =>
         analyzeTermQ(a, q.q).map(qs => Query.NotQ(qs))
+      case q: Query.Group =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.Group(qs))
+      case q: Query.FieldQ => Left(s"Oops, nested field query?: $q")
       case q: Query.UnaryMinus =>
         analyzeTermQ(a, q.q).map(qs => Query.UnaryMinus(qs))
       case q: Query.UnaryPlus =>
         analyzeTermQ(a, q.q).map(qs => Query.UnaryPlus(qs))
       case q: Query.ProximityQ => Right(q)
-      case q: Query.PrefixTerm => Right(q)
-      case q: Query.PhraseQ => Right(q)
-      case q: Query.RangeQ => Right(q)
       case q: Query.FuzzyTerm => Right(q)
     }
 
@@ -76,11 +76,8 @@ case class QueryAnalyzer(
                 s"Query analysis error, TermQ tokenized into multiple terms, this should be supported, but isn't yet"
               )
         }
-      case Query.FieldQ(fn, q) =>
-        analyzers.get(fn) match {
-          case None => Left(s"Query analysis error, field $fn is not supported in query $query")
-          case Some(a) => analyzeTermQ(a, q).map(qq => Query.FieldQ(fn, qq))
-        }
+      case q: Query.PrefixTerm => Right(q)
+      case q: Query.RangeQ => Right(q)
       case Query.PhraseQ(q) =>
         // TODO This is also a hack, we don't really support phrase queries yet
         // But if the phrase contains a single term, we can do it!
@@ -94,15 +91,18 @@ case class QueryAnalyzer(
                 s"Query analysis error, PhraseQ tokenized into multiple terms, this should be supported, but isn't yet"
               )
         }
-      case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ.apply)
       case q: Query.OrQ => q.qs.traverse(analyzeQ).map(Query.OrQ.apply)
-      case q: Query.Group => q.qs.traverse(analyzeQ).map(Query.Group.apply)
+      case q: Query.AndQ => q.qs.traverse(analyzeQ).map(Query.AndQ.apply)
       case q: Query.NotQ => analyzeQ(q.q).map(Query.NotQ.apply)
+      case q: Query.Group => q.qs.traverse(analyzeQ).map(Query.Group.apply)
+      case Query.FieldQ(fn, q) =>
+        analyzers.get(fn) match {
+          case None => Left(s"Query analysis error, field $fn is not supported in query $query")
+          case Some(a) => analyzeTermQ(a, q).map(qq => Query.FieldQ(fn, qq))
+        }
       case q: Query.UnaryMinus => analyzeQ(q.q).map(Query.UnaryMinus.apply)
       case q: Query.UnaryPlus => analyzeQ(q.q).map(Query.UnaryPlus.apply)
       case q: Query.ProximityQ => Right(q)
-      case q: Query.PrefixTerm => Right(q)
-      case q: Query.RangeQ => Right(q)
       case q: Query.FuzzyTerm => Right(q)
     }
 

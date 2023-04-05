@@ -31,11 +31,12 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         queries: NonEmptyList[Query],
     ): Either[String, NonEmptyList[Map[Int, Double]]] =
       queries.flatTraverse {
-        case Query.OrQ(qs) => accScore(idx, qs)
-        case Query.AndQ(qs) => accScore(idx, qs)
         case Query.TermQ(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
-        case Query.Group(qs) => accScore(idx, qs)
-        case Query.NotQ(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.PrefixTerm(p) =>
+          NonEmptyList.fromList(idx.termsForPrefix(p)) match {
+            case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+            case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
+          }
         case Query.RangeQ(left, right, _, _) =>
           (left, right) match {
             case (Some(l), Some(r)) =>
@@ -53,18 +54,17 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.PhraseQ(p) =>
           // TODO Hack, only works for single term phrase
           Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
-        case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
-        case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
+        case Query.OrQ(qs) => accScore(idx, qs)
+        case Query.AndQ(qs) => accScore(idx, qs)
+        case Query.NotQ(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.Group(qs) => accScore(idx, qs)
         case Query.FieldQ(fn, q) =>
           index.indexes.get(fn) match {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
-        case Query.PrefixTerm(p) =>
-          NonEmptyList.fromList(idx.termsForPrefix(p)) match {
-            case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-            case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
-          }
+        case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
         case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
       }
