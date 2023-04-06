@@ -32,14 +32,7 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
     q match {
       case Query.TermQ(q) => Right(index.docsWithTermSet(q))
       case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
-      case Query.RangeQ(left, right, _, _) =>
-        (left, right) match {
-          case (Some(l), Some(r)) =>
-            // TODO handle inclusive / exclusive
-            // TODO optionality
-            Right(index.docsForRange(l, r))
-          case _ => Left("Unsupport RangeQ error?")
-        }
+      case q: Query.RangeQ => rangeSearch(q)
       case Query.PhraseQ(q) =>
         // Optimistic phrase query handling
         // In case the user added quotes to a single term
@@ -57,6 +50,18 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
       case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
+    }
+
+  private def rangeSearch(q: Query.RangeQ): Either[String, Set[Int]] =
+    q match {
+      case Query.RangeQ(left, right, _, _) =>
+        (left, right) match {
+          case (Some(l), Some(r)) =>
+            // TODO handle inclusive / exclusive
+            // TODO optionality
+            Right(index.docsForRange(l, r))
+          case _ => Left("Unsupport RangeQ error?")
+        }
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
