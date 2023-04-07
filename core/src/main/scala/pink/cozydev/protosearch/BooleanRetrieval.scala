@@ -28,7 +28,7 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
     docs
   }
 
-  def booleanModel(q: Query): Either[String, Set[Int]] =
+  private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
       case Query.TermQ(q) => Right(index.docsWithTermSet(q))
       case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
