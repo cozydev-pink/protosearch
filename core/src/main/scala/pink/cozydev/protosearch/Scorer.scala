@@ -32,25 +32,8 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     ): Either[String, NonEmptyList[Map[Int, Double]]] =
       queries.flatTraverse {
         case Query.TermQ(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
-        case Query.PrefixTerm(p) =>
-          NonEmptyList.fromList(idx.termsForPrefix(p)) match {
-            case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-            case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
-          }
-        case Query.RangeQ(left, right, _, _) =>
-          (left, right) match {
-            case (Some(l), Some(r)) =>
-              // TODO handle inclusive / exclusive
-              // TODO optionality
-              // TODO left might also require special handling
-              NonEmptyList
-                .fromList(idx.termsForRange(l, r))
-                .toRight(
-                  s"No terms found while processing RangeQ: [$left, $right]"
-                )
-                .map(ts => ts.map(t => idx.scoreTFIDF(docs, t).toMap))
-            case _ => Left("Unsupport RangeQ error?")
-          }
+        case q: Query.PrefixTerm => prefixScore(idx, docs, q)
+        case q: Query.RangeQ => rangeScore(idx, docs, q)
         case Query.PhraseQ(p) =>
           // TODO Hack, only works for single term phrase
           Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
@@ -70,6 +53,33 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       }
     accScore(defaultIdx, qs).map(combineMaps)
   }
+
+  private def prefixScore(
+      idx: Index,
+      docs: Set[Int],
+      q: Query.PrefixTerm,
+  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+    NonEmptyList.fromList(idx.termsForPrefix(q.q)) match {
+      case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+      case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
+    }
+
+  private def rangeScore(
+      idx: Index,
+      docs: Set[Int],
+      q: Query.RangeQ,
+  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+    (q.lower, q.upper) match {
+      case (Some(l), Some(r)) =>
+        // TODO handle inclusive / exclusive, optionality
+        NonEmptyList
+          .fromList(idx.termsForRange(l, r))
+          .toRight(
+            s"No terms found while processing RangeQ: $q"
+          )
+          .map(ts => ts.map(t => idx.scoreTFIDF(docs, t).toMap))
+      case _ => Left(s"Unsupported RangeQ error: $q")
+    }
 
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
     val mb = MMap.from(ms.head)
