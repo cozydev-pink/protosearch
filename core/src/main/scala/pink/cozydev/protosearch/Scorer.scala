@@ -50,6 +50,8 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
         case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
+        case q: Query.Regex => Left(s"Unsupported Regex in Scorer: $q")
+        case q: Query.MinimumMatchQ => Left(s"Unsupported MinimumMatch in Scorer: $q")
       }
     accScore(defaultIdx, qs).map(combineMaps)
   }

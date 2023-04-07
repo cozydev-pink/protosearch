@@ -61,6 +61,8 @@ case class QueryAnalyzer(
         analyzeTermQ(a, q.q).map(qs => Query.UnaryPlus(qs))
       case q: Query.ProximityQ => Right(q)
       case q: Query.FuzzyTerm => Right(q)
+      case q: Query.Regex => Right(q)
+      case q: Query.MinimumMatchQ => Right(q)
     }
 
   private def analyzeQ(query: Query): Either[String, Query] =
@@ -104,6 +106,8 @@ case class QueryAnalyzer(
       case q: Query.UnaryPlus => analyzeQ(q.q).map(Query.UnaryPlus.apply)
       case q: Query.ProximityQ => Right(q)
       case q: Query.FuzzyTerm => Right(q)
+      case q: Query.Regex => Right(q)
+      case q: Query.MinimumMatchQ => Right(q)
     }
 
   def parse(queryString: String): Either[String, NonEmptyList[Query]] = {

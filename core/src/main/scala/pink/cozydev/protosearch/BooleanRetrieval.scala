@@ -44,6 +44,8 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
       case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
+      case q: Query.Regex => Left(s"Unsupported Regex in BooleanRetrieval: $q")
+      case q: Query.MinimumMatchQ => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
     }
 
   private def phraseSearch(q: Query.PhraseQ): Either[String, Set[Int]] = {
