@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
+import pink.cozydev.lucille.MultiQuery
 
 case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
@@ -40,6 +41,7 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.Field(fn, q) =>
         Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
+      case q: MultiQuery => q.qs.traverse(booleanModel).map(defaultCombine)
       case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")

@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch
 
+import cats.syntax.all._
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 
 class MultiIndexSuite extends munit.FunSuite {
@@ -31,9 +32,9 @@ class MultiIndexSuite extends munit.FunSuite {
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
 
   def search(qs: String): Either[String, List[Book]] = {
-    val q = qAnalyzer.parse(qs)
+    val q = qAnalyzer.parse(qs).leftMap(_.toString())
     // println(s"+++ analyzed query: $q")
-    val result = q.flatMap(index.search)
+    val result = q.flatMap(mq => index.search(mq.qs))
     result.map(hits => hits.map(i => allBooks(i)))
   }
 

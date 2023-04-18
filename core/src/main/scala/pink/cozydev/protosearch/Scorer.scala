@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import scala.collection.mutable.{HashMap => MMap}
+import pink.cozydev.lucille.MultiQuery
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -46,6 +47,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
+        case q: MultiQuery => accScore(idx, q.qs)
         case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.Proximity => Left(s"Unsupported Proximity encountered in Scorer: $q")

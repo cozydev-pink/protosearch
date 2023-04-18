@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch
 
+import cats.syntax.all._
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.Parser
 
@@ -24,97 +25,103 @@ class BooleanRetrievalSuite extends munit.FunSuite {
   val index = CatIndex.index
   val analyzer = Analyzer.default
 
+  def search(qStr: String): Either[String, Set[Int]] =
+    Parser
+      .parseQ(qStr)
+      .leftMap(_.toString())
+      .flatMap(q => BooleanRetrieval(index).search(q))
+
   test("Term") {
-    val q = Parser.parseQ("fast").map(_.head)
+    val q = search("fast")
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(Set(1)),
     )
   }
 
   test("multi Term") {
-    val q = Parser.parseQ("fast cat").map(_.head)
+    val q = search("fast cat")
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
-      Right(Set(1)),
+      q,
+      Right(Set(0, 1, 2)),
     )
   }
 
   test("And") {
-    val q = Parser.parseQ("fast AND cat").map(_.head)
+    val q = search("fast AND cat")
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(Set(1)),
     )
   }
 
   test("Double And") {
-    val q = Parser.parseQ("the AND fast AND cat").map(_.head)
+    val q = search("the AND fast AND cat")
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(Set(1)),
     )
   }
 
   test("Or") {
-    val q = Parser.parseQ("fast OR cat").map(_.head)
+    val q = search("fast OR cat")
     val results = Set(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("Double Or") {
-    val q = Parser.parseQ("the OR fast OR cat").map(_.head)
+    val q = search("the OR fast OR cat")
     val results = Set(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("cat AND (fast OR quick)") {
-    val q = Parser.parseQ("cat AND (fast OR quick)").map(_.head)
+    val q = search("cat AND (fast OR quick)")
     val results = Set(0, 1)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("cat AND NOT fast") {
-    val q = Parser.parseQ("cat AND NOT fast").map(_.head)
+    val q = search("cat AND NOT fast")
     val results = Set(0, 2)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("[a TO z]") {
-    val q = Parser.parseQ("[a TO z]").map(_.head)
+    val q = search("[a TO z]")
     val results = Set(0, 1, 2)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("f*") {
-    val q = Parser.parseQ("f*").map(_.head)
+    val q = search("f*")
     val results = Set(0, 1)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }
 
   test("sleeps*") {
-    val q = Parser.parseQ("sleeps*").map(_.head)
+    val q = search("sleeps*")
     val results = Set(2)
     assertEquals(
-      q.flatMap(q => BooleanRetrieval(index).search(q)),
+      q,
       Right(results),
     )
   }

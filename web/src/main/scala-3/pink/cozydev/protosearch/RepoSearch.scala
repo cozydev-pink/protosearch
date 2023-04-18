@@ -139,7 +139,7 @@ object RepoSearch extends IOWebApp {
       qs =>
         if (qs.isEmpty) Right(allHits)
         else {
-          val aq = qAnalyzer.parse(qs).map(LastTermRewrite.lastTermPrefix)
+          val aq = qAnalyzer.parse(qs).map(mq => LastTermRewrite.lastTermPrefix(mq.qs))
           val results: Either[String, List[(Int, Double)]] =
             aq.flatMap(q => index.search(q).flatMap(ds => scorer.score(q, ds.toSet)))
           results.map(hits =>

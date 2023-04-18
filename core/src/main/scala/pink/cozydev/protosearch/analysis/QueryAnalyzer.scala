@@ -56,6 +56,8 @@ case class QueryAnalyzer(
       case q: Query.Group =>
         q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => Query.Group(qs))
       case q: Query.Field => Left(s"Oops, nested field query?: $q")
+      case q: MultiQuery =>
+        q.qs.traverse(qq => analyzeTermQ(a, qq)).map(qs => MultiQuery(qs))
       case q: Query.UnaryMinus =>
         analyzeTermQ(a, q.q).map(qs => Query.UnaryMinus(qs))
       case q: Query.UnaryPlus =>
@@ -103,6 +105,7 @@ case class QueryAnalyzer(
           case None => Left(s"Query analysis error, field $fn is not supported in query $query")
           case Some(a) => analyzeTermQ(a, q).map(qq => Query.Field(fn, qq))
         }
+      case q: MultiQuery => q.qs.traverse(analyzeQ).map(MultiQuery.apply)
       case q: Query.UnaryMinus => analyzeQ(q.q).map(Query.UnaryMinus.apply)
       case q: Query.UnaryPlus => analyzeQ(q.q).map(Query.UnaryPlus.apply)
       case q: Query.Proximity => Right(q)
