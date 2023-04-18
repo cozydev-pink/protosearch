@@ -18,17 +18,17 @@ package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
-import pink.cozydev.lucille.Query.{TermQ, FieldQ, PrefixTerm, Group, OrQ}
+import pink.cozydev.lucille.Query.{Term, Field, Prefix, Group, Or}
 
 object LastTermRewrite {
 
   def termToPrefix(q: Query): Query =
     q match {
-      case TermQ(t) =>
-        Group(NonEmptyList.one(OrQ(NonEmptyList.of(TermQ(t), PrefixTerm(t)))))
-      case FieldQ(fn, TermQ(t)) =>
+      case Term(t) =>
+        Group(NonEmptyList.one(Or(NonEmptyList.of(Term(t), Prefix(t)))))
+      case Field(fn, Term(t)) =>
         Group(
-          NonEmptyList.one(OrQ(NonEmptyList.of(FieldQ(fn, TermQ(t)), FieldQ(fn, PrefixTerm(t)))))
+          NonEmptyList.one(Or(NonEmptyList.of(Field(fn, Term(t)), Field(fn, Prefix(t)))))
         )
       case _ => q
     }

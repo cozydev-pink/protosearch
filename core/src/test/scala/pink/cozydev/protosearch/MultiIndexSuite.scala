@@ -37,12 +37,12 @@ class MultiIndexSuite extends munit.FunSuite {
     result.map(hits => hits.map(i => allBooks(i)))
   }
 
-  test("TermQ") {
+  test("Term") {
     val books = search("Bad")
     assertEquals(books, Right(List(mice)))
   }
 
-  test("TermQ lowercased") {
+  test("Term lowercased") {
     val books = search("bad")
     assertEquals(books, Right(List(mice)))
   }
@@ -57,22 +57,22 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(fish)))
   }
 
-  test("AND NOT field RangeQ") {
+  test("AND NOT field TermRange") {
     val books = search("TWO AND NOT author:[r TO t]")
     assertEquals(books, Right(List(mice)))
   }
 
-  test("AND with field RangeQ") {
+  test("AND with field TermRange") {
     val books = search("TWO AND author:[a TO e]")
     assertEquals(books, Right(List(mice, fish)))
   }
 
-  test("implicit OR with field RangeQ") {
+  test("implicit OR with field TermRange") {
     val books = search("two author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
   }
 
-  test("explicit OR with field RangeQ") {
+  test("explicit OR with field TermRange") {
     val books = search("two OR author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
   }

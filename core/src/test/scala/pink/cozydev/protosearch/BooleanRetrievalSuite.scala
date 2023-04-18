@@ -24,7 +24,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
   val index = CatIndex.index
   val analyzer = Analyzer.default
 
-  test("TermQ") {
+  test("Term") {
     val q = Parser.parseQ("fast").map(_.head)
     assertEquals(
       q.flatMap(q => BooleanRetrieval(index).search(q)),
@@ -32,7 +32,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("multi TermQ") {
+  test("multi Term") {
     val q = Parser.parseQ("fast cat").map(_.head)
     assertEquals(
       q.flatMap(q => BooleanRetrieval(index).search(q)),
@@ -40,7 +40,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("AndQ") {
+  test("And") {
     val q = Parser.parseQ("fast AND cat").map(_.head)
     assertEquals(
       q.flatMap(q => BooleanRetrieval(index).search(q)),
@@ -48,7 +48,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("Double AndQ") {
+  test("Double And") {
     val q = Parser.parseQ("the AND fast AND cat").map(_.head)
     assertEquals(
       q.flatMap(q => BooleanRetrieval(index).search(q)),
@@ -56,7 +56,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("OrQ") {
+  test("Or") {
     val q = Parser.parseQ("fast OR cat").map(_.head)
     val results = Set(0, 1, 2)
     assertEquals(
@@ -65,7 +65,7 @@ class BooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("Double OrQ") {
+  test("Double Or") {
     val q = Parser.parseQ("the OR fast OR cat").map(_.head)
     val results = Set(0, 1, 2)
     assertEquals(
