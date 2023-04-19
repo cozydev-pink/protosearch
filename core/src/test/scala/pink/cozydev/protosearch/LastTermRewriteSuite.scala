@@ -17,8 +17,10 @@
 package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
+import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.Query.{Term, Field, Prefix, Group, Or}
 import pink.cozydev.protosearch.LastTermRewrite._
+import pink.cozydev.lucille.MultiQuery
 
 class LastTermRewriteSuite extends munit.FunSuite {
 
@@ -30,24 +32,20 @@ class LastTermRewriteSuite extends munit.FunSuite {
   }
 
   test("termToPrefix rewrites fieldQ to fieldQ's with termQ and prefix") {
-    val q = Field("fn", Term("c"))
+    val q: Query = Field("fn", Term("c"))
     val expected =
-      Group(
-        NonEmptyList.one(
-          Or(NonEmptyList.of(Field("fn", Term("c")), Field("fn", Prefix("c"))))
-        )
-      )
-    assertEquals(termToPrefix(q), expected)
+      Field("fn", Group(NonEmptyList.one(Or(NonEmptyList.of(Term("c"), Prefix("c"))))))
+    assertEquals(q.mapLastTerm(termToPrefix), expected)
   }
 
-  test("lastTermPrefix rewrites only the last termQ to termQ and prefix") {
+  test("termToPrefix rewrites only the last termQ to termQ and prefix") {
     val q =
-      NonEmptyList.of(Term("first"), Term("f"))
+      MultiQuery(Term("first"), Term("f"))
     val expected =
-      NonEmptyList.of(
+      MultiQuery(
         Term("first"),
         Group(NonEmptyList.one(Or(NonEmptyList.of(Term("f"), Prefix("f"))))),
       )
-    assertEquals(lastTermPrefix(q), expected)
+    assertEquals(q.mapLastTerm(termToPrefix), expected)
   }
 }
