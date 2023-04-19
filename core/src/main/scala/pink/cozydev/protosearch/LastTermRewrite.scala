@@ -16,7 +16,6 @@
 
 package pink.cozydev.protosearch
 
-import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.TermQuery
 
