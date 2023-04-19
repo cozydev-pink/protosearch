@@ -17,9 +17,10 @@ val books: List[Book] = List(
 )
 ```
 
-In order to index our domain type `Book`, we'll need a few things.
-An `Analyzer` to convert strings of text into tokens.
-A `SearchSchema` to convert from our `Book` type into multiple fields of text.
+In order to index our domain type `Book`, we'll need a few things:
+- An `Analyzer` to convert strings of text into tokens.
+- A `SearchSchema` to convert from our `Book` type into multiple fields of text.
+
 And then to create the index itself with a default field:
 
 ```scala mdoc:silent
