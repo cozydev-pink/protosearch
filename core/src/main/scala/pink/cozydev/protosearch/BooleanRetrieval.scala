@@ -28,27 +28,34 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
     docs
   }
 
-  def booleanModel(q: Query): Either[String, Set[Int]] =
+  private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
       case Query.TermQ(q) => Right(index.docsWithTermSet(q))
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
+      case q: Query.RangeQ => rangeSearch(q)
+      case q: Query.PhraseQ => phraseSearch(q)
       case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
-      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
+      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
       case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
+      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.FieldQ(fn, q) =>
         Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
-      case Query.PhraseQ(q) =>
-        // Optimistic phrase query handling
-        // In case the user added quotes to a single term
-        val resultSet = index.docsWithTermSet(q)
-        if (resultSet.nonEmpty) Right(resultSet)
-        else
-          Left(s"Phrase queries require position data, which we don't have yet. q: $q")
+      case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
+      case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
       case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
-      case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
-      case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
-      case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
+    }
+
+  private def phraseSearch(q: Query.PhraseQ): Either[String, Set[Int]] = {
+    // Optimistic phrase query handling for single term only
+    val resultSet = index.docsWithTermSet(q.q)
+    if (resultSet.nonEmpty) Right(resultSet)
+    else
+      Left(s"Phrase queries require position data, which we don't have yet. q: $q")
+  }
+
+  private def rangeSearch(q: Query.RangeQ): Either[String, Set[Int]] =
+    q match {
       case Query.RangeQ(left, right, _, _) =>
         (left, right) match {
           case (Some(l), Some(r)) =>
