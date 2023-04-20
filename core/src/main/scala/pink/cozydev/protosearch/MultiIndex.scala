@@ -42,11 +42,11 @@ case class MultiIndex(
 
   private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
-      case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
+      case Query.Or(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
+      case Query.And(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.Not(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
-      case Query.FieldQ(f, q) =>
+      case Query.Field(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
           BooleanRetrieval(index, defaultOR).search(q)
         }

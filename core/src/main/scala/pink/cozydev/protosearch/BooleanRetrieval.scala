@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
+import pink.cozydev.lucille.MultiQuery
 
 case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
@@ -30,39 +31,42 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
   private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.TermQ(q) => Right(index.docsWithTermSet(q))
-      case Query.PrefixTerm(p) => Right(index.docsForPrefix(p))
-      case q: Query.RangeQ => rangeSearch(q)
-      case q: Query.PhraseQ => phraseSearch(q)
-      case Query.OrQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
-      case Query.AndQ(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
-      case Query.NotQ(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
+      case Query.Term(q) => Right(index.docsWithTermSet(q))
+      case Query.Prefix(p) => Right(index.docsForPrefix(p))
+      case q: Query.TermRange => rangeSearch(q)
+      case q: Query.Phrase => phraseSearch(q)
+      case Query.Or(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
+      case Query.And(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.Not(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
-      case Query.FieldQ(fn, q) =>
+      case Query.Field(fn, q) =>
         Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
+      case q: MultiQuery => q.qs.traverse(booleanModel).map(defaultCombine)
       case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
-      case q: Query.ProximityQ => Left(s"Unsupported ProximityQ in BooleanRetrieval: $q")
-      case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm in BooleanRetrieval: $q")
+      case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")
+      case q: Query.Fuzzy => Left(s"Unsupported Fuzzy in BooleanRetrieval: $q")
+      case q: Query.TermRegex => Left(s"Unsupported Regex in BooleanRetrieval: $q")
+      case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
     }
 
-  private def phraseSearch(q: Query.PhraseQ): Either[String, Set[Int]] = {
+  private def phraseSearch(q: Query.Phrase): Either[String, Set[Int]] = {
     // Optimistic phrase query handling for single term only
-    val resultSet = index.docsWithTermSet(q.q)
+    val resultSet = index.docsWithTermSet(q.str)
     if (resultSet.nonEmpty) Right(resultSet)
     else
       Left(s"Phrase queries require position data, which we don't have yet. q: $q")
   }
 
-  private def rangeSearch(q: Query.RangeQ): Either[String, Set[Int]] =
+  private def rangeSearch(q: Query.TermRange): Either[String, Set[Int]] =
     q match {
-      case Query.RangeQ(left, right, _, _) =>
+      case Query.TermRange(left, right, _, _) =>
         (left, right) match {
           case (Some(l), Some(r)) =>
             // TODO handle inclusive / exclusive
             // TODO optionality
             Right(index.docsForRange(l, r))
-          case _ => Left("Unsupport RangeQ error?")
+          case _ => Left("Unsupport TermRange error?")
         }
     }
 

@@ -22,6 +22,7 @@ ThisBuild / resolvers +=
 
 // use JDK 11
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
+ThisBuild / tlJdkRelease := Some(11)
 
 val Scala213 = "2.13.10"
 val Scala3 = "3.2.2"
@@ -37,7 +38,7 @@ val fs2V = "3.6.1"
 val http4sDomV = "0.2.7"
 val http4sV = "0.23.18"
 val laikaV = "0.19.0"
-val lucilleV = "0.0-dacd035-SNAPSHOT"
+val lucilleV = "0.0-ed3aa4f-SNAPSHOT"
 val munitCatsEffectV = "2.0.0-M3"
 val munitV = "1.0.0-M7"
 val scalajsDomV = "2.4.0"

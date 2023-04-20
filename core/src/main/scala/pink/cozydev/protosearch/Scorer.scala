@@ -20,6 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import scala.collection.mutable.{HashMap => MMap}
+import pink.cozydev.lucille.MultiQuery
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -31,25 +32,28 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         queries: NonEmptyList[Query],
     ): Either[String, NonEmptyList[Map[Int, Double]]] =
       queries.flatTraverse {
-        case Query.TermQ(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
-        case q: Query.PrefixTerm => prefixScore(idx, docs, q)
-        case q: Query.RangeQ => rangeScore(idx, docs, q)
-        case Query.PhraseQ(p) =>
+        case Query.Term(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
+        case q: Query.Prefix => prefixScore(idx, docs, q)
+        case q: Query.TermRange => rangeScore(idx, docs, q)
+        case Query.Phrase(p) =>
           // TODO Hack, only works for single term phrase
           Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
-        case Query.OrQ(qs) => accScore(idx, qs)
-        case Query.AndQ(qs) => accScore(idx, qs)
-        case Query.NotQ(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.Or(qs) => accScore(idx, qs)
+        case Query.And(qs) => accScore(idx, qs)
+        case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
         case Query.Group(qs) => accScore(idx, qs)
-        case Query.FieldQ(fn, q) =>
+        case Query.Field(fn, q) =>
           index.indexes.get(fn) match {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
+        case q: MultiQuery => accScore(idx, q.qs)
         case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
-        case q: Query.ProximityQ => Left(s"Unsupported ProximityQ encountered in Scorer: $q")
-        case q: Query.FuzzyTerm => Left(s"Unsupported FuzzyTerm encountered in Scorer: $q")
+        case q: Query.Proximity => Left(s"Unsupported Proximity encountered in Scorer: $q")
+        case q: Query.Fuzzy => Left(s"Unsupported Fuzzy encountered in Scorer: $q")
+        case q: Query.TermRegex => Left(s"Unsupported Regex in Scorer: $q")
+        case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in Scorer: $q")
       }
     accScore(defaultIdx, qs).map(combineMaps)
   }
@@ -57,9 +61,9 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
   private def prefixScore(
       idx: Index,
       docs: Set[Int],
-      q: Query.PrefixTerm,
+      q: Query.Prefix,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
-    NonEmptyList.fromList(idx.termsForPrefix(q.q)) match {
+    NonEmptyList.fromList(idx.termsForPrefix(q.str)) match {
       case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
       case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
     }
@@ -67,7 +71,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
   private def rangeScore(
       idx: Index,
       docs: Set[Int],
-      q: Query.RangeQ,
+      q: Query.TermRange,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
     (q.lower, q.upper) match {
       case (Some(l), Some(r)) =>
@@ -75,10 +79,10 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         NonEmptyList
           .fromList(idx.termsForRange(l, r))
           .toRight(
-            s"No terms found while processing RangeQ: $q"
+            s"No terms found while processing TermRange: $q"
           )
           .map(ts => ts.map(t => idx.scoreTFIDF(docs, t).toMap))
-      case _ => Left(s"Unsupported RangeQ error: $q")
+      case _ => Left(s"Unsupported TermRange error: $q")
     }
 
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {

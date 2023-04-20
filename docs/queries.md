@@ -45,7 +45,7 @@ val qAnalyzer = searchSchema.queryAnalyzer("title")
 
 def search(q: String): List[Book] =
   qAnalyzer.parse(q)
-    .flatMap(q => index.search(q))
+    .flatMap(mq => index.search(mq.qs))
     .map(hits => hits.map(i => books(i)))
     .fold(_ => Nil, identity)
 ```

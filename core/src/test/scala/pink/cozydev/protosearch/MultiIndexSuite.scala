@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch
 
+import cats.syntax.all._
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 
 class MultiIndexSuite extends munit.FunSuite {
@@ -31,18 +32,18 @@ class MultiIndexSuite extends munit.FunSuite {
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
 
   def search(qs: String): Either[String, List[Book]] = {
-    val q = qAnalyzer.parse(qs)
+    val q = qAnalyzer.parse(qs).leftMap(_.toString())
     // println(s"+++ analyzed query: $q")
-    val result = q.flatMap(index.search)
+    val result = q.flatMap(mq => index.search(mq.qs))
     result.map(hits => hits.map(i => allBooks(i)))
   }
 
-  test("TermQ") {
+  test("Term") {
     val books = search("Bad")
     assertEquals(books, Right(List(mice)))
   }
 
-  test("TermQ lowercased") {
+  test("Term lowercased") {
     val books = search("bad")
     assertEquals(books, Right(List(mice)))
   }
@@ -57,22 +58,22 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(fish)))
   }
 
-  test("AND NOT field RangeQ") {
+  test("AND NOT field TermRange") {
     val books = search("TWO AND NOT author:[r TO t]")
     assertEquals(books, Right(List(mice)))
   }
 
-  test("AND with field RangeQ") {
+  test("AND with field TermRange") {
     val books = search("TWO AND author:[a TO e]")
     assertEquals(books, Right(List(mice, fish)))
   }
 
-  test("implicit OR with field RangeQ") {
+  test("implicit OR with field TermRange") {
     val books = search("two author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
   }
 
-  test("explicit OR with field RangeQ") {
+  test("explicit OR with field TermRange") {
     val books = search("two OR author:[a TO c]")
     assertEquals(books, Right(List(peter, mice, fish)))
   }
