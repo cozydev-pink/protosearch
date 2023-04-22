@@ -22,18 +22,40 @@ class IngestMarkdownSuite extends munit.FunSuite {
                |
                |sub title line
                |
-               |## H2 Section
+               |## Introduction
                |
-               |h2 section text
+               |intro text with *bold*
                |
-               |## Second H2
+               |```scala
+               |val x = 2 + 2
+               |```
                |
-               |second section text
+               |inline `code`
+               |
+               |> quote!
+               |
+               |## The Conclusion
+               |
+               |read more [here](https://github.com/cozydev-pink/protosearch/)
                |""".stripMargin
 
-  test("laika extracts headings".fail) {
+  test("laika extracts headings") {
     val x = IngestMarkdown.transform(doc)
-    val headings = List("H2 Section", "Second H2", "Title")
+    val t = """|sub title line
+               |
+               |""".stripMargin
+    val i = """|intro text with bold
+               |val x = 2 + 2
+               |inline code
+               |
+               |  quote!
+               |""".stripMargin
+    val c = """|read more here""".stripMargin
+    val headings = List(
+      SubDocument(Some("introduction"), "Introduction", i),
+      SubDocument(Some("the-conclusion"), "The Conclusion", c),
+      SubDocument(Some("title"), "Title", t),
+    )
     assertEquals(x, Right(headings))
   }
 

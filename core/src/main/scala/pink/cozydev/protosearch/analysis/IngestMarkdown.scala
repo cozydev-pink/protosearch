@@ -18,28 +18,27 @@ package pink.cozydev.protosearch.analysis
 
 import cats.syntax.all._
 import laika.api.MarkupParser
+import laika.api.Renderer
+import laika.ast.Document
+import laika.ast.DocumentCursor
+import laika.ast.Header
+import laika.ast.RewriteRules
+import laika.ast.Section
+import laika.ast.Text
 import laika.format.Markdown
 import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
-import laika.api.Renderer
-import laika.format.AST
 import laika.parse.markup.DocumentParser.ParserError
-import laika.format.HTML
-import laika.ast.RewriteRules
-import laika.ast.DocumentCursor
+import laika.parse.markup.DocumentParser.RendererError
 import laika.rewrite.nav.SectionBuilder
-import laika.ast.Document
-import laika.ast.Header
-import laika.ast.Text
-import laika.ast.Section
 
-// Similar to the other misfits in `analysis` this shouldn't live here
+case class SubDocument(anchor: Option[String], title: String, content: String)
+
 object IngestMarkdown {
 
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
-  val astRenderer = Renderer.of(AST).build
-  val htmlRenderer = Renderer.of(HTML).build
+  val astRenderer = Renderer.of(Plaintext).build
 
   /** Creates a `RewriteRules` for a `Document` using the `SectionBuilder`.
     * Without the `SectionBuilder` an unresolved `Document` has `Header` nodes
@@ -52,22 +51,20 @@ object IngestMarkdown {
   def sectionBuilderRule(doc: Document): Either[ParserError, RewriteRules] =
     DocumentCursor(doc).flatMap(SectionBuilder).leftMap(ParserError(_, doc.path))
 
-  def parseWithSections(input: String): Either[ParserError, Document] =
+  def parseResolvedWithSections(input: String): Either[ParserError, Document] =
     for {
-      doc <- parser.parseUnresolved(input).map(_.document)
+      doc <- parser.parse(input)
       rules <- sectionBuilderRule(doc)
       result <- doc.rewrite(rules).leftMap(ParserError(_, doc.path))
     } yield result
 
-  def transform(input: String): Either[ParserError, List[String]] =
-    parseWithSections(input)
-      .map(d =>
-        d.content.collect { case Section(Header(_, Seq(Text(header, _)), _), content, _) =>
-          // build a Document with just this header + content
-          // don't worry about plaintext rendering here
-          // need to track position offsets
-          // perhaps need custom tokenizer
-          (header :: content :: Nil).mkString
-        }
+  def transform(input: String): Either[RendererError, List[SubDocument]] =
+    parseResolvedWithSections(input)
+      .leftMap(e => RendererError(e.message, e.path))
+      .flatMap(d =>
+        d.content.collect { case Section(Header(_, Seq(Text(header, _)), opt), content, _) =>
+          val plaintext = content.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
+          plaintext.map(pt => SubDocument(opt.id, header, pt))
+        }.sequence
       )
 }
