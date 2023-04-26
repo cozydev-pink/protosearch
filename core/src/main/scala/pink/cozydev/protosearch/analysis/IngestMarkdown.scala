@@ -31,6 +31,8 @@ import laika.parse.code.SyntaxHighlighting
 import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
 import laika.rewrite.nav.SectionBuilder
+import laika.ast.Block
+import cats.data.NonEmptyList
 
 case class SubDocument(anchor: Option[String], title: String, content: String)
 
@@ -58,13 +60,28 @@ object IngestMarkdown {
       result <- doc.rewrite(rules).leftMap(ParserError(_, doc.path))
     } yield result
 
-  def transform(input: String): Either[RendererError, List[SubDocument]] =
+  private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
+    bs.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
+
+  def renderSubDocuments(doc: Document): Either[RendererError, NonEmptyList[SubDocument]] = {
+    val sectionDocs = doc.content.collect {
+      case Section(Header(_, Seq(Text(header, _)), opt), content, _) =>
+        renderSeqBlock(content).map(pt => SubDocument(opt.id, header, pt))
+    }
+    val subDocs = NonEmptyList.fromList(sectionDocs) match {
+      case Some(subdocs) => subdocs
+      case None =>
+        NonEmptyList.one(
+          renderSeqBlock(doc.content.content).map(pt =>
+            SubDocument(doc.content.options.id, doc.path.basename, pt)
+          )
+        )
+    }
+    subDocs.sequence
+  }
+
+  def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
     parseResolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
-      .flatMap(d =>
-        d.content.collect { case Section(Header(_, Seq(Text(header, _)), opt), content, _) =>
-          val plaintext = content.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
-          plaintext.map(pt => SubDocument(opt.id, header, pt))
-        }.sequence
-      )
+      .flatMap(renderSubDocuments)
 }

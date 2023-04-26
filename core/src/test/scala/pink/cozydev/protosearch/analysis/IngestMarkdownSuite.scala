@@ -16,6 +16,8 @@
 
 package pink.cozydev.protosearch.analysis
 
+import cats.data.NonEmptyList
+
 class IngestMarkdownSuite extends munit.FunSuite {
 
   test("laika renders single header doc into plaintext sub doc") {
@@ -28,7 +30,7 @@ class IngestMarkdownSuite extends munit.FunSuite {
 
     val subDocs = IngestMarkdown.transform(doc)
     val d1 = "bold italics code"
-    val headings = List(
+    val headings = NonEmptyList.one(
       SubDocument(Some("title"), "Title", d1)
     )
     assertEquals(subDocs, Right(headings))
@@ -69,10 +71,27 @@ class IngestMarkdownSuite extends munit.FunSuite {
                 |  quote!
                 |""".stripMargin
     val d3 = """|read more here""".stripMargin
-    val headings = List(
+    val headings = NonEmptyList.of(
       SubDocument(Some("introduction"), "Introduction", d2),
       SubDocument(Some("the-conclusion"), "The Conclusion", d3),
       SubDocument(Some("title"), "Title", d1),
+    )
+    assertEquals(subDocs, Right(headings))
+  }
+
+  test("laika renders no header doc into plaintext sub doc") {
+    val doc =
+      """|
+         |No header
+         |
+         |**bold** *italics* `code`
+         |""".stripMargin
+
+    val subDocs = IngestMarkdown.transform(doc)
+    val d1 = """|No header
+                |bold italics code""".stripMargin
+    val headings = NonEmptyList.one(
+      SubDocument(None, "doc", d1)
     )
     assertEquals(subDocs, Right(headings))
   }
