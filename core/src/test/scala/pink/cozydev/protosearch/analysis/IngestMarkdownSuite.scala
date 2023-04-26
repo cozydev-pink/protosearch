@@ -17,46 +17,64 @@
 package pink.cozydev.protosearch.analysis
 
 class IngestMarkdownSuite extends munit.FunSuite {
-  val doc = """|
-               |# Title
-               |
-               |sub title line
-               |
-               |## Introduction
-               |
-               |intro text with *bold*
-               |
-               |```scala
-               |val x = 2 + 2
-               |```
-               |
-               |inline `code`
-               |
-               |> quote!
-               |
-               |## The Conclusion
-               |
-               |read more [here](https://github.com/cozydev-pink/protosearch/)
-               |""".stripMargin
 
-  test("laika extracts headings") {
-    val x = IngestMarkdown.transform(doc)
-    val t = """|sub title line
-               |
-               |""".stripMargin
-    val i = """|intro text with bold
-               |val x = 2 + 2
-               |inline code
-               |
-               |  quote!
-               |""".stripMargin
-    val c = """|read more here""".stripMargin
+  test("laika renders single header doc into plaintext sub doc") {
+    val doc =
+      """|
+         |# Title
+         |
+         |**bold** *italics* `code`
+         |""".stripMargin
+
+    val subDocs = IngestMarkdown.transform(doc)
+    val d1 = "bold italics code"
     val headings = List(
-      SubDocument(Some("introduction"), "Introduction", i),
-      SubDocument(Some("the-conclusion"), "The Conclusion", c),
-      SubDocument(Some("title"), "Title", t),
+      SubDocument(Some("title"), "Title", d1)
     )
-    assertEquals(x, Right(headings))
+    assertEquals(subDocs, Right(headings))
+  }
+
+  test("laika renders complex doc into plaintext sub documents") {
+    val doc =
+      """|
+         |# Title
+         |
+         |sub title line
+         |
+         |## Introduction
+         |
+         |intro text with **bold**
+         |
+         |```scala
+         |val x = 2 + 2
+         |```
+         |
+         |inline `code`
+         |
+         |> quote!
+         |
+         |## The Conclusion
+         |
+         |read more [here](https://github.com/cozydev-pink/protosearch/)
+         |""".stripMargin
+
+    val subDocs = IngestMarkdown.transform(doc)
+    val d1 = """|sub title line
+                |
+                |""".stripMargin
+    val d2 = """|intro text with bold
+                |val x = 2 + 2
+                |inline code
+                |
+                |  quote!
+                |""".stripMargin
+    val d3 = """|read more here""".stripMargin
+    val headings = List(
+      SubDocument(Some("introduction"), "Introduction", d2),
+      SubDocument(Some("the-conclusion"), "The Conclusion", d3),
+      SubDocument(Some("title"), "Title", d1),
+    )
+    assertEquals(subDocs, Right(headings))
   }
 
 }
