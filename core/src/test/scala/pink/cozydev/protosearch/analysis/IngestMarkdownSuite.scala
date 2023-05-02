@@ -91,7 +91,30 @@ class IngestMarkdownSuite extends munit.FunSuite {
     val d1 = """|No header
                 |bold italics code""".stripMargin
     val headings = NonEmptyList.one(
-      SubDocument(None, "doc", d1)
+      SubDocument(None, "", d1)
+    )
+    assertEquals(subDocs, Right(headings))
+  }
+
+  test("laika renders late header doc into two plaintext sub docs") {
+    val doc =
+      """|
+         |No header
+         |
+         |**bold** *italics* `code`
+         |
+         |# Late header
+         |
+         |body text
+         |""".stripMargin
+
+    val subDocs = IngestMarkdown.transform(doc)
+    val d1 = """|No header
+                |bold italics code""".stripMargin
+    val d2 = "body text"
+    val headings = NonEmptyList.of(
+      SubDocument(None, "", d1),
+      SubDocument(Some("late-header"), "Late header", d2),
     )
     assertEquals(subDocs, Right(headings))
   }

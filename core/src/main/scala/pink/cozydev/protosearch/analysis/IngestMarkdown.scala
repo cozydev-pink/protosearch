@@ -33,6 +33,8 @@ import laika.parse.markup.DocumentParser.RendererError
 import laika.rewrite.nav.SectionBuilder
 import laika.ast.Block
 import cats.data.NonEmptyList
+import scala.collection.mutable.ListBuffer
+import laika.ast.RootElement
 
 case class SubDocument(anchor: Option[String], title: String, content: String)
 
@@ -63,20 +65,56 @@ object IngestMarkdown {
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
     bs.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
 
+  /** Collects blocks from a RootElement until the predicate is satisfied, does not
+    * include the block that satisfies the predicate.
+    *
+    * @param root The root element
+    * @param split the predicate to stop collecting blocks
+    * @return
+    */
+  private def groupUntil(root: RootElement)(split: Block => Boolean): Option[List[Block]] = {
+    val chunkBuffer = new ListBuffer[Block]
+    root.content.foreach { b =>
+      if (split(b)) {
+        if (chunkBuffer.nonEmpty) {
+          // exit without this block
+          return Some(chunkBuffer.toList)
+        }
+      } else chunkBuffer.addOne(b)
+    }
+    val blocks = chunkBuffer.toList
+    if (blocks.nonEmpty) Some(blocks) else None
+  }
+
   def renderSubDocuments(doc: Document): Either[RendererError, NonEmptyList[SubDocument]] = {
-    val sectionDocs = doc.content.collect {
+    // Group content before first section
+    val preamble = groupUntil(doc.content)(b => b.isInstanceOf[Section])
+      .map(bs => renderSeqBlock(bs).map(pt => SubDocument(None, "", pt)))
+
+    // Collect all sections into subdocs
+    val sectionDocs: List[Either[RendererError, SubDocument]] = doc.content.collect {
       case Section(Header(_, Seq(Text(header, _)), opt), content, _) =>
         renderSeqBlock(content).map(pt => SubDocument(opt.id, header, pt))
     }
-    val subDocs = NonEmptyList.fromList(sectionDocs) match {
-      case Some(subdocs) => subdocs
-      case None =>
-        NonEmptyList.one(
-          renderSeqBlock(doc.content.content).map(pt =>
-            SubDocument(doc.content.options.id, doc.path.basename, pt)
-          )
-        )
+
+    // Combine subdocs
+    val both: List[Either[RendererError, SubDocument]] = preamble match {
+      case None => sectionDocs
+      case Some(pre) => pre :: sectionDocs
     }
+
+    // groupUntil might handle this case
+    val subDocs: NonEmptyList[Either[RendererError, SubDocument]] =
+      NonEmptyList.fromList(both) match {
+        case Some(subdocs) => subdocs
+        case None =>
+          // One last attempt at the whole doc
+          NonEmptyList.one(
+            renderSeqBlock(doc.content.content).map(pt =>
+              SubDocument(doc.content.options.id, doc.path.basename, pt)
+            )
+          )
+      }
     subDocs.sequence
   }
 
