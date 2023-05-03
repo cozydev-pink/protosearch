@@ -122,7 +122,7 @@ object IngestMarkdown {
   }
 
   def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
-    parseUnresolvedWithSections(input)
+    parseResolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 }
