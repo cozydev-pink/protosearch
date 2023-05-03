@@ -55,12 +55,15 @@ object IngestMarkdown {
   def sectionBuilderRule(doc: Document): Either[ParserError, RewriteRules] =
     DocumentCursor(doc).flatMap(SectionBuilder).leftMap(ParserError(_, doc.path))
 
-  def parseResolvedWithSections(input: String): Either[ParserError, Document] =
+  def parseUnresolvedWithSections(input: String): Either[ParserError, Document] =
     for {
-      doc <- parser.parse(input)
+      doc <- parser.parseUnresolved(input).map(_.document)
       rules <- sectionBuilderRule(doc)
       result <- doc.rewrite(rules).leftMap(ParserError(_, doc.path))
     } yield result
+
+  def parseResolvedWithSections(input: String): Either[ParserError, Document] =
+    parser.parse(input)
 
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
     bs.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
@@ -119,7 +122,7 @@ object IngestMarkdown {
   }
 
   def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
-    parseResolvedWithSections(input)
+    parseUnresolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 }
