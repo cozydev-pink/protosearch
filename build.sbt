@@ -30,14 +30,14 @@ ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val calicoV = "0.2.0-RC2"
-val catsEffectV = "3.4.9"
+val catsEffectV = "3.4.10"
 val catsV = "2.9.0"
 val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
 val fs2V = "3.6.1"
-val http4sDomV = "0.2.7"
+val http4sDomV = "0.2.8"
 val http4sV = "0.23.18"
-val laikaV = "0.19.0"
+val laikaV = "0.19.1"
 val lucilleV = "0.0-ed3aa4f-SNAPSHOT"
 val munitCatsEffectV = "2.0.0-M3"
 val munitV = "1.0.0-M7"
