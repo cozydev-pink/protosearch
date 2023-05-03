@@ -20,13 +20,17 @@ import cats.syntax.all._
 import laika.api.MarkupParser
 import laika.api.Renderer
 import laika.ast.Document
+import laika.ast.DocumentCursor
 import laika.ast.Header
+import laika.ast.RewriteRules
 import laika.ast.Section
 import laika.ast.Text
 import laika.format.Markdown
 import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
+import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
+import laika.rewrite.nav.SectionBuilder
 import laika.ast.Block
 import cats.data.NonEmptyList
 import scala.collection.mutable.ListBuffer
@@ -39,6 +43,24 @@ object IngestMarkdown {
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
   val astRenderer = Renderer.of(Plaintext).build
+
+  /** Creates a `RewriteRules` for a `Document` using the `SectionBuilder`.
+    * Without the `SectionBuilder` an unresolved `Document` has `Header` nodes
+    * separate from the content they introduce, afterwards they are grouped together
+    * in a `Section` node.
+    *
+    * @param doc
+    * @return
+    */
+  def sectionBuilderRule(doc: Document): Either[ParserError, RewriteRules] =
+    DocumentCursor(doc).flatMap(SectionBuilder).leftMap(ParserError(_, doc.path))
+
+  def parseResolvedWithSections(input: String): Either[ParserError, Document] =
+    for {
+      doc <- parser.parse(input)
+      rules <- sectionBuilderRule(doc)
+      result <- doc.rewrite(rules).leftMap(ParserError(_, doc.path))
+    } yield result
 
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
     bs.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
@@ -97,8 +119,7 @@ object IngestMarkdown {
   }
 
   def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
-    parser
-      .parse(input)
+    parseResolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 }
