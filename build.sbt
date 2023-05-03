@@ -30,7 +30,7 @@ ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val calicoV = "0.2.0-RC2"
-val catsEffectV = "3.4.10"
+val catsEffectV = "3.5.0-RC5"
 val catsV = "2.9.0"
 val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
@@ -67,6 +67,79 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
+  )
+
+lazy val searchdocs = project
+  .in(file("searchdocs"))
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .dependsOn(core.js)
+  .settings(
+    name := "protosearch-searchdocs",
+    scalaJSUseMainModuleInitializer := true,
+    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
+      import org.scalajs.linker.interface.ModuleSplitStyle
+      _.withModuleKind(ModuleKind.ESModule)
+        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("searchdocs")))
+    },
+    scalacOptions := scalacOptions.value
+      .filterNot(_ == "-source:3.0-migration"),
+    Compile / mainClass := Some("pink.cozydev.protosearch.DocumentationIndexWriterApp"),
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("3."))
+        Seq(
+          "org.typelevel" %%% "cats-core" % catsV,
+          "org.typelevel" %%% "cats-effect" % catsEffectV,
+          "co.fs2" %%% "fs2-core" % fs2V,
+          "co.fs2" %%% "fs2-io" % fs2V,
+          "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+          "io.circe" %%% "circe-core" % circeV,
+          "io.circe" %%% "circe-generic" % circeV,
+          "io.circe" %%% "circe-parser" % circeV,
+          "io.circe" %%% "circe-fs2" % circeFs2V,
+        )
+      else Seq()
+    },
+  )
+
+lazy val searchdocsWeb = project
+  .in(file("searchdocs-web"))
+  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
+  .dependsOn(core.js, searchdocs)
+  .settings(
+    name := "protosearch-searchdocs-web",
+    scalaJSUseMainModuleInitializer := true,
+    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
+      import org.scalajs.linker.interface.ModuleSplitStyle
+      _.withModuleKind(ModuleKind.ESModule)
+        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("searchdocs-web")))
+    },
+    scalacOptions := scalacOptions.value
+      .filterNot(_ == "-source:3.0-migration"),
+    Compile / mainClass := Some("pink.cozydev.protosearch.SearchDocs"),
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("3."))
+        Seq(
+          "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
+          "org.typelevel" %%% "cats-core" % catsV,
+          "org.typelevel" %%% "cats-effect" % catsEffectV,
+          "co.fs2" %%% "fs2-core" % fs2V,
+          "co.fs2" %%% "fs2-io" % fs2V,
+          "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+          "pink.cozydev" %%% "lucille" % lucilleV,
+          "com.armanbilge" %%% "calico" % calicoV,
+          "io.circe" %%% "circe-core" % circeV,
+          "io.circe" %%% "circe-generic" % circeV,
+          "io.circe" %%% "circe-parser" % circeV,
+          "io.circe" %%% "circe-fs2" % circeFs2V,
+          "org.http4s" %%% "http4s-dom" % http4sDomV,
+          "org.http4s" %%% "http4s-core" % http4sV,
+          "org.http4s" %%% "http4s-circe" % http4sV,
+          "org.http4s" %%% "http4s-dsl" % http4sV,
+          "org.scalameta" %%% "munit" % munitV % Test,
+          "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+        )
+      else Seq()
+    },
   )
 
 lazy val web = project
@@ -113,7 +186,7 @@ import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm, web)
+  .dependsOn(core.jvm, web, searchdocs, searchdocsWeb)
   .settings(
     tlSiteRelatedProjects := Seq(
       "lucene" -> url("https://lucene.apache.org/"),
@@ -132,6 +205,8 @@ lazy val docs = project
       import laika.ast.Path.Root
       val jsArtifact = (web / Compile / fullOptJS / artifactPath).value
       val sourcemap = jsArtifact.getName + ".map"
+      val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
+      val sourcemapDS = jsArtifactDS.getName + ".map"
       laikaInputs.value.delegate
         .addFile(
           jsArtifact,
@@ -141,6 +216,14 @@ lazy val docs = project
           jsArtifact.toPath.resolveSibling(sourcemap).toFile,
           Root / "reposearch" / sourcemap,
         )
+        .addFile(
+          jsArtifactDS,
+          Root / "searchdocs-web" / "index.js",
+        )
+        .addFile(
+          jsArtifactDS.toPath.resolveSibling(sourcemapDS).toFile,
+          Root / "searchdocs-web" / sourcemap,
+        )
     },
-    laikaSite := laikaSite.dependsOn(web / Compile / fullOptJS).value,
+    laikaSite := laikaSite.dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS).value,
   )
