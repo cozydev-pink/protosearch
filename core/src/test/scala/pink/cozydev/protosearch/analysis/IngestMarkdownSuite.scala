@@ -119,4 +119,25 @@ class IngestMarkdownSuite extends munit.FunSuite {
     assertEquals(subDocs, Right(headings))
   }
 
+  test("laika renders content of callout") {
+    val doc =
+      """|
+         |# Title
+         |
+         |@:callout(warning)
+         |warning text
+         |@:@
+         |
+         |**bold** *italics* `code`
+         |""".stripMargin
+
+    val subDocs = IngestMarkdown.transform(doc)
+    val d1 = """|warning text
+                |bold italics code""".stripMargin
+    val headings = NonEmptyList.one(
+      SubDocument(Some("title"), "Title", d1)
+    )
+    assertEquals(subDocs, Right(headings))
+  }
+
 }
