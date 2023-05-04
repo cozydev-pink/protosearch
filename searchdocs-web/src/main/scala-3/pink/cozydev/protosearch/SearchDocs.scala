@@ -113,15 +113,15 @@ object SearchDocs extends IOWebApp {
   def render: Resource[IO, HtmlElement[IO]] = {
     val client = FetchClientBuilder[IO].create
 
-    val fetchDocs: IO[List[Doc]] = IO.println("fetching docs...") *> client
-      .expect[List[Doc]](uri"http4s-docs.json") <* IO.println("done fetching docs")
+    val fetchDocs: IO[List[Doc]] = client
+      .expect[List[Doc]](uri"http4s-docs.json")
 
-    val fetchIndex: IO[MultiIndex] = IO.println("fetching index...") *>
+    val fetchIndex: IO[MultiIndex] =
       client
         .stream(Request[IO](Method.GET, uri"http4s-docs.idx"))
         .evalMap(r => parseIndexBytes(r.body))
         .compile
-        .onlyOrError <* IO.println("done fetching index")
+        .onlyOrError
 
     def searchBldr(docs: List[Doc], index: MultiIndex): String => Either[String, List[Hit]] = {
       val qAnalyzer = searchSchema.queryAnalyzer("body")
@@ -139,8 +139,7 @@ object SearchDocs extends IOWebApp {
     }
 
     Resource
-      .eval(IO.println("prefetch") *> (fetchDocs, fetchIndex).parTupled <* IO.println("fetched"))
-      .flatTap(_ => Resource.eval(IO.println("hi!")))
+      .eval((fetchDocs, fetchIndex).parTupled)
       .map(searchBldr.tupled)
       .flatMap(renderList)
       .flatTap(_ => Resource.eval(IO.println("FIN")))
