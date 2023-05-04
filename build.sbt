@@ -225,5 +225,7 @@ lazy val docs = project
           Root / "searchdocs-web" / sourcemap,
         )
     },
-    laikaSite := laikaSite.dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS).value,
+    laikaSite := laikaSite
+      .dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS)
+      .value,
   )
