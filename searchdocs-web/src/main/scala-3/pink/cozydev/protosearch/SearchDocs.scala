@@ -86,6 +86,7 @@ object SearchDocs extends IOWebApp {
             cls := "subtitle",
             span(hit.doc.title),
           ),
+          p(cls := "subtitle", hit.doc.body.take(100) + "..."),
         ),
       )
     )
