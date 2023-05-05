@@ -74,14 +74,16 @@ lazy val searchdocs = crossProject(JVMPlatform, JSPlatform)
   .in(file("searchdocs"))
   .enablePlugins(NoPublishPlugin)
   .dependsOn(core)
-  .settings(
-    name := "protosearch-searchdocs",
+  .jsSettings(
     scalaJSUseMainModuleInitializer := true,
     Compile / fastLinkJS / scalaJSLinkerConfig ~= {
       import org.scalajs.linker.interface.ModuleSplitStyle
       _.withModuleKind(ModuleKind.ESModule)
         .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("searchdocs")))
     },
+  )
+  .settings(
+    name := "protosearch-searchdocs",
     Compile / mainClass := Some("pink.cozydev.protosearch.DocumentationIndexWriterApp"),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
