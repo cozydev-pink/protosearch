@@ -40,25 +40,28 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
 
   def collectDocs(
       subDocs: Either[RendererError, NonEmptyList[SubDocument]],
-      path: Path,
   ): List[Doc] =
     subDocs match {
       case Left(_) => Nil // swallow errors
       case Right(docs) =>
-        docs.toList.map(sd => Doc(path.fileName.toString, sd.title, sd.anchor, sd.content))
+        docs.toList.map(sd => Doc(sd.fileName, sd.title, sd.anchor, sd.content))
     }
 
   def docsFromPath(pathToDocs: Path): IO[List[Doc]] =
     Files[IO]
       .walk(pathToDocs)
       .filter(_.extName == ".md")
-      .evalMap(p => readAsString(p).product(IO.pure(p)))
-      .map { case (content, p) => (IngestMarkdown.transformUnresolved(content), p) }
-      .flatMap(ds => Stream.emits(collectDocs.tupled(ds)))
+      .evalMap(p => readAsString(p))
+      .map(IngestMarkdown.transformUnresolved)
+      .flatMap(ds => Stream.emits(collectDocs(ds)))
       .compile
       .toList
 
-  val docsAndIndex: IO[(List[Doc], MultiIndex)] = docsFromPath(pathHttp4sDocs)
+  def docsFromPathNew(pathToDocs: Path): IO[List[Doc]] =
+    IngestMarkdown.doit(pathToDocs.toString)
+      .map(subDocBundles => subDocBundles.toList.flatMap(collectDocs))
+
+  val docsAndIndex: IO[(List[Doc], MultiIndex)] = docsFromPathNew(pathHttp4sDocs)
     .map(docs => (docs, searchSchema.indexBldr("body")(docs)))
 
   val indexPath = Path("./searchdocs-web/searchdocs/http4s-docs.idx")

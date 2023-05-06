@@ -44,7 +44,8 @@ val munitV = "1.0.0-M7"
 val scalajsDomV = "2.4.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 
-lazy val root = tlCrossRootProject.aggregate(core, web, searchdocs, searchdocsWeb)
+lazy val root =
+  tlCrossRootProject.aggregate(core, laikaIO, web, searchdocsCore, searchdocsIO, searchdocsWeb)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -63,13 +64,31 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "co.fs2" %%% "fs2-io" % fs2V,
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
-      "org.planet42" %%% "laika-core" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
   )
 
-lazy val searchdocs = crossProject(JVMPlatform, JSPlatform)
+lazy val laikaIO = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("laikaIO"))
+  .settings(
+    name := "protosearch-laika",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "cats-core" % catsV,
+      "org.typelevel" %%% "cats-effect" % catsEffectV,
+      "co.fs2" %%% "fs2-core" % fs2V,
+      "co.fs2" %%% "fs2-io" % fs2V,
+      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+      "pink.cozydev" %%% "lucille" % lucilleV,
+      "org.planet42" %%% "laika-core" % laikaV,
+      "org.planet42" %%% "laika-io" % laikaV,
+      "org.scalameta" %%% "munit" % munitV % Test,
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+    ),
+  )
+
+lazy val searchdocsCore = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("searchdocs"))
   .enablePlugins(NoPublishPlugin)
@@ -84,7 +103,24 @@ lazy val searchdocs = crossProject(JVMPlatform, JSPlatform)
   )
   .settings(
     name := "protosearch-searchdocs",
-    Compile / mainClass := Some("pink.cozydev.protosearch.DocumentationIndexWriterApp"),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "cats-core" % catsV,
+      "org.typelevel" %%% "cats-effect" % catsEffectV,
+      "co.fs2" %%% "fs2-core" % fs2V,
+      "io.circe" %%% "circe-core" % circeV,
+      "io.circe" %%% "circe-generic" % circeV,
+      "io.circe" %%% "circe-parser" % circeV,
+      "io.circe" %%% "circe-fs2" % circeFs2V,
+    ),
+  )
+
+lazy val searchdocsIO = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("searchdocs-io"))
+  .enablePlugins(NoPublishPlugin)
+  .dependsOn(core, searchdocsCore)
+  .settings(
+    name := "protosearch-searchdocs-io",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,
@@ -101,7 +137,7 @@ lazy val searchdocs = crossProject(JVMPlatform, JSPlatform)
 lazy val searchdocsWeb = project
   .in(file("searchdocs-web"))
   .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .dependsOn(core.js, searchdocs.js)
+  .dependsOn(core.js, searchdocsCore.js)
   .settings(
     name := "protosearch-searchdocs-web",
     scalaJSUseMainModuleInitializer := true,
@@ -183,7 +219,7 @@ import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm, web, searchdocs.js, searchdocsWeb)
+  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb)
   .settings(
     tlSiteRelatedProjects := Seq(
       "lucene" -> url("https://lucene.apache.org/"),

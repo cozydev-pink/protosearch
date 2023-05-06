@@ -31,7 +31,7 @@ class IngestMarkdownSuite extends munit.FunSuite {
     val subDocs = IngestMarkdown.transform(doc)
     val d1 = "bold italics code"
     val headings = NonEmptyList.one(
-      SubDocument(Some("title"), "Title", d1)
+      SubDocument("doc", Some("title"), "Title", d1)
     )
     assertEquals(subDocs, Right(headings))
   }
@@ -72,9 +72,9 @@ class IngestMarkdownSuite extends munit.FunSuite {
                 |""".stripMargin
     val d3 = """|read more here""".stripMargin
     val headings = NonEmptyList.of(
-      SubDocument(Some("introduction"), "Introduction", d2),
-      SubDocument(Some("the-conclusion"), "The Conclusion", d3),
-      SubDocument(Some("title"), "Title", d1),
+      SubDocument("doc", Some("introduction"), "Introduction", d2),
+      SubDocument("doc", Some("the-conclusion"), "The Conclusion", d3),
+      SubDocument("doc", Some("title"), "Title", d1),
     )
     assertEquals(subDocs, Right(headings))
   }
@@ -91,7 +91,7 @@ class IngestMarkdownSuite extends munit.FunSuite {
     val d1 = """|No header
                 |bold italics code""".stripMargin
     val headings = NonEmptyList.one(
-      SubDocument(None, "", d1)
+      SubDocument("doc", None, "doc", d1)
     )
     assertEquals(subDocs, Right(headings))
   }
@@ -113,8 +113,8 @@ class IngestMarkdownSuite extends munit.FunSuite {
                 |bold italics code""".stripMargin
     val d2 = "body text"
     val headings = NonEmptyList.of(
-      SubDocument(None, "", d1),
-      SubDocument(Some("late-header"), "Late header", d2),
+      SubDocument("doc", None, "doc", d1),
+      SubDocument("doc", Some("late-header"), "Late header", d2),
     )
     assertEquals(subDocs, Right(headings))
   }
@@ -135,7 +135,7 @@ class IngestMarkdownSuite extends munit.FunSuite {
     val d1 = """|warning text
                 |bold italics code""".stripMargin
     val headings = NonEmptyList.one(
-      SubDocument(Some("title"), "Title", d1)
+      SubDocument("doc", Some("title"), "Title", d1)
     )
     assertEquals(subDocs, Right(headings))
   }

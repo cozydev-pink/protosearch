@@ -35,8 +35,11 @@ import laika.ast.Block
 import cats.data.NonEmptyList
 import scala.collection.mutable.ListBuffer
 import laika.ast.RootElement
+import laika.io.implicits._
+import cats.effect.IO
+import laika.config.LaikaKeys
 
-case class SubDocument(anchor: Option[String], title: String, content: String)
+case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
 
 object IngestMarkdown {
 
@@ -90,14 +93,15 @@ object IngestMarkdown {
   }
 
   def renderSubDocuments(doc: Document): Either[RendererError, NonEmptyList[SubDocument]] = {
+    val fileName = doc.path.name
     // Group content before first section
     val preamble = groupUntil(doc.content)(b => b.isInstanceOf[Section])
-      .map(bs => renderSeqBlock(bs).map(pt => SubDocument(None, "", pt)))
+      .map(bs => renderSeqBlock(bs).map(pt => SubDocument(fileName, None, doc.path.basename, pt)))
 
     // Collect all sections into subdocs
     val sectionDocs: List[Either[RendererError, SubDocument]] = doc.content.collect {
       case Section(Header(_, Seq(Text(header, _)), opt), content, _) =>
-        renderSeqBlock(content).map(pt => SubDocument(opt.id, header, pt))
+        renderSeqBlock(content).map(pt => SubDocument(fileName, opt.id, header, pt))
     }
 
     // Combine subdocs
@@ -114,7 +118,7 @@ object IngestMarkdown {
           // One last attempt at the whole doc
           NonEmptyList.one(
             renderSeqBlock(doc.content.content).map(pt =>
-              SubDocument(doc.content.options.id, doc.path.basename, pt)
+              SubDocument(fileName, doc.content.options.id, doc.path.basename, pt)
             )
           )
       }
@@ -130,4 +134,18 @@ object IngestMarkdown {
     parseUnresolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
+
+  val pp = MarkupParser
+    .of(Markdown)
+    .using(GitHubFlavor, SyntaxHighlighting)
+    .withConfigValue(LaikaKeys.validateLinks, false)
+    .parallel[IO]
+    .build
+
+  def doit(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
+    pp.use(parser =>
+      parser.fromDirectory(dirPath).parse.map { tree =>
+        tree.root.allDocuments.map(renderSubDocuments)
+      }
+    )
 }
