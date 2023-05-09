@@ -251,11 +251,11 @@ lazy val docs = project
         )
         .addFile(
           jsArtifactDS,
-          Root / "searchdocs-web" / "index.js",
+          Root / "searchdocs" / "index.js",
         )
         .addFile(
           jsArtifactDS.toPath.resolveSibling(sourcemapDS).toFile,
-          Root / "searchdocs-web" / sourcemap,
+          Root / "searchdocs" / sourcemap,
         )
     },
     laikaSite := laikaSite
