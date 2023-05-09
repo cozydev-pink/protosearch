@@ -34,6 +34,15 @@ object SearchDocs extends IOWebApp {
 
   import DocumentationSearch._
 
+  def docToLink(doc: Doc): String = {
+    val file = doc.fileName.stripSuffix(".md")
+    val path = "https://http4s.org/v0.23/docs/" + file
+    doc.anchor match {
+      case None => path
+      case Some(section) => path + "#" + section
+    }
+  }
+
   def renderList(search: String => Either[String, List[Hit]]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
@@ -75,7 +84,7 @@ object SearchDocs extends IOWebApp {
             cls := "level",
             div(
               cls := "level-left",
-              p(cls := "title", a(href := "", hit.doc.fileName)),
+              p(cls := "title", a(href := docToLink(hit.doc), hit.doc.title)),
             ),
             div(
               cls := "level-right has-text-grey-light",
@@ -84,7 +93,7 @@ object SearchDocs extends IOWebApp {
           ), // level
           p(
             cls := "subtitle",
-            span(hit.doc.title),
+            span(hit.doc.fileName),
           ),
           p(cls := "subtitle", hit.doc.body.take(100) + "..."),
         ),
