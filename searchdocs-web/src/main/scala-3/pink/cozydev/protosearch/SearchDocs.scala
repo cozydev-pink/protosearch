@@ -127,16 +127,19 @@ object SearchDocs extends IOWebApp {
     def searchBldr(docs: List[Doc], index: MultiIndex): String => Either[String, List[Hit]] = {
       val qAnalyzer = searchSchema.queryAnalyzer("body")
       val scorer = Scorer(index)
-      qs => {
-        val aq = qAnalyzer.parse(qs).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-        val results: Either[String, List[(Int, Double)]] =
-          aq.flatMap(q => index.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-        results.map(hits =>
-          hits
-            .map((i, score) => Hit(docs(i), score))
-            .sortBy(h => -h.score)
-        )
-      }
+      val allHits = docs.map(r => Hit(r, 0.001))
+      qs =>
+        if (qs.isEmpty) Right(allHits)
+        else {
+          val aq = qAnalyzer.parse(qs).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
+          val results: Either[String, List[(Int, Double)]] =
+            aq.flatMap(q => index.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
+          results.map(hits =>
+            hits
+              .map((i, score) => Hit(docs(i), score))
+              .sortBy(h => -h.score)
+          )
+        }
     }
 
     Resource
