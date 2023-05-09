@@ -80,6 +80,10 @@ object SearchDocs extends IOWebApp {
         cls := "card",
         div(
           cls := "card-content",
+          p(
+            cls := "is-size-6 has-text-grey-light",
+            span(hit.doc.fileName),
+          ),
           div(
             cls := "level",
             div(
@@ -91,11 +95,7 @@ object SearchDocs extends IOWebApp {
               p(f"${hit.score * 1000}%.2f"),
             ),
           ), // level
-          p(
-            cls := "subtitle",
-            span(hit.doc.fileName),
-          ),
-          p(cls := "subtitle", hit.doc.body.take(100) + "..."),
+          p(cls := "subtitle", hit.doc.body.take(150) + "..."),
         ),
       )
     )
