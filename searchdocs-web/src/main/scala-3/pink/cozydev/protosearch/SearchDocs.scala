@@ -85,16 +85,12 @@ object SearchDocs extends IOWebApp {
             span(hit.doc.fileName),
           ),
           div(
-            cls := "level",
-            div(
-              cls := "level-left",
-              p(cls := "title", a(href := docToLink(hit.doc), target := "_blank", hit.doc.title)),
+            cls := "level-left",
+            p(
+              cls := "title is-capitalized is-flex-wrap-wrap",
+              a(href := docToLink(hit.doc), target := "_blank", hit.doc.title),
             ),
-            div(
-              cls := "level-right has-text-grey-light",
-              p(f"${hit.score * 1000}%.2f"),
-            ),
-          ), // level
+          ),
           p(cls := "subtitle", hit.doc.body.take(150) + "..."),
         ),
       )
