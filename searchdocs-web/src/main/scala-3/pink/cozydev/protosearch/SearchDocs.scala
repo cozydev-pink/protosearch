@@ -88,7 +88,7 @@ object SearchDocs extends IOWebApp {
             cls := "level",
             div(
               cls := "level-left",
-              p(cls := "title", a(href := docToLink(hit.doc), hit.doc.title)),
+              p(cls := "title", a(href := docToLink(hit.doc), target := "_blank", hit.doc.title)),
             ),
             div(
               cls := "level-right has-text-grey-light",
