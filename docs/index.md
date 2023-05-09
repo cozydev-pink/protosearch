@@ -21,6 +21,6 @@ and providing a multi field search over them.
 [Search Docs Demo](../searchdocs/index.html)
 
 The Search Docs demo exhibits indexing server side to produce a `.idx` index file,
-requesting and decoding that index browser side, and then search over it.
+requesting and decoding that index browser side, and then searching over it.
 This is closer to how we imagine search working for most static sites.
 Indexing would happen in the JVM as a CI step, and produce a static index file the browser can use.
