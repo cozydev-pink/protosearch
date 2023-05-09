@@ -74,8 +74,8 @@ object SearchDocs extends IOWebApp {
       )
     }
 
-  def renderListElem(hit: Hit): Resource[IO, HtmlLiElement[IO]] =
-    li(
+  def renderListElem(hit: Hit): Resource[IO, HtmlUListElement[IO]] =
+    ul(
       div(
         cls := "card",
         div(
