@@ -24,8 +24,9 @@ import io.circe.syntax._
 import fs2.{Chunk, Stream}
 import fs2.io.file.{Files, Path}
 import fs2.text.utf8
-import pink.cozydev.protosearch.analysis.IngestMarkdown
 import laika.parse.markup.DocumentParser.RendererError
+import pink.cozydev.protosearch.analysis.IngestMarkdown
+import pink.cozydev.protosearch.analysis.DocsDirectory
 import pink.cozydev.protosearch.analysis.SubDocument
 
 object DocumentationIndexWriterApp extends IOApp.Simple {
@@ -39,7 +40,7 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
     Files[IO].readAll(p).through(fs2.text.utf8.decode).compile.string
 
   def collectDocs(
-      subDocs: Either[RendererError, NonEmptyList[SubDocument]],
+      subDocs: Either[RendererError, NonEmptyList[SubDocument]]
   ): List[Doc] =
     subDocs match {
       case Left(_) => Nil // swallow errors
@@ -58,7 +59,8 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
       .toList
 
   def docsFromPathNew(pathToDocs: Path): IO[List[Doc]] =
-    IngestMarkdown.doit(pathToDocs.toString)
+    DocsDirectory
+      .dirToDocs(pathToDocs.toString)
       .map(subDocBundles => subDocBundles.toList.flatMap(collectDocs))
 
   val docsAndIndex: IO[(List[Doc], MultiIndex)] = docsFromPathNew(pathHttp4sDocs)

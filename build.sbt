@@ -118,7 +118,7 @@ lazy val searchdocsIO = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("searchdocs-io"))
   .enablePlugins(NoPublishPlugin)
-  .dependsOn(core, searchdocsCore)
+  .dependsOn(core, laikaIO, searchdocsCore)
   .settings(
     name := "protosearch-searchdocs-io",
     libraryDependencies ++= Seq(

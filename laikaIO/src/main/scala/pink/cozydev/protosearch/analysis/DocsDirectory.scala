@@ -35,7 +35,7 @@ object DocsDirectory {
     .parallel[IO]
     .build
 
-  def doit(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
+  def dirToDocs(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
     mdParser.use(parser =>
       parser.fromDirectory(dirPath).parse.map { tree =>
         tree.root.allDocuments.map(IngestMarkdown.renderSubDocuments)
