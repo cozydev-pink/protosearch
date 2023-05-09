@@ -2,7 +2,7 @@
 
 Protosearch is pre-alpha software, do not use in production.
 
-Protosearch is prototype of a Lucene style search library in pure scala.
+Protosearch is a prototype of a Lucene style search library in pure scala.
 
 
 ### Demos
