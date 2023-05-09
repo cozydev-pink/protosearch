@@ -34,6 +34,15 @@ object SearchDocs extends IOWebApp {
 
   import DocumentationSearch._
 
+  def docToLink(doc: Doc): String = {
+    val file = doc.fileName.stripSuffix(".md")
+    val path = "https://http4s.org/v0.23/docs/" + file
+    doc.anchor match {
+      case None => path
+      case Some(section) => path + "#" + section
+    }
+  }
+
   def renderList(search: String => Either[String, List[Hit]]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
@@ -65,28 +74,24 @@ object SearchDocs extends IOWebApp {
       )
     }
 
-  def renderListElem(hit: Hit): Resource[IO, HtmlLiElement[IO]] =
-    li(
+  def renderListElem(hit: Hit): Resource[IO, HtmlUListElement[IO]] =
+    ul(
       div(
         cls := "card",
         div(
           cls := "card-content",
-          div(
-            cls := "level",
-            div(
-              cls := "level-left",
-              p(cls := "title", a(href := "", hit.doc.fileName)),
-            ),
-            div(
-              cls := "level-right has-text-grey-light",
-              p(f"${hit.score * 1000}%.2f"),
-            ),
-          ), // level
           p(
-            cls := "subtitle",
-            span(hit.doc.title),
+            cls := "is-size-6 has-text-grey-light",
+            span(hit.doc.fileName),
           ),
-          p(cls := "subtitle", hit.doc.body.take(100) + "..."),
+          div(
+            cls := "level-left",
+            p(
+              cls := "title is-capitalized is-flex-wrap-wrap",
+              a(href := docToLink(hit.doc), target := "_blank", hit.doc.title),
+            ),
+          ),
+          p(cls := "subtitle", hit.doc.body.take(150) + "..."),
         ),
       )
     )
@@ -127,16 +132,19 @@ object SearchDocs extends IOWebApp {
     def searchBldr(docs: List[Doc], index: MultiIndex): String => Either[String, List[Hit]] = {
       val qAnalyzer = searchSchema.queryAnalyzer("body")
       val scorer = Scorer(index)
-      qs => {
-        val aq = qAnalyzer.parse(qs).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-        val results: Either[String, List[(Int, Double)]] =
-          aq.flatMap(q => index.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-        results.map(hits =>
-          hits
-            .map((i, score) => Hit(docs(i), score))
-            .sortBy(h => -h.score)
-        )
-      }
+      val allHits = docs.map(r => Hit(r, 0.001))
+      qs =>
+        if (qs.isEmpty) Right(allHits)
+        else {
+          val aq = qAnalyzer.parse(qs).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
+          val results: Either[String, List[(Int, Double)]] =
+            aq.flatMap(q => index.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
+          results.map(hits =>
+            hits
+              .map((i, score) => Hit(docs(i), score))
+              .sortBy(h => -h.score)
+          )
+        }
     }
 
     Resource

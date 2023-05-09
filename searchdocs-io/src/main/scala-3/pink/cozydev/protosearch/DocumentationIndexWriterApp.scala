@@ -66,10 +66,10 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
   val docsAndIndex: IO[(List[Doc], MultiIndex)] = docsFromPathNew(pathHttp4sDocs)
     .map(docs => (docs, searchSchema.indexBldr("body")(docs)))
 
-  val indexPath = Path("./searchdocs-web/searchdocs/http4s-docs.idx")
+  val indexPath = Path("./docs/searchdocs/http4s-docs.idx")
   val indexWriter = Files[IO].writeAll(indexPath)
 
-  val docsPath = Path("./searchdocs-web/searchdocs/http4s-docs.json")
+  val docsPath = Path("./docs/searchdocs/http4s-docs.json")
   val docsWriter = Files[IO].writeAll(docsPath)
 
   def writeIndex(idx: MultiIndex): IO[Unit] = {
