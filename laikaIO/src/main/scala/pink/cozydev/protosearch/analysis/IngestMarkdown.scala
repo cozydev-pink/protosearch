@@ -16,13 +16,16 @@
 
 package pink.cozydev.protosearch.analysis
 
+import cats.data.NonEmptyList
 import cats.syntax.all._
 import laika.api.MarkupParser
 import laika.api.Renderer
+import laika.ast.Block
 import laika.ast.Document
 import laika.ast.DocumentCursor
 import laika.ast.Header
 import laika.ast.RewriteRules
+import laika.ast.RootElement
 import laika.ast.Section
 import laika.ast.Text
 import laika.format.Markdown
@@ -31,13 +34,7 @@ import laika.parse.code.SyntaxHighlighting
 import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
 import laika.rewrite.nav.SectionBuilder
-import laika.ast.Block
-import cats.data.NonEmptyList
 import scala.collection.mutable.ListBuffer
-import laika.ast.RootElement
-import laika.io.implicits._
-import cats.effect.IO
-import laika.config.LaikaKeys
 
 case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
 
@@ -135,17 +132,4 @@ object IngestMarkdown {
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 
-  val pp = MarkupParser
-    .of(Markdown)
-    .using(GitHubFlavor, SyntaxHighlighting)
-    .withConfigValue(LaikaKeys.validateLinks, false)
-    .parallel[IO]
-    .build
-
-  def doit(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
-    pp.use(parser =>
-      parser.fromDirectory(dirPath).parse.map { tree =>
-        tree.root.allDocuments.map(renderSubDocuments)
-      }
-    )
 }
