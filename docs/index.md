@@ -1,16 +1,9 @@
 ## protosearch
 
-### Usage
+Protosearch is pre-alpha software, do not use in production.
 
-This library is currently available for Scala binary versions 2.13 and 3.2.
+Protosearch is prototype of a Lucene style search library in pure scala.
 
-To use the latest version, include the following in your `build.sbt`:
-
-```scala
-libraryDependencies ++= Seq(
-  "pink.cozydev" %% "protosearch" % "@VERSION@"
-)
-```
 
 ### Demos
 
