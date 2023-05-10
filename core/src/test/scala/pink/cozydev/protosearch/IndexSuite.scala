@@ -44,8 +44,8 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
   }
 
-  test("docsForPrefix returns empty list when no docs contain prefix") {
-    assertEquals(index.docsForPrefix("x"), Set.empty)
+  test("docsForPrefix returns empty set when no docs contain prefix") {
+    assertEquals(index.docsForPrefix("x"), Set.empty[Int])
   }
 
   test("termsForPrefix returns all terms starting with prefix") {
