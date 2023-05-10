@@ -46,30 +46,27 @@ object SearchDocs extends IOWebApp {
   def renderList(search: String => Either[String, List[Hit]]): Resource[IO, HtmlDivElement[IO]] =
     SignallingRef[IO].of("").toResource.flatMap { queryStr =>
       div(
-        cls := "columns",
-        div(
-          cls := "column is-8 is-offset-2",
-          sectionTag(
-            cls := "section",
-            input.withSelf { self =>
-              (
-                cls := "input is-medium",
-                typ := "text",
-                placeholder := "search docs...",
-                onInput --> (_.foreach(_ => self.value.get.flatMap(queryStr.set))),
-              )
-            },
-          ),
-          ol(
-            cls := "results",
-            children <-- queryStr.map { q =>
-              val resultElems = search(q).map {
-                case Nil => List(renderNoResult)
-                case rs => rs.map(renderListElem)
-              }
-              resultElems.fold(err => List(renderError(err)), identity)
-            },
-          ),
+        cls := "container is-widescreen",
+        sectionTag(
+          cls := "section",
+          input.withSelf { self =>
+            (
+              cls := "input is-primary is-medium",
+              typ := "text",
+              placeholder := "search docs...",
+              onInput --> (_.foreach(_ => self.value.get.flatMap(queryStr.set))),
+            )
+          },
+        ),
+        ol(
+          cls := "results",
+          children <-- queryStr.map { q =>
+            val resultElems = search(q).map {
+              case Nil => List(renderNoResult)
+              case rs => rs.map(renderListElem)
+            }
+            resultElems.fold(err => List(renderError(err)), identity)
+          },
         ),
       )
     }
