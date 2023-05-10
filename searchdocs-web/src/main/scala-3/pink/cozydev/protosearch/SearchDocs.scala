@@ -51,7 +51,7 @@ object SearchDocs extends IOWebApp {
           cls := "section",
           input.withSelf { self =>
             (
-              cls := "input is-medium",
+              cls := "input is-primary is-medium",
               typ := "text",
               placeholder := "search docs...",
               onInput --> (_.foreach(_ => self.value.get.flatMap(queryStr.set))),
