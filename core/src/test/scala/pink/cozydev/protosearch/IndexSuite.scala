@@ -44,6 +44,16 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
   }
 
+  test("termIndexWhere returns zero when nonexistent would insert at beginning") {
+    val indexB = Index(List(List("bb", "cc", "dd")))
+    assertEquals(indexB.termIndexWhere("a"), 0)
+  }
+
+  test("termIndexWhere returns length of termDict when nonexistent would insert at end") {
+    val indexB = Index(List(List("bb", "cc", "dd")))
+    assertEquals(indexB.termIndexWhere("x"), 3)
+  }
+
   test("docsForPrefix returns set of docIDs containing prefixes") {
     assertEquals(index.docsForPrefix("f"), Set(0, 1))
   }
@@ -56,6 +66,11 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.docsForPrefix("x"), Set.empty[Int])
   }
 
+  test("docsForPrefix returns empty set if no prefix matches and it would insert at beginning") {
+    val indexB = Index(List(List("bb")))
+    assertEquals(indexB.docsForPrefix("a"), Set.empty[Int])
+  }
+
   test("termsForPrefix returns all terms starting with prefix") {
     assertEquals(index.termsForPrefix("f"), List("fast", "fox"))
   }
@@ -66,6 +81,11 @@ class IndexSuite extends munit.FunSuite {
 
   test("termsForPrefix returns empty list if no prefix matches") {
     assertEquals(index.termsForPrefix("x"), Nil)
+  }
+
+  test("termsForPrefix returns Nil if no prefix matches and it would insert at beginning") {
+    val indexB = Index(List(List("bb")))
+    assertEquals(indexB.termsForPrefix("a"), Nil)
   }
 
   test("Index.codec encodes") {
