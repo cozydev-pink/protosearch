@@ -81,7 +81,7 @@ sealed abstract class Index private (
   /** For every term starting with prefix, get the docs using those terms. */
   def docsForPrefix(prefix: String): Set[Int] = {
     var i = termIndexWhere(prefix)
-    if (termDict(i).startsWith(prefix)) {
+    if (i < termDict.length && termDict(i).startsWith(prefix)) {
       val bldr = HashSet.empty[Int]
       while (i < termDict.size)
         if (termDict(i).startsWith(prefix)) {
@@ -95,7 +95,7 @@ sealed abstract class Index private (
   /** Get the list of terms starting with prefix . */
   def termsForPrefix(prefix: String): List[String] = {
     var i = termIndexWhere(prefix)
-    if (termDict(i).startsWith(prefix)) {
+    if (i < termDict.length && termDict(i).startsWith(prefix)) {
       val bldr = ListBuffer.empty[String]
       while (i < termDict.size)
         if (termDict(i).startsWith(prefix)) {
