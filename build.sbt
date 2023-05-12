@@ -30,7 +30,7 @@ ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val calicoV = "0.2.0-RC2"
-val catsEffectV = "3.5.0-RC5"
+val catsEffectV = "3.5.0"
 val catsV = "2.9.0"
 val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
