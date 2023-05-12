@@ -50,6 +50,7 @@ lazy val root =
     core,
     laikaIO,
     jsInterop,
+    benchmarks,
     web,
     searchdocsCore,
     searchdocsIO,
@@ -295,4 +296,17 @@ lazy val docs = project
         jsInterop.js / Compile / fullOptJS,
       )
       .value,
+  )
+
+lazy val benchmarks = project
+  .in(file("benchmarks"))
+  .enablePlugins(NoPublishPlugin, JmhPlugin)
+  .dependsOn(core.jvm)
+  .settings(
+    name := "protosearch-benchmarks",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % catsEffectV,
+      "co.fs2" %%% "fs2-core" % fs2V,
+      "co.fs2" %%% "fs2-io" % fs2V,
+    ),
   )
