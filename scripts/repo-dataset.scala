@@ -1,6 +1,6 @@
 //> using scala "2.13.10"
-//> using lib "org.typelevel::cats-effect:3.4.6"
-//> using lib "org.http4s::http4s-ember-client:0.23.18"
+//> using lib "org.typelevel::cats-effect:3.4.11"
+//> using lib "org.http4s::http4s-ember-client:0.23.19"
 //> using lib "com.47deg::github4s:0.31.2"
 //> using lib "io.circe::circe-core:0.14.3"
 //> using lib "co.fs2::fs2-io:3.5.0"
@@ -26,16 +26,19 @@ object Hello extends IOApp.Simple {
 
   def getRepo(gh: Github[IO], ownerName: (String, String)): IO[Repository] =
     IO.sleep(1.second) *>
-    gh.repos.get(ownerName._1, ownerName._2)
-      .flatMap(resp => IO.fromEither(resp.result))
+      gh.repos
+        .get(ownerName._1, ownerName._2)
+        .flatMap(resp => IO.fromEither(resp.result))
 
   def getRepos(gh: Github[IO], org: String): IO[List[Repository]] =
     IO.sleep(1.second) *>
-    gh.repos.listOrgRepos(org, pagination = Some(Pagination(0, 100)))
-      .flatMap(resp => IO.fromEither(resp.result))
+      gh.repos
+        .listOrgRepos(org, pagination = Some(Pagination(0, 100)))
+        .flatMap(resp => IO.fromEither(resp.result))
 
   def writeRepos(repos: List[Repository]): IO[Unit] =
-    Stream.emits(repos)
+    Stream
+      .emits(repos)
       .map(r => r.asJson.noSpaces)
       .intersperse("\n")
       .through(text.utf8.encode)
@@ -87,10 +90,10 @@ object Hello extends IOApp.Simple {
     .default[IO]
     .build
     .evalMap(c => gh(c))
-    .use(ghc => {
+    .use { ghc =>
       val repoIO = repos.traverse(r => getRepo(ghc, r)).flatMap(writeRepos)
       val orgIO = orgs.traverse_(r => getRepos(ghc, r).flatMap(writeRepos))
       repoIO *> orgIO
-    })
+    }
 
 }
