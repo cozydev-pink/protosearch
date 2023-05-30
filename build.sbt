@@ -25,7 +25,7 @@ ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
 val Scala213 = "2.13.10"
-val Scala3 = "3.2.2"
+val Scala3 = "3.3.0"
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
