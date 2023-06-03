@@ -288,6 +288,10 @@ lazy val docs = project
         )
     },
     laikaSite := laikaSite
-      .dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS)
+      .dependsOn(
+        web / Compile / fullOptJS,
+        searchdocsWeb / Compile / fullOptJS,
+        jsInterop.js / Compile / fullOptJS,
+      )
       .value,
   )
