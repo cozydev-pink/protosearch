@@ -21,7 +21,6 @@ import scala.scalajs.js
 import org.scalajs.dom.Blob
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 import pink.cozydev.protosearch.analysis.Analyzer
-import scala.collection.mutable.ArrayBuffer
 import scodec.bits.ByteVector
 
 @JSExportTopLevel("Hit")
@@ -44,7 +43,7 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
     val hits = qAnalyzer
       .parse(query)
       .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-      .map(hs => hs.map(new Hit(_, _)))
+      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
       .toOption
       .getOrElse(Nil)
     hits.toJSArray
@@ -60,7 +59,7 @@ object QuerierBuilder {
 
   @JSExport
   def load(bytes: Blob, defaultField: String): js.Promise[Querier] =
-    bytes.arrayBuffer().`then` { buf =>
+    bytes.arrayBuffer().`then`[Querier] { buf =>
       val mIndex = decode(buf)
       new Querier(mIndex, defaultField)
     }
