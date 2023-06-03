@@ -259,7 +259,7 @@ lazy val docs = project
       val sourcemap = jsArtifact.getName + ".map"
       val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
       val sourcemapDS = jsArtifactDS.getName + ".map"
-      val jsArtifactInterop = (jsInterop.js / Compile / fastOptJS / artifactPath).value
+      val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
       val sourcemapInterop = jsArtifactInterop.getName + ".map"
       laikaInputs.value.delegate
         .addFile(
