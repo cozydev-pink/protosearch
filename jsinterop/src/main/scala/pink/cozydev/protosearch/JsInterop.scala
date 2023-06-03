@@ -53,7 +53,7 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
 @JSExportTopLevel("QuerierBuilder")
 object QuerierBuilder {
   private def decode(buf: js.typedarray.ArrayBuffer): MultiIndex = {
-    val bv = ByteVector.fromJSArrayBuffer(buf)
+    val bv = ByteVector.view(buf)
     MultiIndex.codec.decodeValue(bv.bits).require
   }
 
