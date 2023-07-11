@@ -13,9 +13,9 @@ async function getQuerier() {
   return await querier
 }
 
-function searchIt(docs, querier) {
+function searchIt(query, docs, querier) {
   var list = ''
-  querier.search("client").forEach(h => {
+  querier.search(query).forEach(h => {
     const title = docs[h.id].title
     const score = parseInt(h.score*1000)
     list += '<li>' + title + ' score: ' + score + '</li>'
@@ -26,6 +26,10 @@ function searchIt(docs, querier) {
 async function main() {
   let [docs, querier] = await Promise.all([getDocs(), getQuerier()])
   var app = document.getElementById("app")
-  app.innerHTML += searchIt(docs, querier)
+  var searchBar = document.getElementById("search_input")
+
+  searchBar.addEventListener('input', function (evt) {
+    app.innerHTML = searchIt(this.value, docs, querier)
+  })
 }
 main()
