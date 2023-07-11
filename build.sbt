@@ -24,7 +24,7 @@ ThisBuild / resolvers +=
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
-val Scala213 = "2.13.10"
+val Scala213 = "2.13.11"
 val Scala3 = "3.3.0"
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
@@ -36,11 +36,11 @@ val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
 val fs2V = "3.7.0"
 val http4sDomV = "0.2.9"
-val http4sV = "0.23.19"
-val laikaV = "0.19.1"
+val http4sV = "0.23.21"
+val laikaV = "0.19.2"
 val lucilleV = "0.0-b9ba3fa-SNAPSHOT"
 val munitCatsEffectV = "2.0.0-M3"
-val munitV = "1.0.0-M7"
+val munitV = "1.0.0-M8"
 val scalajsDomV = "2.6.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 
