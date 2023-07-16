@@ -1,17 +1,4 @@
-async function getDocs() {
-  let docs = fetch("../searchdocs/http4s-docs.json")
-    .then(res => res.json())
-    .catch((error) => console.error(error));
-  return await docs
-}
 
-async function getQuerier() {
-  let querier = fetch("../searchdocs/http4s-docs.idx")
-    .then(res => res.blob())
-    .then(blob => QuerierBuilder.load(blob, "body"))
-    .catch((error) => console.error(error));
-  return await querier
-}
 
 function searchIt(query, docs, querier) {
   var list = ''
@@ -24,12 +11,16 @@ function searchIt(query, docs, querier) {
 }
 
 async function main() {
-  let [docs, querier] = await Promise.all([getDocs(), getQuerier()])
   var app = document.getElementById("app")
   var searchBar = document.getElementById("search_input")
 
-  searchBar.addEventListener('input', function (evt) {
-    app.innerHTML = searchIt(this.value, docs, querier)
+  const worker = new Worker("worker.js")
+  worker.onmessage = function(e) {
+    app.innerHTML = e.data
+  }
+
+  searchBar.addEventListener('input', function () {
+    worker.postMessage(this.value)
   })
 }
 main()
