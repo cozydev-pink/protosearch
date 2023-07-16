@@ -49,7 +49,7 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
     hits.toJSArray
   }
   @JSExport
-  def searchFuzzy(query: String): js.Array[Hit] = {
+  def searchPrefix(query: String): js.Array[Hit] = {
     val hits = qAnalyzer
       .parse(query)
       .map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
