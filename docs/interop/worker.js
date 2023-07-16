@@ -34,3 +34,5 @@ onmessage = async function(e) {
   const querier = await querierPromise
   this.postMessage(searchIt(query, docs, querier))
 }
+
+onmessage({data: ["warmup"]})
