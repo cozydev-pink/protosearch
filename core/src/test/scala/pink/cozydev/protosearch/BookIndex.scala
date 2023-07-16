@@ -18,7 +18,7 @@ package pink.cozydev.protosearch
 
 object BookIndex {
   case class Book(title: String, author: String) {
-    override def toString = s"\"$title\" by $author"
+    override def toString = s"\'$title\' by $author"
   }
 
   val peter = Book("The Tale of Peter Rabbit", "Beatrix Potter")

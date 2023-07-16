@@ -66,7 +66,7 @@ object IngestMarkdown {
     parser.parse(input)
 
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
-    bs.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
+    bs.toList.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
 
   /** Collects blocks from a RootElement until the predicate is satisfied, does not
     * include the block that satisfies the predicate.
@@ -83,7 +83,7 @@ object IngestMarkdown {
           // exit without this block
           return Some(chunkBuffer.toList)
         }
-      } else chunkBuffer.addOne(b)
+      } else chunkBuffer += b
     }
     val blocks = chunkBuffer.toList
     if (blocks.nonEmpty) Some(blocks) else None
