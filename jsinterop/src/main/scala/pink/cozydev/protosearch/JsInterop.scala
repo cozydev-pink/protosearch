@@ -36,7 +36,7 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
   private val scorer = Scorer(mIndex)
   private val qAnalyzer = QueryAnalyzer(
     defaultField,
-    (defaultField, Analyzer.default),
+    (defaultField, Analyzer.default.withLowerCasing),
   )
   @JSExport
   def search(query: String): js.Array[Hit] = {
