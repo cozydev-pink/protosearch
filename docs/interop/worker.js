@@ -15,7 +15,12 @@ async function getQuerier() {
   return await querier
 }
 
-function searchIt(query, docs, querier) {
+const docsPromise = getDocs()
+const querierPromise = getQuerier()
+
+async function searchIt(query) {
+  const docs = await docsPromise
+  const querier = await querierPromise
   var list = ''
   querier.searchPrefix(query).forEach(h => {
     const title = docs[h.id].title
@@ -25,14 +30,9 @@ function searchIt(query, docs, querier) {
   return list
 }
 
-const docsPromise = getDocs()
-const querierPromise = getQuerier()
-
 onmessage = async function(e) {
   const query = e.data[0] || '' // empty strings become undefined somehow ...
-  const docs = await docsPromise
-  const querier = await querierPromise
-  this.postMessage(searchIt(query, docs, querier))
+  this.postMessage(await searchIt(query))
 }
 
-onmessage({data: ["warmup"]})
+searchIt("warmup")
