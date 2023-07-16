@@ -45,7 +45,15 @@ val scalajsDomV = "2.6.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 
 lazy val root =
-  tlCrossRootProject.aggregate(core, laikaIO, web, searchdocsCore, searchdocsIO, searchdocsWeb)
+  tlCrossRootProject.aggregate(
+    core,
+    laikaIO,
+    jsInterop,
+    web,
+    searchdocsCore,
+    searchdocsIO,
+    searchdocsWeb,
+  )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -85,6 +93,17 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.planet42" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+    ),
+  )
+
+lazy val jsInterop = crossProject(JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("jsinterop"))
+  .dependsOn(core)
+  .settings(
+    name := "protosearch-jsinterop",
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % scalajsDomV
     ),
   )
 
@@ -219,7 +238,7 @@ import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb)
+  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
   .settings(
     tlSiteRelatedProjects := Seq(
       "lucene" -> url("https://lucene.apache.org/"),
@@ -240,6 +259,8 @@ lazy val docs = project
       val sourcemap = jsArtifact.getName + ".map"
       val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
       val sourcemapDS = jsArtifactDS.getName + ".map"
+      val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
+      val sourcemapInterop = jsArtifactInterop.getName + ".map"
       laikaInputs.value.delegate
         .addFile(
           jsArtifact,
@@ -257,8 +278,20 @@ lazy val docs = project
           jsArtifactDS.toPath.resolveSibling(sourcemapDS).toFile,
           Root / "searchdocs" / sourcemap,
         )
+        .addFile(
+          jsArtifactInterop,
+          Root / "interop" / "index.js",
+        )
+        .addFile(
+          jsArtifactInterop.toPath.resolveSibling(sourcemapInterop).toFile,
+          Root / "interop" / sourcemap,
+        )
     },
     laikaSite := laikaSite
-      .dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS)
+      .dependsOn(
+        web / Compile / fullOptJS,
+        searchdocsWeb / Compile / fullOptJS,
+        jsInterop.js / Compile / fullOptJS,
+      )
       .value,
   )
