@@ -31,7 +31,7 @@ async function searchIt(query) {
 }
 
 onmessage = async function(e) {
-  const query = e.data[0] || '' // empty strings become undefined somehow ...
+  const query = e.data || '' // empty strings become undefined somehow ...
   this.postMessage(await searchIt(query))
 }
 
