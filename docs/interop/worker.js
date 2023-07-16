@@ -31,7 +31,9 @@ async function searchIt(query) {
 }
 
 onmessage = async function(e) {
-  const query = e.data || '' // empty strings become undefined somehow ...
+  const rawQuery = e.data || '' // empty strings become undefined somehow ...
+  // The 'http4s-docs.idx' uses a lowercasing analyzer
+  const query = rawQuery.toLowerCase()
   this.postMessage(await searchIt(query))
 }
 
