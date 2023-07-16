@@ -15,7 +15,7 @@ async function getQuerier() {
 
 function searchIt(query, docs, querier) {
   var list = ''
-  querier.search(query).forEach(h => {
+  querier.searchFuzzy(query).forEach(h => {
     const title = docs[h.id].title
     const score = parseInt(h.score*1000)
     list += '<li>' + title + ' score: ' + score + '</li>'

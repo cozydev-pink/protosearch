@@ -48,6 +48,17 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
       .getOrElse(Nil)
     hits.toJSArray
   }
+  @JSExport
+  def searchFuzzy(query: String): js.Array[Hit] = {
+    val hits = qAnalyzer
+      .parse(query)
+      .map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
+      .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
+      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
+      .toOption
+      .getOrElse(Nil)
+    hits.toJSArray
+  }
 }
 
 @JSExportTopLevel("QuerierBuilder")
