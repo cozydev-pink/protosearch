@@ -1,12 +1,12 @@
 async function getDocs() {
-  let docs = fetch("/searchdocs/http4s-docs.json")
+  let docs = fetch("../searchdocs/http4s-docs.json")
     .then(res => res.json())
     .catch((error) => console.error(error));
   return await docs
 }
 
 async function getQuerier() {
-  let querier = fetch("/searchdocs/http4s-docs.idx")
+  let querier = fetch("../searchdocs/http4s-docs.idx")
     .then(res => res.blob())
     .then(blob => QuerierBuilder.load(blob, "body"))
     .catch((error) => console.error(error));
