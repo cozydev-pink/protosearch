@@ -51,7 +51,7 @@ sealed abstract class Index private (
     // println(s"looking for term: $term, idx: $idx")
     if (idx < 0) Set.empty
     else {
-      val x = Set.from(evenElems(tfData(idx)))
+      val x = evenElems(tfData(idx)).toSet
       // println(s"returning set: $x")
       x
     }
@@ -74,7 +74,7 @@ sealed abstract class Index private (
   def docsForRange(left: String, right: String): Set[Int] = {
     val bldr = HashSet.empty[Int]
     Range(termIndexWhere(left), termIndexWhere(right))
-      .foreach(i => bldr.addAll(evenElems(tfData(i))))
+      .foreach(i => bldr ++= evenElems(tfData(i)))
     bldr.toSet
   }
 
@@ -85,7 +85,7 @@ sealed abstract class Index private (
       val bldr = HashSet.empty[Int]
       while (i < termDict.size)
         if (termDict(i).startsWith(prefix)) {
-          bldr.addAll(evenElems(tfData(i)))
+          bldr ++= evenElems(tfData(i))
           i += 1
         } else return bldr.toSet
       bldr.toSet
@@ -99,7 +99,7 @@ sealed abstract class Index private (
       val bldr = ListBuffer.empty[String]
       while (i < termDict.size)
         if (termDict(i).startsWith(prefix)) {
-          bldr.addOne(termDict(i))
+          bldr += termDict(i)
           i += 1
         } else return bldr.toList
       bldr.toList
@@ -177,32 +177,35 @@ sealed abstract class Index private (
 }
 object Index {
   import scala.collection.mutable.{TreeMap => MMap}
-  import scala.collection.mutable.Stack
   import scodec.{Codec, codecs}
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]
   def apply(docs: List[List[String]]): Index = {
-    val m = new MMap[String, Stack[Int]].empty
+    val m = new MMap[String, List[Int]].empty
     var docId = 0
     val docLen = docs.length
     docs.foreach { doc =>
       doc.foreach { term =>
-        val s = m.getOrElseUpdate(term, Stack.empty)
+        var s = m.getOrElseUpdate(term, List.empty[Int])
         if (s.isEmpty) {
           // println(s"doc($docId), term($term), init freq = 1")
-          s.prepend(1).prepend(docId)
+          // s.prepend(1).prepend(docId)
+          s = docId :: 1 :: Nil
         } else {
-          val lastDoc = s.pop()
-          val freq = s.pop()
+          val lastDoc = s.head
+          val freq = s.tail.head
           if (lastDoc == docId) {
             //   println(s"doc($docId), term($term), INCREMENT newFreq=${freq + 1}")
-            s.prepend(freq + 1).prepend(docId)
+            // s.prepend(freq + 1).prepend(docId)
+            s = docId :: (freq + 1) :: s.tail.tail
           } else {
             //   println(s"doc($docId), term($term) new doc! init freq = 1")
-            s.prepend(freq).prepend(lastDoc).prepend(1).prepend(docId)
+            // s.prepend(freq).prepend(lastDoc).prepend(1).prepend(docId)
+            s = docId :: 1 :: s
           }
         }
+        m += ((term, s))
       }
       docId += 1
     }
@@ -211,9 +214,9 @@ object Index {
     val size = m.size
     keys.sizeHint(size)
     values.sizeHint(size)
-    m.foreachEntry { (k, v) =>
-      keys.addOne(k)
-      values.addOne(v.toArray)
+    m.foreach { case (k, v) =>
+      keys += k
+      values += v.toArray
     }
     new Index(keys.result(), values.result(), docLen) {}
   }

@@ -21,7 +21,6 @@ import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
 
 import pink.cozydev.protosearch.analysis.Analyzer
-import pink.cozydev.protosearch.BooleanRetrieval
 
 case class MultiIndex(
     indexes: Map[String, Index],
@@ -38,13 +37,13 @@ case class MultiIndex(
   private val defaultBooleanQ =
     BooleanRetrieval(indexes(defaultField), defaultOR)
 
-  private lazy val allDocs: Set[Int] = Set.from(Range(0, defaultIndex.numDocs))
+  private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
 
   private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
       case Query.Or(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
       case Query.And(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
-      case Query.Not(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
+      case Query.Not(q) => booleanModel(q).map(matches => allDocs -- matches)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.Field(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
@@ -80,7 +79,7 @@ object MultiIndex {
     docs => {
       docs.foreach { doc =>
         bldrs.foreach { bldr =>
-          bldr.acc.addOne(bldr.analyzer.tokenize(bldr.getter(doc)))
+          bldr.acc += (bldr.analyzer.tokenize(bldr.getter(doc)))
         }
       }
       // TODO let's delay defining the default field even further

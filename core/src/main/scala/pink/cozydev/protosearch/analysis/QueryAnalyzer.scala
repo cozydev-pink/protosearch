@@ -21,7 +21,6 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.Parser
 
-import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.MultiQuery
 
 // TODO This is a hack, the Lucille parser tokenizes on white space only currently

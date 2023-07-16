@@ -86,9 +86,9 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     }
 
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
-    val mb = MMap.from(ms.head)
+    val mb = MMap.empty ++ ms.head
     ms.tail.foreach(m1 =>
-      m1.foreachEntry((k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)))
+      m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
     mb.iterator.toList
   }
