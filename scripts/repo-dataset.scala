@@ -1,7 +1,7 @@
 //> using scala "2.13.11"
 //> using lib "org.typelevel::cats-effect:3.4.11"
 //> using lib "org.http4s::http4s-ember-client:0.23.21"
-//> using lib "com.47deg::github4s:0.32.0"
+//> using lib "com.47deg::github4s:0.31.2"
 //> using lib "io.circe::circe-core:0.14.3"
 //> using lib "co.fs2::fs2-io:3.5.0"
 
