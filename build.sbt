@@ -24,20 +24,21 @@ ThisBuild / resolvers +=
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
+val Scala212 = "2.12.18"
 val Scala213 = "2.13.11"
 val Scala3 = "3.3.0"
-ThisBuild / crossScalaVersions := Seq(Scala213, Scala3)
+ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val calicoV = "0.2.0"
-val catsEffectV = "3.5.0"
+val catsEffectV = "3.5.1"
 val catsV = "2.9.0"
 val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
 val fs2V = "3.7.0"
 val http4sDomV = "0.2.9"
-val http4sV = "0.23.21"
-val laikaV = "0.19.2"
+val http4sV = "0.23.22"
+val laikaV = "0.19.3"
 val lucilleV = "0.0-b9ba3fa-SNAPSHOT"
 val munitCatsEffectV = "2.0.0-M3"
 val munitV = "1.0.0-M8"
@@ -45,7 +46,15 @@ val scalajsDomV = "2.6.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.1"
 
 lazy val root =
-  tlCrossRootProject.aggregate(core, laikaIO, web, searchdocsCore, searchdocsIO, searchdocsWeb)
+  tlCrossRootProject.aggregate(
+    core,
+    laikaIO,
+    jsInterop,
+    web,
+    searchdocsCore,
+    searchdocsIO,
+    searchdocsWeb,
+  )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -85,6 +94,17 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.planet42" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+    ),
+  )
+
+lazy val jsInterop = crossProject(JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("jsinterop"))
+  .dependsOn(core)
+  .settings(
+    name := "protosearch-jsinterop",
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % scalajsDomV
     ),
   )
 
@@ -219,7 +239,7 @@ import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb)
+  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
   .settings(
     tlSiteRelatedProjects := Seq(
       "lucene" -> url("https://lucene.apache.org/"),
@@ -240,6 +260,8 @@ lazy val docs = project
       val sourcemap = jsArtifact.getName + ".map"
       val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
       val sourcemapDS = jsArtifactDS.getName + ".map"
+      val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
+      val sourcemapInterop = jsArtifactInterop.getName + ".map"
       laikaInputs.value.delegate
         .addFile(
           jsArtifact,
@@ -257,8 +279,20 @@ lazy val docs = project
           jsArtifactDS.toPath.resolveSibling(sourcemapDS).toFile,
           Root / "searchdocs" / sourcemap,
         )
+        .addFile(
+          jsArtifactInterop,
+          Root / "interop" / "index.js",
+        )
+        .addFile(
+          jsArtifactInterop.toPath.resolveSibling(sourcemapInterop).toFile,
+          Root / "interop" / sourcemap,
+        )
     },
     laikaSite := laikaSite
-      .dependsOn(web / Compile / fullOptJS, searchdocsWeb / Compile / fullOptJS)
+      .dependsOn(
+        web / Compile / fullOptJS,
+        searchdocsWeb / Compile / fullOptJS,
+        jsInterop.js / Compile / fullOptJS,
+      )
       .value,
   )

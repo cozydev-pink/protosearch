@@ -16,7 +16,6 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.MultiIndex
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 import cats.data.NonEmptyList

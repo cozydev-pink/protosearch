@@ -24,3 +24,12 @@ The Search Docs demo exhibits indexing server side to produce a `.idx` index fil
 requesting and decoding that index browser side, and then searching over it.
 This is closer to how we imagine search working for most static sites.
 Indexing would happen in the JVM as a CI step, and produce a static index file the browser can use.
+
+
+## JavaScript Interop Search
+
+[JS Interop Search](../interop/index.html)
+
+This demo approximates how we think search on documentation pages will work.
+The docs have been indexed ahead of time (perhaps in some CI pipeline) and are loaded by the browser on page load.
+The fetching and loading of the index, the search, and the rendering are all done in JavaScript.

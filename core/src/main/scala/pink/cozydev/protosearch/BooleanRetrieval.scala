@@ -22,7 +22,7 @@ import pink.cozydev.lucille.MultiQuery
 
 case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
 
-  private lazy val allDocs: Set[Int] = Set.from(Range(0, index.numDocs))
+  private lazy val allDocs: Set[Int] = Range(0, index.numDocs).toSet
 
   def search(q: Query): Either[String, Set[Int]] = {
     val docs = booleanModel(q)
@@ -37,7 +37,7 @@ case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
       case q: Query.Phrase => phraseSearch(q)
       case Query.Or(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
       case Query.And(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
-      case Query.Not(q) => booleanModel(q).map(matches => allDocs.removedAll(matches))
+      case Query.Not(q) => booleanModel(q).map(matches => allDocs -- matches)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.Field(fn, q) =>
         Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
