@@ -1,11 +1,4 @@
-## protosearch
-
-Protosearch is pre-alpha software, do not use in production.
-
-Protosearch is a prototype of a Lucene style search library in pure scala.
-
-
-### Demos
+# Demos
 
 
 ## Repo Search
@@ -33,3 +26,4 @@ Indexing would happen in the JVM as a CI step, and produce a static index file t
 This demo approximates how we think search on documentation pages will work.
 The docs have been indexed ahead of time (perhaps in some CI pipeline) and are loaded by the browser on page load.
 The fetching and loading of the index, the search, and the rendering are all done in JavaScript.
+
