@@ -3,18 +3,20 @@
 In the course of building protosearch several demos have been created showing off various use cases and features.
 
 
-## Repo Search
+## JavaScript Interop Search
 
-[Repo Search Demo](../reposearch/index.html)
+[JS Interop Search](../interop/index.html)
 
-Repo Search is an all in-browser demo, indexing a static JSON file of GitHub repo metadata,
-and providing a multi field search over them.
+This demo approximates how we think search on documentation pages will work.
+The docs have been indexed ahead of time (perhaps in some CI pipeline) and are loaded by the browser on page load.
+The fetching and loading of the index, the search, and the rendering are all done in JavaScript.
 
 **indexing:** browser
 
 **search:** browser
 
-**framework:** Scala.js / Calico
+**framework:** JavaScript
+
 
 
 ## Search Docs
@@ -33,17 +35,15 @@ Indexing would happen in the JVM as a CI step, and produce a static index file t
 **framework:** Scala.js / Calico
 
 
-## JavaScript Interop Search
+## Repo Search
 
-[JS Interop Search](../interop/index.html)
+[Repo Search Demo](../reposearch/index.html)
 
-This demo approximates how we think search on documentation pages will work.
-The docs have been indexed ahead of time (perhaps in some CI pipeline) and are loaded by the browser on page load.
-The fetching and loading of the index, the search, and the rendering are all done in JavaScript.
+Repo Search is an all in-browser demo, indexing a static JSON file of GitHub repo metadata,
+and providing a multi field search over them.
 
 **indexing:** browser
 
 **search:** browser
 
-**framework:** JavaScript
-
+**framework:** Scala.js / Calico
