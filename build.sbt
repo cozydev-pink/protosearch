@@ -32,7 +32,7 @@ ThisBuild / scalaVersion := Scala3 // the default Scala
 
 val calicoV = "0.2.1"
 val catsEffectV = "3.5.1"
-val catsV = "2.9.0"
+val catsV = "2.10.0"
 val circeFs2V = "0.14.1"
 val circeV = "0.14.5"
 val fs2V = "3.8.0"
