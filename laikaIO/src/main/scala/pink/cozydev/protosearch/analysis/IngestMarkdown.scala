@@ -34,7 +34,6 @@ import laika.parse.code.SyntaxHighlighting
 import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
 import laika.rewrite.nav.SectionBuilder
-import scala.collection.mutable.ListBuffer
 
 case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
 
@@ -76,16 +75,7 @@ object IngestMarkdown {
     * @return
     */
   private def groupUntil(root: RootElement)(split: Block => Boolean): Option[List[Block]] = {
-    val chunkBuffer = new ListBuffer[Block]
-    root.content.foreach { b =>
-      if (split(b)) {
-        if (chunkBuffer.nonEmpty) {
-          // exit without this block
-          return Some(chunkBuffer.toList)
-        }
-      } else chunkBuffer += b
-    }
-    val blocks = chunkBuffer.toList
+    val blocks = root.content.view.dropWhile(split(_)).takeWhile(!split(_)).toList
     if (blocks.nonEmpty) Some(blocks) else None
   }
 

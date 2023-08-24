@@ -19,7 +19,6 @@ package pink.cozydev.protosearch
 import cats.syntax.all._
 import cats.effect.{IO, IOApp}
 import cats.data.NonEmptyList
-import io.circe.Json
 import io.circe.syntax._
 import fs2.{Chunk, Stream}
 import fs2.io.file.{Files, Path}

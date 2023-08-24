@@ -17,12 +17,10 @@
 package pink.cozydev.protosearch
 
 import cats.effect.IO
-import cats.effect.IOApp
-import cats.syntax.all._
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 import fs2.Stream
-import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import pink.cozydev.protosearch.analysis.Analyzer
 import scodec.bits.ByteVector
 
 case class Doc(fileName: String, title: String, anchor: Option[String], body: String)
