@@ -20,7 +20,6 @@ import cats.syntax.all._
 import calico.*
 import calico.html.io.{*, given}
 import cats.effect.*
-import fs2.Stream
 import fs2.dom.*
 import fs2.concurrent.SignallingRef
 import org.http4s.{Request, Method}
@@ -28,7 +27,6 @@ import org.http4s.dom.FetchClientBuilder
 import org.http4s.implicits.uri
 import org.http4s.circe.CirceEntityCodec._
 
-import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 
 object SearchDocs extends IOWebApp {
 

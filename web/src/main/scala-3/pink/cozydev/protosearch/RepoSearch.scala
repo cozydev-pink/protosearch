@@ -26,9 +26,8 @@ import fs2.concurrent.SignallingRef
 import org.http4s.{Request, Method}
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.implicits.uri
-import org.http4s.circe.CirceEntityCodec._
 
-import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import pink.cozydev.protosearch.analysis.Analyzer
 
 case class Hit(repo: Repo, score: Double)
 
