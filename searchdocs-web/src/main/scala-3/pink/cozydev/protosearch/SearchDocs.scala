@@ -27,7 +27,6 @@ import org.http4s.dom.FetchClientBuilder
 import org.http4s.implicits.uri
 import org.http4s.circe.CirceEntityCodec._
 
-
 object SearchDocs extends IOWebApp {
 
   import DocumentationSearch._
