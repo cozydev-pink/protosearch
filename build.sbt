@@ -243,16 +243,23 @@ lazy val docs = project
   .settings(
     tlSiteHelium ~= {
       import laika.helium.config._
-      _.site.mainNavigation(appendLinks =
-        Seq(
-          ThemeNavigationSection(
-            "Related Projects",
-            TextLink.external("https://lucene.apache.org/", "lucene"),
-            TextLink.external("https://github.com/cozydev-pink/lucille", "lucille"),
-            TextLink.external("https://github.com/valencik/textmogrify", "textmogrify"),
+      import laika.ast.Path.Root
+      _.site
+        .topNavigationBar(
+          // override default because our README.md is a symlink
+          homeLink = IconLink.internal(Root / "index.md", HeliumIcon.home)
+        )
+        .site
+        .mainNavigation(appendLinks =
+          Seq(
+            ThemeNavigationSection(
+              "Related Projects",
+              TextLink.external("https://lucene.apache.org/", "lucene"),
+              TextLink.external("https://github.com/cozydev-pink/lucille", "lucille"),
+              TextLink.external("https://github.com/valencik/textmogrify", "textmogrify"),
+            )
           )
         )
-      )
     },
     laikaInputs := {
       import laika.ast.Path.Root
