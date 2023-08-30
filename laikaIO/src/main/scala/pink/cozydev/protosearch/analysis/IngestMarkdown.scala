@@ -22,9 +22,7 @@ import laika.api.MarkupParser
 import laika.api.Renderer
 import laika.ast.Block
 import laika.ast.Document
-import laika.ast.DocumentCursor
 import laika.ast.Header
-import laika.ast.RewriteRules
 import laika.ast.RootElement
 import laika.ast.Section
 import laika.ast.Text
@@ -33,7 +31,6 @@ import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
 import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
-import laika.rewrite.nav.SectionBuilder
 
 case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
 
@@ -42,24 +39,6 @@ object IngestMarkdown {
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
   val astRenderer = Renderer.of(Plaintext).build
-
-  /** Creates a `RewriteRules` for a `Document` using the `SectionBuilder`.
-    * Without the `SectionBuilder` an unresolved `Document` has `Header` nodes
-    * separate from the content they introduce, afterwards they are grouped together
-    * in a `Section` node.
-    *
-    * @param doc
-    * @return
-    */
-  def sectionBuilderRule(doc: Document): Either[ParserError, RewriteRules] =
-    DocumentCursor(doc).flatMap(SectionBuilder).leftMap(ParserError(_, doc.path))
-
-  def parseUnresolvedWithSections(input: String): Either[ParserError, Document] =
-    for {
-      doc <- parser.parseUnresolved(input).map(_.document)
-      rules <- sectionBuilderRule(doc)
-      result <- doc.rewrite(rules).leftMap(ParserError(_, doc.path))
-    } yield result
 
   def parseResolvedWithSections(input: String): Either[ParserError, Document] =
     parser.parse(input)
@@ -114,11 +93,6 @@ object IngestMarkdown {
 
   def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
     parseResolvedWithSections(input)
-      .leftMap(e => RendererError(e.message, e.path))
-      .flatMap(renderSubDocuments)
-
-  def transformUnresolved(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
-    parseUnresolvedWithSections(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 

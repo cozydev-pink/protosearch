@@ -24,7 +24,6 @@ import fs2.{Chunk, Stream}
 import fs2.io.file.{Files, Path}
 import fs2.text.utf8
 import laika.parse.markup.DocumentParser.RendererError
-import pink.cozydev.protosearch.analysis.IngestMarkdown
 import pink.cozydev.protosearch.analysis.DocsDirectory
 import pink.cozydev.protosearch.analysis.SubDocument
 
@@ -35,9 +34,6 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
   val pathHttp4s = Path("/home/andrew/grabbed/http4s")
   val pathHttp4sDocs = pathHttp4s / "docs/docs/"
 
-  def readAsString(p: Path): IO[String] =
-    Files[IO].readAll(p).through(fs2.text.utf8.decode).compile.string
-
   def collectDocs(
       subDocs: Either[RendererError, NonEmptyList[SubDocument]]
   ): List[Doc] =
@@ -46,16 +42,6 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
       case Right(docs) =>
         docs.toList.map(sd => Doc(sd.fileName, sd.title, sd.anchor, sd.content))
     }
-
-  def docsFromPath(pathToDocs: Path): IO[List[Doc]] =
-    Files[IO]
-      .walk(pathToDocs)
-      .filter(_.extName == ".md")
-      .evalMap(p => readAsString(p))
-      .map(IngestMarkdown.transformUnresolved)
-      .flatMap(ds => Stream.emits(collectDocs(ds)))
-      .compile
-      .toList
 
   def docsFromPathNew(pathToDocs: Path): IO[List[Doc]] =
     DocsDirectory
