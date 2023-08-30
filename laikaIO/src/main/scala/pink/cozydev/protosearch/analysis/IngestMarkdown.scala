@@ -29,7 +29,6 @@ import laika.ast.Text
 import laika.format.Markdown
 import laika.markdown.github.GitHubFlavor
 import laika.parse.code.SyntaxHighlighting
-import laika.parse.markup.DocumentParser.ParserError
 import laika.parse.markup.DocumentParser.RendererError
 
 case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
@@ -39,9 +38,6 @@ object IngestMarkdown {
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
   val astRenderer = Renderer.of(Plaintext).build
-
-  def parseResolvedWithSections(input: String): Either[ParserError, Document] =
-    parser.parse(input)
 
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
     bs.toList.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))
@@ -92,7 +88,8 @@ object IngestMarkdown {
   }
 
   def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
-    parseResolvedWithSections(input)
+    parser
+      .parse(input)
       .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 
