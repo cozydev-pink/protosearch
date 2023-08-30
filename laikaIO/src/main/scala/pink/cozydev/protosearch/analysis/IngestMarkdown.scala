@@ -75,7 +75,7 @@ object IngestMarkdown {
     * @return
     */
   private def groupUntil(root: RootElement)(split: Block => Boolean): Option[List[Block]] = {
-    val blocks = root.content.view.dropWhile(split(_)).takeWhile(!split(_)).toList
+    val blocks = root.content.takeWhile(!split(_)).toList
     if (blocks.nonEmpty) Some(blocks) else None
   }
 
