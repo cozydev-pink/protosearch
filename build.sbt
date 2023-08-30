@@ -241,21 +241,29 @@ lazy val docs = project
   .enablePlugins(TypelevelSitePlugin)
   .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
   .settings(
-    tlSiteRelatedProjects := Seq(
-      "lucene" -> url("https://lucene.apache.org/"),
-      "lucille" -> url("https://github.com/cozydev-pink/lucille"),
-      "textmogrify" -> url("https://github.com/valencik/textmogrify"),
-    ),
-    tlSiteHeliumConfig := {
-      tlSiteHeliumConfig.value.site.topNavigationBar(
-        homeLink = IconLink.external(
-          "https://github.com/cozydev-pink/protosearch",
-          HeliumIcon.github,
+    tlSiteHelium ~= {
+      import laika.helium.config._
+      import laika.ast.Path.Root
+      _.site
+        .topNavigationBar(
+          // override default because our README.md is a symlink
+          homeLink = IconLink.internal(Root / "index.md", HeliumIcon.home)
         )
-      )
+        .site
+        .mainNavigation(appendLinks =
+          Seq(
+            ThemeNavigationSection(
+              "Related Projects",
+              TextLink.external("https://lucene.apache.org/", "lucene"),
+              TextLink.external("https://github.com/cozydev-pink/lucille", "lucille"),
+              TextLink.external("https://github.com/valencik/textmogrify", "textmogrify"),
+            )
+          )
+        )
     },
     laikaInputs := {
       import laika.ast.Path.Root
+      import laika.io.model.FilePath
       val jsArtifact = (web / Compile / fullOptJS / artifactPath).value
       val sourcemap = jsArtifact.getName + ".map"
       val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
@@ -264,27 +272,27 @@ lazy val docs = project
       val sourcemapInterop = jsArtifactInterop.getName + ".map"
       laikaInputs.value.delegate
         .addFile(
-          jsArtifact,
+          FilePath.fromJavaFile(jsArtifact),
           Root / "reposearch" / "index.js",
         )
         .addFile(
-          jsArtifact.toPath.resolveSibling(sourcemap).toFile,
+          FilePath.fromNioPath(jsArtifact.toPath.resolveSibling(sourcemap)),
           Root / "reposearch" / sourcemap,
         )
         .addFile(
-          jsArtifactDS,
+          FilePath.fromJavaFile(jsArtifactDS),
           Root / "searchdocs" / "index.js",
         )
         .addFile(
-          jsArtifactDS.toPath.resolveSibling(sourcemapDS).toFile,
+          FilePath.fromNioPath(jsArtifactDS.toPath.resolveSibling(sourcemapDS)),
           Root / "searchdocs" / sourcemap,
         )
         .addFile(
-          jsArtifactInterop,
+          FilePath.fromJavaFile(jsArtifactInterop),
           Root / "interop" / "index.js",
         )
         .addFile(
-          jsArtifactInterop.toPath.resolveSibling(sourcemapInterop).toFile,
+          FilePath.fromNioPath(jsArtifactInterop.toPath.resolveSibling(sourcemapInterop)),
           Root / "interop" / sourcemap,
         )
     },

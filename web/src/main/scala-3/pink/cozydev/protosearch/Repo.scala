@@ -18,8 +18,7 @@ package pink.cozydev.protosearch
 
 import cats.effect.IO
 import fs2.Stream
-import fs2.io.file.{Files, Path}
-import io.circe.{Decoder, Encoder, HCursor, Json}
+import io.circe.{Decoder, HCursor}
 import io.circe.fs2.*
 
 final case class Repo(
