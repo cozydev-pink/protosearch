@@ -1,4 +1,4 @@
-//> using scala "2.13.11"
+//> using scala "2.13.12"
 //> using lib "org.typelevel::cats-effect:3.4.11"
 //> using lib "org.http4s::http4s-ember-client:0.23.23"
 //> using lib "com.47deg::github4s:0.31.2"
