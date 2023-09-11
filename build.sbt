@@ -26,7 +26,7 @@ ThisBuild / tlJdkRelease := Some(11)
 
 val Scala212 = "2.12.18"
 val Scala213 = "2.13.11"
-val Scala3 = "3.3.0"
+val Scala3 = "3.3.1"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
