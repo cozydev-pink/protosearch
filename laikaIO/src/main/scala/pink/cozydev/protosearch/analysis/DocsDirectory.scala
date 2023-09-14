@@ -19,7 +19,6 @@ package pink.cozydev.protosearch.analysis
 import cats.data.NonEmptyList
 import cats.effect.IO
 import laika.api.MarkupParser
-import laika.config.LaikaKeys
 import laika.format.Markdown
 import laika.io.implicits._
 import laika.markdown.github.GitHubFlavor
@@ -31,7 +30,7 @@ object DocsDirectory {
   val mdParser = MarkupParser
     .of(Markdown)
     .using(GitHubFlavor, SyntaxHighlighting)
-    .withConfigValue(LaikaKeys.validateLinks, false)
+    .withConfigValue("laika.validateLinks", false)
     .parallel[IO]
     .build
 
