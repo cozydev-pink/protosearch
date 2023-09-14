@@ -23,7 +23,7 @@ import cats.data.NonEmptyList
 /**  For a type `A`, a SearchSchema describes the fields of the document representation
   *  of `A`.
   */
-case class SearchSchema[A] private (
+class SearchSchema[A] private (
     private val fields: NonEmptyList[(String, A => String, Analyzer)]
 ) {
   def queryAnalyzer(defaultField: String): QueryAnalyzer = {
