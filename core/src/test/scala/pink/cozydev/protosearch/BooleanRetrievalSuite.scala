@@ -16,9 +16,8 @@
 
 package pink.cozydev.protosearch
 
-import cats.syntax.all._
 import pink.cozydev.protosearch.analysis.Analyzer
-import pink.cozydev.lucille.Parser
+import pink.cozydev.lucille.QueryParser
 
 class BooleanRetrievalSuite extends munit.FunSuite {
 
@@ -26,9 +25,8 @@ class BooleanRetrievalSuite extends munit.FunSuite {
   val analyzer = Analyzer.default
 
   def search(qStr: String): Either[String, Set[Int]] =
-    Parser
-      .parseQ(qStr)
-      .leftMap(_.toString())
+    QueryParser
+      .parse(qStr)
       .flatMap(q => BooleanRetrieval(index).search(q))
 
   test("Term") {

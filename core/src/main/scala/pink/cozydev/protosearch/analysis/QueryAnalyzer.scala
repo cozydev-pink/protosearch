@@ -17,9 +17,8 @@
 package pink.cozydev.protosearch.analysis
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
 import pink.cozydev.lucille.Query
-import pink.cozydev.lucille.Parser
+import pink.cozydev.lucille.QueryParser
 
 import pink.cozydev.lucille.MultiQuery
 
@@ -115,11 +114,10 @@ case class QueryAnalyzer(
 
   def parse(queryString: String): Either[String, MultiQuery] = {
     val q: Either[String, MultiQuery] =
-      Parser
-        .parseQ(queryString)
-        .leftMap(err => s"Parse error before query analysis, err: $err")
+      QueryParser.parse(queryString)
     q.flatMap(mq => mq.qs.traverse(analyzeQ).map(qs => MultiQuery(qs)))
   }
+
 }
 object QueryAnalyzer {
   def apply(
