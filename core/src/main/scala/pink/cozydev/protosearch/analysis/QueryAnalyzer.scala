@@ -17,7 +17,6 @@
 package pink.cozydev.protosearch.analysis
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.QueryParser
 
