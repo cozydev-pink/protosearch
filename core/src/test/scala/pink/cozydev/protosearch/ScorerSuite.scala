@@ -17,7 +17,7 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
-import pink.cozydev.lucille.Parser
+import pink.cozydev.lucille.QueryParser
 
 class ScorerSuite extends munit.FunSuite {
   import BookIndex.{Book, allBooks}
@@ -34,10 +34,8 @@ class ScorerSuite extends munit.FunSuite {
 
   val scorer = Scorer(index)
   def score(q: String, docs: Set[Int]): Either[String, List[(Int, Double)]] =
-    Parser
-      .parseQ(q)
-      .left
-      .map(_.toString())
+    QueryParser
+      .parse(q)
       .flatMap(q => scorer.score(q.qs, docs))
 
   def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
