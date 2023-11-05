@@ -20,10 +20,10 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import laika.api.MarkupParser
 import laika.format.Markdown
-import laika.io.implicits._
-import laika.markdown.github.GitHubFlavor
-import laika.parse.code.SyntaxHighlighting
-import laika.parse.markup.DocumentParser.RendererError
+import laika.format.Markdown.GitHubFlavor
+import laika.config.SyntaxHighlighting
+import laika.api.errors.RendererError
+import laika.io.syntax._
 
 object DocsDirectory {
 

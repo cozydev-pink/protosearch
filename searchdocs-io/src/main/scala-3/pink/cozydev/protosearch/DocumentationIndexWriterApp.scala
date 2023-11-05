@@ -23,7 +23,7 @@ import io.circe.syntax._
 import fs2.{Chunk, Stream}
 import fs2.io.file.{Files, Path}
 import fs2.text.utf8
-import laika.parse.markup.DocumentParser.RendererError
+import laika.api.errors.TransformationError
 import pink.cozydev.protosearch.analysis.DocsDirectory
 import pink.cozydev.protosearch.analysis.SubDocument
 
@@ -35,7 +35,7 @@ object DocumentationIndexWriterApp extends IOApp.Simple {
   val pathHttp4sDocs = pathHttp4s / "docs/docs/"
 
   def collectDocs(
-      subDocs: Either[RendererError, NonEmptyList[SubDocument]]
+      subDocs: Either[TransformationError, NonEmptyList[SubDocument]]
   ): List[Doc] =
     subDocs match {
       case Left(_) => Nil // swallow errors
