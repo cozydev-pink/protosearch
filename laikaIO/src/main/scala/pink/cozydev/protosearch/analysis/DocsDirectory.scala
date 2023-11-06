@@ -44,12 +44,12 @@ object DocsDirectory extends IOApp.Simple {
 
   val run = Resource
     .both(parser, plaintextRenderer)
-    .use((parser, renderer) =>
+    .use { case (parser, renderer) =>
       parser
         .fromDirectory("/home/andrew/src/github.com/cozydev/protosearch/docs")
         .parse
         .flatMap(tree => renderer.from(tree.root).toDirectory("outputDir").render.void)
-    )
+    }
 
   def dirToDocs(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
     parser.use(parser =>
