@@ -83,6 +83,7 @@ lazy val laikaIO = crossProject(JVMPlatform)
   .in(file("laikaIO"))
   .settings(
     name := "protosearch-laika",
+    sbtPlugin := true,
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,
@@ -235,7 +236,12 @@ lazy val web = project
     },
   )
 
+lazy val indexTask = taskKey[String]("Generates the index output")
+
 import laika.helium.config.{IconLink, HeliumIcon}
+import cats.effect.unsafe.implicits.global
+import pink.cozydev.protosearch.analysis.DocsDirectory
+import laika.io.model.FilePath
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
@@ -303,4 +309,17 @@ lazy val docs = project
         jsInterop.js / Compile / fullOptJS,
       )
       .value,
+    indexTask := {
+      val userConfig = laikaConfig.value
+      val targetDir = (laikaAST / target).value
+      val parser = laika.sbt.Settings.parser.value
+      val tree = parser.use(_.fromInput(laikaInputs.value.delegate).parse).unsafeRunSync()
+      DocsDirectory.plaintextRenderer.use(
+        _.from(tree)
+         .toDirectory(FilePath.fromJavaFile(targetDir))(userConfig.encoding)
+         .render
+      ).unsafeRunSync()
+      println(s"rendered to ${targetDir}")
+      root.toString()
+    }
   )
