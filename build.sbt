@@ -83,7 +83,6 @@ lazy val laikaIO = crossProject(JVMPlatform)
   .in(file("laikaIO"))
   .settings(
     name := "protosearch-laika",
-    sbtPlugin := true,
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,
