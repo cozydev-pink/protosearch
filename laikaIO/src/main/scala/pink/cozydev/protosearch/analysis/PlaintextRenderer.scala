@@ -60,10 +60,5 @@ case object Plaintext extends RenderFormat[Formatter] {
     PlaintextRenderer
 
   val formatterFactory: Formatter.Context[Formatter] => Formatter =
-    PlaintextFormatter
-}
-
-object PlaintextFormatter extends (Formatter.Context[Formatter] => Formatter) {
-  def apply(context: Formatter.Context[Formatter]): Formatter =
-    Formatter.defaultFactory(context.withIndentation(Formatter.Indentation.default))
+    context => Formatter.defaultFactory(context.withIndentation(Formatter.Indentation.default))
 }
