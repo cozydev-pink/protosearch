@@ -30,6 +30,15 @@ val Scala3 = "3.3.1"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala3 // the default Scala
 
+// Plugin setup stolen from Laika with love
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  MatrixExclude(Map("project" -> "plugin", "java" -> JavaSpec.temurin("11").render)) ::
+    List("2.13", "3").map(scala => MatrixExclude(Map("project" -> "plugin", "scala" -> scala)))
+}
+ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
+  matrix + ("project" -> (matrix("project") :+ "plugin"))
+}
+
 val calicoV = "0.2.1"
 val catsEffectV = "3.5.2"
 val catsV = "2.10.0"
@@ -46,16 +55,24 @@ val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
 
 lazy val root =
-  tlCrossRootProject.aggregate(
-    core,
-    laikaIO,
-    jsInterop,
-    plugin,
-    web,
-    searchdocsCore,
-    searchdocsIO,
-    searchdocsWeb,
-  )
+  tlCrossRootProject
+    .aggregate(
+      core,
+      laikaIO,
+      jsInterop,
+      web,
+      searchdocsCore,
+      searchdocsIO,
+      searchdocsWeb,
+    )
+    .configureRoot { root =>
+      root
+        .aggregate(plugin) // don't include the plugin in rootJVM, only in root
+        .settings(
+          crossScalaVersions := Nil,
+          scalaVersion := Scala212,
+        )
+    }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)

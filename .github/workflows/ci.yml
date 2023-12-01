@@ -30,7 +30,14 @@ jobs:
         os: [ubuntu-latest]
         scala: [2.12, 2.13, 3]
         java: [temurin@11]
-        project: [rootJS, rootJVM]
+        project: [rootJS, rootJVM, plugin]
+        exclude:
+          - project: plugin
+            java: temurin@11
+          - project: plugin
+            scala: 2.13
+          - project: plugin
+            scala: 3
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     steps:
