@@ -50,6 +50,7 @@ lazy val root =
     core,
     laikaIO,
     jsInterop,
+    plugin,
     web,
     searchdocsCore,
     searchdocsIO,
@@ -107,6 +108,18 @@ lazy val jsInterop = crossProject(JSPlatform)
       "org.scala-js" %%% "scalajs-dom" % scalajsDomV
     ),
   )
+
+lazy val plugin =
+  project
+    .in(file("sbt"))
+    .dependsOn(core.jvm, laikaIO.jvm)
+    .enablePlugins(SbtPlugin)
+    .settings(
+      name := "protosearch-sbt",
+      sbtPlugin := true,
+      crossScalaVersions := Seq(Scala212),
+      addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
+    )
 
 lazy val searchdocsCore = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
