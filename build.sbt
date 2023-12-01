@@ -28,7 +28,7 @@ val Scala212 = "2.12.18"
 val Scala213 = "2.13.12"
 val Scala3 = "3.3.1"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
-ThisBuild / scalaVersion := Scala212 // the default Scala
+ThisBuild / scalaVersion := Scala3 // the default Scala
 
 // Plugin setup stolen from Laika with love
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
