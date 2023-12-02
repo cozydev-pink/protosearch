@@ -27,9 +27,9 @@ import laika.ast.RootElement
 import laika.ast.Section
 import laika.ast.Text
 import laika.format.Markdown
-import laika.markdown.github.GitHubFlavor
-import laika.parse.code.SyntaxHighlighting
-import laika.parse.markup.DocumentParser.RendererError
+import laika.format.Markdown.GitHubFlavor
+import laika.config.SyntaxHighlighting
+import laika.api.errors.{RendererError, TransformationError}
 
 case class SubDocument(fileName: String, anchor: Option[String], title: String, content: String)
 
@@ -87,10 +87,9 @@ object IngestMarkdown {
     subDocs.sequence
   }
 
-  def transform(input: String): Either[RendererError, NonEmptyList[SubDocument]] =
+  def transform(input: String): Either[TransformationError, NonEmptyList[SubDocument]] =
     parser
       .parse(input)
-      .leftMap(e => RendererError(e.message, e.path))
       .flatMap(renderSubDocuments)
 
 }

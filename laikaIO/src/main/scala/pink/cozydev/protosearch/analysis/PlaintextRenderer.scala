@@ -17,21 +17,18 @@
 package pink.cozydev.protosearch.analysis
 
 import laika.ast._
-import laika.render.TextFormatter
-import laika.factory.RenderFormat
-import laika.factory.RenderContext
-import laika.render.Indentation
+import laika.api.format.{Formatter, RenderFormat}
 
-object PlaintextRenderer extends ((TextFormatter, Element) => String) {
+object PlaintextRenderer extends ((Formatter, Element) => String) {
 
-  private case class Content(content: Seq[Element], options: Options = NoOpt)
+  private case class Content(content: Seq[Element], options: Options = Options.empty)
       extends Element
       with ElementContainer[Element] {
     type Self = Content
     def withOptions(options: Options): Content = copy(options = options)
   }
 
-  def apply(fmt: TextFormatter, element: Element): String = {
+  def apply(fmt: Formatter, element: Element): String = {
 
     def renderElement(e: Element): String = {
       val (elements, _) = e.productIterator.partition(_.isInstanceOf[Element])
@@ -56,15 +53,12 @@ object PlaintextRenderer extends ((TextFormatter, Element) => String) {
   }
 }
 
-case object Plaintext extends RenderFormat[TextFormatter] {
+case object Plaintext extends RenderFormat[Formatter] {
   val fileSuffix = "txt"
 
-  val defaultRenderer: (TextFormatter, Element) => String = PlaintextRenderer
+  val defaultRenderer: (Formatter, Element) => String =
+    PlaintextRenderer
 
-  val formatterFactory: RenderContext[TextFormatter] => TextFormatter = PlaintextFormatter
-}
-
-object PlaintextFormatter extends (RenderContext[TextFormatter] => TextFormatter) {
-  def apply(context: RenderContext[TextFormatter]): TextFormatter =
-    TextFormatter(context.renderChild, context.root, Nil, Indentation.default)
+  val formatterFactory: Formatter.Context[Formatter] => Formatter =
+    context => Formatter.defaultFactory(context.withIndentation(Formatter.Indentation.default))
 }
