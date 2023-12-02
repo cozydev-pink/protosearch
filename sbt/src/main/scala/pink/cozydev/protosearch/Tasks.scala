@@ -38,7 +38,7 @@ object Tasks {
       Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
         renderer
           .from(tree)
-          .toFile("index.dat")
+          .toFile(s"${targetDir}/searchIndex.dat")
           .render
       }
     }
