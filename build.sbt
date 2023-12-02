@@ -38,9 +38,9 @@ val circeV = "0.14.6"
 val fs2V = "3.9.3"
 val http4sDomV = "0.2.10"
 val http4sV = "0.23.23"
-val laikaV = "0.19.5"
+val laikaV = "1.0.0"
 val lucilleV = "0.0.1"
-val munitCatsEffectV = "2.0.0-M3"
+val munitCatsEffectV = "2.0.0-M4"
 val munitV = "1.0.0-M10"
 val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
@@ -90,8 +90,8 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "co.fs2" %%% "fs2-io" % fs2V,
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
-      "org.planet42" %%% "laika-core" % laikaV,
-      "org.planet42" %%% "laika-io" % laikaV,
+      "org.typelevel" %%% "laika-core" % laikaV,
+      "org.typelevel" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),

@@ -16,26 +16,43 @@
 
 package pink.cozydev.protosearch.analysis
 
-import cats.data.NonEmptyList
 import cats.effect.IO
 import laika.api.MarkupParser
 import laika.format.Markdown
-import laika.io.implicits._
-import laika.markdown.github.GitHubFlavor
-import laika.parse.code.SyntaxHighlighting
-import laika.parse.markup.DocumentParser.RendererError
+import laika.format.Markdown.GitHubFlavor
+import laika.config.SyntaxHighlighting
+import laika.io.syntax._
+import laika.api.Renderer
+import cats.effect.IOApp
+import cats.effect.kernel.Resource
+import laika.api.errors.RendererError
+import cats.data.NonEmptyList
 
-object DocsDirectory {
+object DocsDirectory extends IOApp.Simple {
 
-  val mdParser = MarkupParser
+  val parserBuilder = MarkupParser
     .of(Markdown)
     .using(GitHubFlavor, SyntaxHighlighting)
-    .withConfigValue("laika.validateLinks", false)
+
+  val parser = parserBuilder
     .parallel[IO]
     .build
 
+  val config = parserBuilder.config
+
+  val plaintextRenderer = Renderer.of(Plaintext).withConfig(config).parallel[IO].build
+
+  val run = Resource
+    .both(parser, plaintextRenderer)
+    .use { case (parser, renderer) =>
+      parser
+        .fromDirectory("/home/andrew/src/github.com/cozydev/protosearch/docs")
+        .parse
+        .flatMap(tree => renderer.from(tree.root).toDirectory("outputDir").render.void)
+    }
+
   def dirToDocs(dirPath: String): IO[Seq[Either[RendererError, NonEmptyList[SubDocument]]]] =
-    mdParser.use(parser =>
+    parser.use(parser =>
       parser.fromDirectory(dirPath).parse.map { tree =>
         tree.root.allDocuments.map(IngestMarkdown.renderSubDocuments)
       }
