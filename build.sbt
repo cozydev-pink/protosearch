@@ -28,7 +28,7 @@ val Scala212 = "2.12.18"
 val Scala213 = "2.13.12"
 val Scala3 = "3.3.1"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
-ThisBuild / scalaVersion := Scala3 // the default Scala
+ThisBuild / scalaVersion := Scala212 // the default Scala
 
 // Plugin setup stolen from Laika with love
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
@@ -66,12 +66,7 @@ lazy val root =
       searchdocsWeb,
     )
     .configureRoot { root =>
-      root
-        .aggregate(plugin) // don't include the plugin in rootJVM, only in root
-        .settings(
-          crossScalaVersions := Nil,
-          scalaVersion := Scala212,
-        )
+      root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
     }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -271,6 +266,12 @@ lazy val docs = project
   .enablePlugins(TypelevelSitePlugin)
   .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
   .settings(
+    tlSiteGenerate := List(
+      WorkflowStep.Sbt(
+        List(s"++ 3 ${thisProject.value.id}/${tlSite.key.toString}"),
+        name = Some("Generate site"),
+      )
+    ),
     tlSiteHelium ~= {
       import laika.helium.config._
       import laika.ast.Path.Root
