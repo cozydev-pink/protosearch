@@ -48,9 +48,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             config: OperationConfig,
         ): F[Unit] = {
           val strs: List[String] = result.allDocuments.map(_.content).toList
-          val ss: Stream[F, Byte] = fs2.Stream.emits[F, String](strs).map(_.toByte)
-
-          val bytes: Stream[F, Byte] = ss
+          val bytes: Stream[F, Byte] = fs2.Stream.emits[F, String](strs).map(_.toByte)
           val outputStream: Resource[F, OutputStream] = output.resource
           outputStream.use { os =>
             val fos = Async[F].pure(os)
