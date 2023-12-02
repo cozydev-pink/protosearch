@@ -22,8 +22,7 @@ import cats.effect.unsafe.implicits.global
 import sbt.*
 import laika.io.syntax.*
 import laika.api.Renderer
-import laika.io.model.FilePath
-import pink.cozydev.protosearch.analysis.Plaintext
+import pink.cozydev.protosearch.analysis.IndexFormat
 
 object Tasks {
   import Def.*
@@ -31,16 +30,15 @@ object Tasks {
   import pink.cozydev.protosearch.sbt.ProtosearchPlugin.autoImport._
 
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
-    val userConfig = (Compile / laikaConfig).value
     val targetDir = protosearchIndexTarget.value
 
     val renderIndex = laika.sbt.Settings.parser.value.use { parser =>
       val tree = Resource.eval(parser.fromInput(laikaInputs.value.delegate).parse)
-      val plaintextRenderer = Renderer.of(Plaintext).withConfig(parser.config).parallel[IO].build
+      val plaintextRenderer = Renderer.of(IndexFormat).withConfig(parser.config).parallel[IO].build
       Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
         renderer
           .from(tree)
-          .toDirectory(FilePath.parse(targetDir))(userConfig.encoding)
+          .toFile("index.dat")
           .render
       }
     }
