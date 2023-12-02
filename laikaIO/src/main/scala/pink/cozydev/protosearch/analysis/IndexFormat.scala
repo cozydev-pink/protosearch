@@ -18,6 +18,7 @@ package pink.cozydev.protosearch.analysis
 
 import cats.effect.{Async, Resource}
 import fs2.Stream
+import fs2.text
 import laika.api.format.{BinaryPostProcessor, Formatter, TwoPhaseRenderFormat, RenderFormat}
 import laika.ast.*
 import laika.io.model.{BinaryOutput, RenderedTreeRoot}
@@ -48,7 +49,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             config: OperationConfig,
         ): F[Unit] = {
           val strs: List[String] = result.allDocuments.map(_.content).toList
-          val bytes: Stream[F, Byte] = fs2.Stream.emits[F, String](strs).map(_.toByte)
+          val bytes: Stream[F, Byte] = fs2.Stream.emits[F, String](strs).through(text.utf8.encode)
           val outputStream: Resource[F, OutputStream] = output.resource
           outputStream.use { os =>
             val fos = Async[F].pure(os)
