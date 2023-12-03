@@ -94,6 +94,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val laikaIO = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("laikaIO"))
+  .dependsOn(core)
   .settings(
     name := "protosearch-laika",
     libraryDependencies ++= Seq(

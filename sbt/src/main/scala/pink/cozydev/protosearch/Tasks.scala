@@ -21,8 +21,9 @@ import cats.effect.kernel.Resource
 import cats.effect.unsafe.implicits.global
 import sbt.*
 import laika.io.syntax.*
+import laika.io.model.FilePath
 import laika.api.Renderer
-import pink.cozydev.protosearch.analysis.IndexFormat
+import pink.cozydev.protosearch.analysis.{IndexFormat, Plaintext}
 
 object Tasks {
   import Def.*
@@ -38,7 +39,27 @@ object Tasks {
       Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
         renderer
           .from(tree)
-          .toFile(s"${targetDir}/searchIndex.dat")
+          .toFile(s"${targetDir}/searchIndex.dat") // TODO ensure dirs exist
+          .render
+      }
+    }
+    val prog = renderIndex <* IO.println(s"rendered to $targetDir")
+
+    prog.unsafeRunSync()
+    Set.empty
+  }
+
+  val protosearchProcessFiles: Initialize[Task[Set[File]]] = task {
+    val userConfig = (Compile / laikaConfig).value
+    val targetDir = protosearchIndexTarget.value
+
+    val renderIndex = laika.sbt.Settings.parser.value.use { parser =>
+      val tree = Resource.eval(parser.fromInput(laikaInputs.value.delegate).parse)
+      val plaintextRenderer = Renderer.of(Plaintext).withConfig(parser.config).parallel[IO].build
+      Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
+        renderer
+          .from(tree)
+          .toDirectory(FilePath.parse(targetDir))(userConfig.encoding)
           .render
       }
     }

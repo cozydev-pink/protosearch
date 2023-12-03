@@ -29,6 +29,8 @@ object ProtosearchPlugin extends AutoPlugin {
 
   object autoImport {
     val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index files")
+    val protosearchProcessFiles =
+      taskKey[Set[File]]("Process files with Protosearch, don't create final index.")
     val protosearchIndexTarget = settingKey[String]("The target directory for index files")
   }
 
@@ -37,5 +39,6 @@ object ProtosearchPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     protosearchIndexTarget := ((Laika / target).value / "index").toString(),
     protosearchGenerateIndex := Tasks.protosearchGenerateIndex.value,
+    protosearchProcessFiles := Tasks.protosearchProcessFiles.value,
   )
 }

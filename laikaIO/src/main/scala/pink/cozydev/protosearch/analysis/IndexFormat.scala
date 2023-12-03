@@ -16,9 +16,9 @@
 
 package pink.cozydev.protosearch.analysis
 
+import cats.syntax.all.*
 import cats.effect.{Async, Resource}
-import fs2.Stream
-import fs2.text
+import fs2.{Chunk, Stream}
 import laika.api.format.{BinaryPostProcessor, Formatter, TwoPhaseRenderFormat, RenderFormat}
 import laika.ast.*
 import laika.io.model.{BinaryOutput, RenderedTreeRoot}
@@ -26,6 +26,7 @@ import laika.api.builder.OperationConfig
 import laika.api.config.Config
 import laika.theme.Theme
 import java.io.OutputStream
+import pink.cozydev.protosearch.Index
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
@@ -49,7 +50,19 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             config: OperationConfig,
         ): F[Unit] = {
           val strs: List[String] = result.allDocuments.map(_.content).toList
-          val bytes: Stream[F, Byte] = fs2.Stream.emits[F, String](strs).through(text.utf8.encode)
+
+          val analyzer = Analyzer.default.withLowerCasing
+          val index = Index(strs.map(analyzer.tokenize))
+          val indexBytes = Index.codec
+            .encode(index)
+            .map(_.bytes)
+            .toEither
+            .leftMap(err => new Throwable(err.message))
+
+          val bytes: Stream[F, Byte] = fs2.Stream
+            .fromEither(indexBytes)
+            .flatMap(bv => Stream.chunk(Chunk.byteVector(bv)))
+
           val outputStream: Resource[F, OutputStream] = output.resource
           outputStream.use { os =>
             val fos = Async[F].pure(os)
