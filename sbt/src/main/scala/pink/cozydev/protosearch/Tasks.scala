@@ -23,7 +23,8 @@ import sbt.*
 import laika.io.syntax.*
 import laika.io.model.FilePath
 import laika.api.Renderer
-import pink.cozydev.protosearch.analysis.{IndexFormat, Plaintext}
+import pink.cozydev.protosearch.analysis.IndexFormat
+import pink.cozydev.protosearch.analysis.Plaintext
 
 object Tasks {
   import Def.*

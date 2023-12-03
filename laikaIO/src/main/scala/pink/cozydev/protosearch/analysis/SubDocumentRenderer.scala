@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.analysis
 import laika.ast._
 import laika.api.format.{Formatter, RenderFormat}
 
-object PlaintextRenderer extends ((Formatter, Element) => String) {
+object SubDocumentRenderer extends ((Formatter, Element) => String) {
 
   private case class Content(content: Seq[Element], options: Options = Options.empty)
       extends Element
@@ -41,8 +41,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       fmt.childPerLine(lists.map { case elems => Content(elems) })
 
     element match {
-      case s: Section =>
-        fmt.children(s.header.content) + "\n" + fmt.children(s.content)
+      case _: Section => "" // short circuit rendering
       case _: SectionNumber => ""
       case QuotedBlock(content, attr, _) => lists(content, attr)
       case DefinitionListItem(term, defn, _) => lists(term, defn)
@@ -54,11 +53,11 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
   }
 }
 
-case object Plaintext extends RenderFormat[Formatter] {
+case object SubDocumentPlaintext extends RenderFormat[Formatter] {
   val fileSuffix = "txt"
 
   val defaultRenderer: (Formatter, Element) => String =
-    PlaintextRenderer
+    SubDocumentRenderer
 
   val formatterFactory: Formatter.Context[Formatter] => Formatter =
     context => Formatter.defaultFactory(context.withIndentation(Formatter.Indentation.default))
