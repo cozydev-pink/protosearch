@@ -32,7 +32,7 @@ object Tasks {
   import pink.cozydev.protosearch.sbt.ProtosearchPlugin.autoImport._
 
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
-    val targetDir = protosearchIndexTarget.value
+    val targetDir = FilePath.parse(protosearchIndexTarget.value)
 
     val renderIndex = laika.sbt.Settings.parser.value.use { parser =>
       val tree = Resource.eval(parser.fromInput(laikaInputs.value.delegate).parse)
@@ -40,12 +40,14 @@ object Tasks {
       Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
         renderer
           .from(tree)
-          .toFile(s"${targetDir}/searchIndex.dat") // TODO ensure dirs exist
+          .toFile(targetDir / "searchIndex.dat")
           .render
       }
     }
     val prog = renderIndex <* IO.println(s"rendered to $targetDir")
 
+    val jFile = targetDir.toJavaFile
+    if (!jFile.exists()) jFile.mkdirs()
     prog.unsafeRunSync()
     Set.empty
   }
