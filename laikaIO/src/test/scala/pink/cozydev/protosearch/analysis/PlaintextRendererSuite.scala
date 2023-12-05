@@ -32,13 +32,47 @@ class PlaintextRendererSuite extends munit.FunSuite {
 
   test("title, words") {
     val doc =
-      """|
-         |# Title
-         |**bold** *italics* `code`
+      """|# The Title
+         |normal **bold** *italics* `code`
          |""".stripMargin
     val expected =
-      """|Title
-         |bold italics code""".stripMargin
+      """|The Title
+         |normal bold italics code
+         |
+         |""".stripMargin
+    assertEquals(render(doc), Right(expected))
+  }
+
+  test("title, empty line, words") {
+    val doc =
+      """|# The Title
+         |
+         |normal **bold** *italics* `code`
+         |""".stripMargin
+    val expected =
+      """|The Title
+         |normal bold italics code
+         |
+         |""".stripMargin
+    assertEquals(render(doc), Right(expected))
+  }
+
+  test("title, empty line, words, code block") {
+    val doc =
+      """|# The Title
+         |
+         |normal
+         |
+         |```scala
+         |val x = 2
+         |```
+         |""".stripMargin
+    val expected =
+      """|The Title
+         |normal
+         |val x = 2
+         |
+         |""".stripMargin
     assertEquals(render(doc), Right(expected))
   }
 

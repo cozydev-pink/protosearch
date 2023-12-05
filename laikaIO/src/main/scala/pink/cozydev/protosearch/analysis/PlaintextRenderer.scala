@@ -42,12 +42,13 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
 
     element match {
       case s: Section =>
-        fmt.children(s.header.content) + "\n" + fmt.children(s.content)
+        fmt.children(s.header.content) + "\n" + fmt.childPerLine(s.content) + "\n"
       case _: SectionNumber => ""
       case QuotedBlock(content, attr, _) => lists(content, attr)
-      case DefinitionListItem(term, defn, _) => lists(term, defn)
+      case DefinitionListItem(term, defn, _) => lists(term, defn) + "\n"
+      case bc: BlockContainer => fmt.childPerLine(bc.content) + "\n"
       case tc: TextContainer => tc.content
-      case Content(content, _) => fmt.indentedChildren(content)
+      case Content(content, _) => fmt.childPerLine(content)
       case ec: ElementContainer[_] => fmt.children(ec.content)
       case e => renderElement(e)
     }
