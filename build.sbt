@@ -33,8 +33,7 @@ ThisBuild / scalaVersion := Scala212 // the default Scala
 
 // Plugin setup stolen from Laika with love
 ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
-  MatrixExclude(Map("project" -> "plugin", "java" -> JavaSpec.temurin("11").render)) ::
-    List("2.13", "3").map(scala => MatrixExclude(Map("project" -> "plugin", "scala" -> scala)))
+  List("2.13", "3").map(scala => MatrixExclude(Map("project" -> "plugin", "scala" -> scala)))
 }
 ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
