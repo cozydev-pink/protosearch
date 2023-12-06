@@ -125,13 +125,17 @@ lazy val jsInterop = crossProject(JSPlatform)
 lazy val plugin =
   project
     .in(file("sbt"))
-    .dependsOn(core.jvm, laikaIO.jvm)
+    .dependsOn(core.jvm, laikaIO.jvm, jsInterop.js)
     .enablePlugins(SbtPlugin)
     .settings(
       name := "protosearch-sbt",
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
+      Compile / packageBin / mappings += {
+        val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
+        jsArtifactInterop -> "pink/cozydev/protosearch/sbt/protosearch.js"
+      },
     )
 
 lazy val searchdocsCore = crossProject(JVMPlatform, JSPlatform)

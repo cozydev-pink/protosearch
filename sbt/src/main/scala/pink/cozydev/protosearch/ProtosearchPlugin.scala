@@ -28,6 +28,7 @@ object ProtosearchPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin && LaikaPlugin
 
   object autoImport {
+    val protosearchWriteProtosearchJS = taskKey[Unit]("Write the protosearch.js file")
     val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index files")
     val protosearchProcessFiles =
       taskKey[Set[File]]("Process files with Protosearch, don't create final index.")
@@ -38,6 +39,7 @@ object ProtosearchPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     protosearchIndexTarget := ((Laika / target).value / "index").toString(),
+    protosearchWriteProtosearchJS := Tasks.protosearchWriteProtosearchJS.value,
     protosearchGenerateIndex := Tasks.protosearchGenerateIndex.value,
     protosearchProcessFiles := Tasks.protosearchProcessFiles.value,
   )

@@ -31,6 +31,17 @@ object Tasks {
   import laika.sbt.LaikaPlugin.autoImport._
   import pink.cozydev.protosearch.sbt.ProtosearchPlugin.autoImport._
 
+  val protosearchWriteProtosearchJS: Initialize[Task[Unit]] = task {
+    val targetDir = FilePath.parse(protosearchIndexTarget.value)
+
+    val path = "pink/cozydev/protosearch/sbt/protosearch.js"
+    val res = IO.blocking(getClass().getClassLoader().getResourceAsStream(path))
+    val outputPath = (targetDir / "protosearch.js").toFS2Path
+    val out =
+      fs2.io.readInputStream(res, 1024 * 8).through(fs2.io.file.Files[IO].writeAll(outputPath))
+    out.compile.drain.unsafeRunSync()
+  }
+
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
     val targetDir = FilePath.parse(protosearchIndexTarget.value)
 
