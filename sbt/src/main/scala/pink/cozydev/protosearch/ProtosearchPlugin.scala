@@ -38,7 +38,7 @@ object ProtosearchPlugin extends AutoPlugin {
   import autoImport._
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    protosearchIndexTarget := ((Laika / target).value / "index").toString(),
+    protosearchIndexTarget := ((Laika / target).value / "site").toString(),
     protosearchWriteProtosearchJS := Tasks.protosearchWriteProtosearchJS.value,
     protosearchGenerateIndex := Tasks.protosearchGenerateIndex.value,
     protosearchProcessFiles := Tasks.protosearchProcessFiles.value,

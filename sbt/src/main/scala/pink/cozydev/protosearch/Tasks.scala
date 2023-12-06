@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch.sbt
 
+import cats.syntax.all._
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.effect.unsafe.implicits.global
@@ -33,13 +34,18 @@ object Tasks {
 
   val protosearchWriteProtosearchJS: Initialize[Task[Unit]] = task {
     val targetDir = FilePath.parse(protosearchIndexTarget.value)
+    val filenames = List("protosearch.js", "search.js", "worker.js", "search.html")
+    val path = "pink/cozydev/protosearch/sbt"
 
-    val path = "pink/cozydev/protosearch/sbt/protosearch.js"
-    val res = IO.blocking(getClass().getClassLoader().getResourceAsStream(path))
-    val outputPath = (targetDir / "protosearch.js").toFS2Path
-    val out =
-      fs2.io.readInputStream(res, 1024 * 8).through(fs2.io.file.Files[IO].writeAll(outputPath))
-    out.compile.drain.unsafeRunSync()
+    filenames
+      .traverse_ { fn =>
+        val res = IO.blocking(getClass().getClassLoader().getResourceAsStream(s"$path/$fn"))
+        val outputPath = (targetDir / fn).toFS2Path
+        val out =
+          fs2.io.readInputStream(res, 1024 * 8).through(fs2.io.file.Files[IO].writeAll(outputPath))
+        out.compile.drain
+      }
+      .unsafeRunSync()
   }
 
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
