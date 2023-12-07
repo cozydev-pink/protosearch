@@ -132,16 +132,11 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      Compile / packageBin / mappings ++= {
+      Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
         val inDir = baseDirectory.value / "src" / "main" / "resources"
         val dir = "pink/cozydev/protosearch/sbt"
-        Seq(
-          jsArtifactInterop -> s"$dir/protosearch.js",
-          inDir / "search.js" -> s"$dir/search.js",
-          inDir / "worker.js" -> s"$dir/worker.js",
-          inDir / "search.html" -> s"$dir/search.html",
-        )
+        jsArtifactInterop -> s"$dir/protosearch.js"
       },
     )
 

@@ -18,6 +18,7 @@ package pink.cozydev.protosearch.sbt
 
 import sbt.*
 import sbt.Keys.*
+import laika.ast.Path
 import laika.sbt.LaikaPlugin
 import laika.sbt.LaikaPlugin.autoImport._
 
@@ -28,7 +29,6 @@ object ProtosearchPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin && LaikaPlugin
 
   object autoImport {
-    val protosearchWriteProtosearchJS = taskKey[Unit]("Write the protosearch.js file")
     val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index files")
     val protosearchProcessFiles =
       taskKey[Set[File]]("Process files with Protosearch, don't create final index.")
@@ -37,10 +37,27 @@ object ProtosearchPlugin extends AutoPlugin {
 
   import autoImport._
 
+  val path = "pink/cozydev/protosearch/sbt"
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     protosearchIndexTarget := ((Laika / target).value / "site").toString(),
-    protosearchWriteProtosearchJS := Tasks.protosearchWriteProtosearchJS.value,
     protosearchGenerateIndex := Tasks.protosearchGenerateIndex.value,
     protosearchProcessFiles := Tasks.protosearchProcessFiles.value,
+    laikaInputs := laikaInputs.value.delegate
+      .addClassLoaderResource(
+        s"$path/protosearch.js",
+        Path.Root / "search" / "protosearch.js",
+      )
+      .addClassLoaderResource(
+        s"$path/search.js",
+        Path.Root / "search" / "search.js",
+      )
+      .addClassLoaderResource(
+        s"$path/worker.js",
+        Path.Root / "search" / "worker.js",
+      )
+      .addClassLoaderResource(
+        s"$path/search.html",
+        Path.Root / "search" / "search.html",
+      ),
   )
 }
