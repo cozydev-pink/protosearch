@@ -15,9 +15,9 @@ async function searchIt(query) {
   const querier = await querierPromise
   console.log("querier", querier)
   var list = ''
-  querier.searchPrefix(query).forEach(h => {
+  querier.searchPrefix(query).sort((h1, h2) => h1.score < h2.score).forEach(h => {
     const score = parseInt(h.score*1000)
-    list += '<li>' + "title" + ' score: ' + score + '</li>'
+    list += '<li> id:' + h.id + ' score: ' + score + '</li>'
   })
   return list
 }
