@@ -1,24 +1,22 @@
 importScripts("./protosearch.js")
 
 async function getQuerier() {
-  // TODO aggressive caching
-  let querier1 = fetch("./searchIndex.dat")
+  let querier = fetch("./searchIndex.dat")
     .then(res => res.blob())
     .then(blob => QuerierBuilder.load(blob, "body"))
     .catch((error) => console.error("getQuerier error: ", error));
-  return await querier1
+  return await querier
 }
 
-const querierPromise = getQuerier()
-
 async function searchIt(query) {
-  const querier = await querierPromise
-  console.log("querier", querier)
+  const querier = await getQuerier()
   var list = ''
-  querier.searchPrefix(query).sort((h1, h2) => h1.score < h2.score).forEach(h => {
-    const score = parseInt(h.score*1000)
-    list += '<li> id:' + h.id + ' score: ' + score + '</li>'
-  })
+  querier.searchPrefix(query)
+    .sort((h1, h2) => h1.score < h2.score)
+    .forEach(h => {
+      const score = parseInt(h.score*1000)
+      list += '<li> id:' + h.id + ' score: ' + score + '</li>'
+    })
   return list
 }
 
