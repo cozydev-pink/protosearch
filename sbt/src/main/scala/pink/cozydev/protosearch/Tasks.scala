@@ -33,6 +33,7 @@ object Tasks {
 
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
     val targetDir = FilePath.parse(protosearchIndexTarget.value)
+    val outFile = targetDir / "search" / "searchIndex.dat"
 
     val renderIndex = laika.sbt.Settings.parser.value.use { parser =>
       val tree = Resource.eval(parser.fromInput(laikaInputs.value.delegate).parse)
@@ -40,7 +41,7 @@ object Tasks {
       Resource.both(tree, plaintextRenderer).use { case (tree, renderer) =>
         renderer
           .from(tree)
-          .toFile(targetDir / "search" / "searchIndex.dat")
+          .toFile(outFile)
           .render
       }
     }
@@ -49,10 +50,10 @@ object Tasks {
     val jFile = targetDir.toJavaFile
     if (!jFile.exists()) jFile.mkdirs()
     prog.unsafeRunSync()
-    Set.empty
+    Set(outFile.toJavaFile)
   }
 
-  val protosearchProcessFiles: Initialize[Task[Set[File]]] = task {
+  val protosearchProcessFiles: Initialize[Task[Unit]] = task {
     val userConfig = (Compile / laikaConfig).value
     val targetDir = protosearchIndexTarget.value
 
@@ -69,6 +70,5 @@ object Tasks {
     val prog = renderIndex <* IO.println(s"rendered to $targetDir")
 
     prog.unsafeRunSync()
-    Set.empty
   }
 }

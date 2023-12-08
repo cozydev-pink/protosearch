@@ -29,9 +29,9 @@ object ProtosearchPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin && LaikaPlugin
 
   object autoImport {
-    val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index files")
+    val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index file")
     val protosearchProcessFiles =
-      taskKey[Set[File]]("Process files with Protosearch, don't create final index.")
+      taskKey[Unit]("Process files with Protosearch, don't create final index.")
     val protosearchIndexTarget = settingKey[String]("The target directory for index files")
   }
 
