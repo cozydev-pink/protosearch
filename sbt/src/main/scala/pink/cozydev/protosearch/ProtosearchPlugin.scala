@@ -40,7 +40,7 @@ object ProtosearchPlugin extends AutoPlugin {
   val path = "pink/cozydev/protosearch/sbt"
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     protosearchIndexTarget := ((Laika / target).value / "site").toString(),
-    protosearchGenerateIndex := Tasks.protosearchGenerateIndex.value,
+    protosearchGenerateIndex := Tasks.protosearchGenerateIndex.triggeredBy(laikaSite).value,
     protosearchProcessFiles := Tasks.protosearchProcessFiles.value,
     laikaInputs := laikaInputs.value.delegate
       .addClassLoaderResource(
@@ -59,6 +59,5 @@ object ProtosearchPlugin extends AutoPlugin {
         s"$path/search.html",
         Path.Root / "search" / "search.html",
       ),
-    laikaSite := protosearchGenerateIndex.dependsOn(laikaSite).value,
   )
 }
