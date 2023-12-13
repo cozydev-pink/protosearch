@@ -37,7 +37,7 @@ object IngestMarkdown {
 
   val parser = MarkupParser.of(Markdown).using(GitHubFlavor, SyntaxHighlighting).build
 
-  val astRenderer = Renderer.of(Plaintext).build
+  val astRenderer = Renderer.of(SubDocumentPlaintext).build
 
   private def renderSeqBlock(bs: Seq[Block]): Either[RendererError, String] =
     bs.toList.traverse(b => astRenderer.render(b)).map(_.mkString("\n"))

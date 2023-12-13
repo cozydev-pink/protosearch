@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.analysis
 import laika.ast._
 import laika.api.format.{Formatter, RenderFormat}
 
-object PlaintextRenderer extends ((Formatter, Element) => String) {
+object SubDocumentRenderer extends ((Formatter, Element) => String) {
 
   private case class Content(content: Seq[Element], options: Options = Options.empty)
       extends Element
@@ -41,25 +41,23 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       fmt.childPerLine(lists.map { case elems => Content(elems) })
 
     element match {
-      case s: Section =>
-        fmt.children(s.header.content) + "\n" + fmt.childPerLine(s.content) + "\n"
+      case _: Section => "" // short circuit rendering
       case _: SectionNumber => ""
       case QuotedBlock(content, attr, _) => lists(content, attr)
-      case DefinitionListItem(term, defn, _) => lists(term, defn) + "\n"
-      case bc: BlockContainer => fmt.childPerLine(bc.content) + "\n"
+      case DefinitionListItem(term, defn, _) => lists(term, defn)
       case tc: TextContainer => tc.content
-      case Content(content, _) => fmt.childPerLine(content)
+      case Content(content, _) => fmt.indentedChildren(content)
       case ec: ElementContainer[_] => fmt.children(ec.content)
       case e => renderElement(e)
     }
   }
 }
 
-case object Plaintext extends RenderFormat[Formatter] {
+case object SubDocumentPlaintext extends RenderFormat[Formatter] {
   val fileSuffix = "txt"
 
   val defaultRenderer: (Formatter, Element) => String =
-    PlaintextRenderer
+    SubDocumentRenderer
 
   val formatterFactory: Formatter.Context[Formatter] => Formatter =
     context => Formatter.defaultFactory(context.withIndentation(Formatter.Indentation.default))

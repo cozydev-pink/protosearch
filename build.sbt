@@ -28,7 +28,15 @@ val Scala212 = "2.12.18"
 val Scala213 = "2.13.12"
 val Scala3 = "3.3.1"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
-ThisBuild / scalaVersion := Scala3 // the default Scala
+ThisBuild / scalaVersion := Scala212 // the default Scala
+
+// Plugin setup stolen from Laika with love
+ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+  List("2.13", "3").map(scala => MatrixExclude(Map("project" -> "plugin", "scala" -> scala)))
+}
+ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
+  matrix + ("project" -> (matrix("project") :+ "plugin"))
+}
 
 val calicoV = "0.2.2"
 val catsEffectV = "3.5.2"
@@ -46,15 +54,19 @@ val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
 
 lazy val root =
-  tlCrossRootProject.aggregate(
-    core,
-    laikaIO,
-    jsInterop,
-    web,
-    searchdocsCore,
-    searchdocsIO,
-    searchdocsWeb,
-  )
+  tlCrossRootProject
+    .aggregate(
+      core,
+      laikaIO,
+      jsInterop,
+      web,
+      searchdocsCore,
+      searchdocsIO,
+      searchdocsWeb,
+    )
+    .configureRoot { root =>
+      root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
+    }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -81,6 +93,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
 lazy val laikaIO = crossProject(JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("laikaIO"))
+  .dependsOn(core)
   .settings(
     name := "protosearch-laika",
     libraryDependencies ++= Seq(
@@ -107,6 +120,24 @@ lazy val jsInterop = crossProject(JSPlatform)
       "org.scala-js" %%% "scalajs-dom" % scalajsDomV
     ),
   )
+
+lazy val plugin =
+  project
+    .in(file("sbt"))
+    .dependsOn(core.jvm, laikaIO.jvm)
+    .enablePlugins(SbtPlugin)
+    .settings(
+      name := "protosearch-sbt",
+      sbtPlugin := true,
+      crossScalaVersions := Seq(Scala212),
+      addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
+      Compile / packageBin / mappings += {
+        val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
+        val inDir = baseDirectory.value / "src" / "main" / "resources"
+        val dir = "pink/cozydev/protosearch/sbt"
+        jsArtifactInterop -> s"$dir/protosearch.js"
+      },
+    )
 
 lazy val searchdocsCore = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -241,6 +272,12 @@ lazy val docs = project
   .enablePlugins(TypelevelSitePlugin)
   .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
   .settings(
+    tlSiteGenerate := List(
+      WorkflowStep.Sbt(
+        List(s"++ 3 ${thisProject.value.id}/${tlSite.key.toString}"),
+        name = Some("Generate site"),
+      )
+    ),
     tlSiteHelium ~= {
       import laika.helium.config._
       import laika.ast.Path.Root
