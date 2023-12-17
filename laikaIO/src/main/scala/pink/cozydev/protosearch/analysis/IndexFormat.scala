@@ -28,6 +28,7 @@ import laika.theme.Theme
 import java.io.OutputStream
 import pink.cozydev.protosearch.Index
 import pink.cozydev.protosearch.MultiIndex
+import pink.cozydev.protosearch.IndexWithFields
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
@@ -54,8 +55,10 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
 
           val analyzer = Analyzer.default.withLowerCasing
           val index = MultiIndex(Map("body" -> Index(strs.map(analyzer.tokenize))), "body")
-          val indexBytes = MultiIndex.codec
-            .encode(index)
+          val indexWithFields = IndexWithFields(index, strs.toList)
+          val indexBytes = IndexWithFields
+            .codec[String](IndexWithFields.strCodec)
+            .encode(indexWithFields)
             .map(_.bytes)
             .toEither
             .leftMap(err => new Throwable(err.message))

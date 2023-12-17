@@ -29,6 +29,27 @@ class Hit(
     val score: Double,
 ) extends js.Object
 
+@JSExportTopLevel("BodyHit")
+class BodyHit(
+    val id: Int,
+    val score: Double,
+    val body: String,
+) extends js.Object
+
+@JSExportTopLevel("IndexWithFieldsQuerier")
+class IndexWithFieldsQuerier(
+    val indexWithFields: IndexWithFields[String],
+    val defaultField: String,
+) {
+  val querier = new Querier(indexWithFields.index, defaultField)
+
+  @JSExport
+  def search(query: String): js.Array[BodyHit] =
+    querier
+      .searchPrefix(query)
+      .map(h => new BodyHit(h.id, h.score, indexWithFields.storedFields(h.id)))
+}
+
 @JSExportTopLevel("Querier")
 class Querier(val mIndex: MultiIndex, val defaultField: String) {
   import js.JSConverters._
@@ -68,11 +89,23 @@ object QuerierBuilder {
     MultiIndex.codec.decodeValue(bv.bits).require
   }
 
+  private def decodeIndexWithFields(buf: js.typedarray.ArrayBuffer): IndexWithFields[String] = {
+    val bv = ByteVector.view(buf)
+    IndexWithFields.codec[String](IndexWithFields.strCodec).decodeValue(bv.bits).require
+  }
+
   @JSExport
   def load(bytes: Blob, defaultField: String): js.Promise[Querier] =
     bytes.arrayBuffer().`then`[Querier] { buf =>
       val mIndex = decode(buf)
       new Querier(mIndex, defaultField)
+    }
+
+  @JSExport
+  def loadIndexWithFields(bytes: Blob, defaultField: String): js.Promise[IndexWithFieldsQuerier] =
+    bytes.arrayBuffer().`then`[IndexWithFieldsQuerier] { buf =>
+      val indexWithFields = decodeIndexWithFields(buf)
+      new IndexWithFieldsQuerier(indexWithFields, defaultField)
     }
 
 }
