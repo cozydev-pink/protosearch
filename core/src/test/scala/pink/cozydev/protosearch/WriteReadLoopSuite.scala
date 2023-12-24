@@ -26,8 +26,8 @@ class WriteReadLoopSuite extends munit.FunSuite {
 
     val index = MultiIndex.apply[Book](
       "title",
-      ("title", _.title, analyzer),
-      ("author", _.author, analyzer),
+      (Field("title", analyzer, true, true), _.title),
+      (Field("author", analyzer, true, true), _.author),
     )(allBooks)
 
     val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)

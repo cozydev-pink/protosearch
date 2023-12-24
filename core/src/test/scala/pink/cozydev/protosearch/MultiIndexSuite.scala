@@ -25,8 +25,8 @@ class MultiIndexSuite extends munit.FunSuite {
   val analyzer = Analyzer.default.withLowerCasing
   val index = MultiIndex.apply[Book](
     "title",
-    ("title", _.title, analyzer),
-    ("author", _.author, analyzer),
+    (Field("title", analyzer, true, true), _.title),
+    (Field("author", analyzer, true, true), _.author),
   )(allBooks)
 
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
@@ -36,6 +36,20 @@ class MultiIndexSuite extends munit.FunSuite {
     // println(s"+++ analyzed query: $q")
     val result = q.flatMap(mq => index.search(mq.qs))
     result.map(hits => hits.map(i => allBooks(i)))
+  }
+
+  def searchMap(qs: String): Either[String, List[(Int, Map[String, String])]] = {
+    val q = qAnalyzer.parse(qs).leftMap(_.toString())
+    q.flatMap(mq => index.searchMap(mq.qs))
+  }
+
+  test("Term searchMap".only) {
+    val books = searchMap("Bad")
+    val miceMap = Map(
+      "title" -> "The Tale of Two Bad Mice",
+      "author" -> "Beatrix Potter",
+    )
+    assertEquals(books, Right(List(1 -> miceMap)))
   }
 
   test("Term") {

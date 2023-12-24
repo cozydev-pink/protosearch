@@ -34,9 +34,9 @@ object DocumentationSearch {
 
   val analyzer = Analyzer.default.withLowerCasing
   val searchSchema = SearchSchema[Doc](
-    ("fileName", _.fileName, analyzer),
-    ("title", _.title, analyzer),
-    ("body", _.body, analyzer),
+    (Field("fileName", analyzer, false, true), _.fileName),
+    (Field("title", analyzer, false, true), _.title),
+    (Field("body", analyzer, false, true), _.body),
   )
 
   def parseIndexBytes(s: Stream[IO, Byte]): IO[MultiIndex] =

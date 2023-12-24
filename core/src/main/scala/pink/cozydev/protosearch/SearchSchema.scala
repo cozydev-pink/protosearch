@@ -20,14 +20,16 @@ import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 import cats.data.NonEmptyList
 
+case class Field(name: String, analyzer: Analyzer, stored: Boolean, indexed: Boolean)
+
 /**  For a type `A`, a SearchSchema describes the fields of the document representation
   *  of `A`.
   */
 class SearchSchema[A] private (
-    private val fields: NonEmptyList[(String, A => String, Analyzer)]
+    private val fields: NonEmptyList[(Field, A => String)]
 ) {
   def queryAnalyzer(defaultField: String): QueryAnalyzer = {
-    val analyzers = fields.map { case (n, _, a) => (n, a) }
+    val analyzers = fields.map { case (f, _) => (f.name, f.analyzer) }
     QueryAnalyzer(defaultField, analyzers.head, analyzers.tail: _*)
   }
 
@@ -37,19 +39,8 @@ class SearchSchema[A] private (
 }
 object SearchSchema {
   def apply[A](
-      head: (String, A => String, Analyzer),
-      tail: (String, A => String, Analyzer)*
+      head: (Field, A => String),
+      tail: (Field, A => String)*
   ): SearchSchema[A] =
     new SearchSchema[A](NonEmptyList(head, tail.toList))
-}
-
-object Example {
-  case class Doc(title: String, author: String)
-
-  val analyzer = Analyzer.default
-
-  val s = SearchSchema[Doc](
-    ("title", (d: Doc) => d.title, analyzer),
-    ("author", (d: Doc) => d.author, analyzer),
-  )
 }

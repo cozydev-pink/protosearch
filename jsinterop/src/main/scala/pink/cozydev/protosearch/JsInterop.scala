@@ -27,28 +27,8 @@ import scodec.bits.ByteVector
 class Hit(
     val id: Int,
     val score: Double,
+    val fields: js.Dictionary[String],
 ) extends js.Object
-
-@JSExportTopLevel("BodyHit")
-class BodyHit(
-    val id: Int,
-    val score: Double,
-    val body: String,
-) extends js.Object
-
-@JSExportTopLevel("IndexWithFieldsQuerier")
-class IndexWithFieldsQuerier(
-    val indexWithFields: IndexWithFields[String],
-    val defaultField: String,
-) {
-  val querier = new Querier(indexWithFields.index, defaultField)
-
-  @JSExport
-  def search(query: String): js.Array[BodyHit] =
-    querier
-      .searchPrefix(query)
-      .map(h => new BodyHit(h.id, h.score, indexWithFields.storedFields(h.id)))
-}
 
 @JSExportTopLevel("Querier")
 class Querier(val mIndex: MultiIndex, val defaultField: String) {
@@ -59,23 +39,24 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
     defaultField,
     (defaultField, Analyzer.default.withLowerCasing),
   )
+
   @JSExport
   def search(query: String): js.Array[Hit] = {
     val hits = qAnalyzer
       .parse(query)
-      .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
-      .toOption
-      .getOrElse(Nil)
-    hits.toJSArray
-  }
-  @JSExport
-  def searchPrefix(query: String): js.Array[Hit] = {
-    val hits = qAnalyzer
-      .parse(query)
       .map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-      .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
+      .flatMap { q =>
+        val idFields = mIndex.searchMap(q.qs)
+        val scored = idFields.flatMap(dfs => scorer.score(q.qs, dfs.map(_._1).toSet))
+        scored.flatMap(idScores =>
+          idFields.map { idField =>
+            val ifm = idField.toMap
+            idScores.map { case ((i, d)) => new Hit(i, d, ifm(i).toJSDictionary) }
+          }
+        )
+        // TODO stitch things back together
+        // and then move this somewhere else, this is ridiculous to be in jsInterop
+      }
       .toOption
       .getOrElse(Nil)
     hits.toJSArray
@@ -89,23 +70,11 @@ object QuerierBuilder {
     MultiIndex.codec.decodeValue(bv.bits).require
   }
 
-  private def decodeIndexWithFields(buf: js.typedarray.ArrayBuffer): IndexWithFields[String] = {
-    val bv = ByteVector.view(buf)
-    IndexWithFields.codec[String](IndexWithFields.strCodec).decodeValue(bv.bits).require
-  }
-
   @JSExport
   def load(bytes: Blob, defaultField: String): js.Promise[Querier] =
     bytes.arrayBuffer().`then`[Querier] { buf =>
       val mIndex = decode(buf)
       new Querier(mIndex, defaultField)
-    }
-
-  @JSExport
-  def loadIndexWithFields(bytes: Blob, defaultField: String): js.Promise[IndexWithFieldsQuerier] =
-    bytes.arrayBuffer().`then`[IndexWithFieldsQuerier] { buf =>
-      val indexWithFields = decodeIndexWithFields(buf)
-      new IndexWithFieldsQuerier(indexWithFields, defaultField)
     }
 
 }

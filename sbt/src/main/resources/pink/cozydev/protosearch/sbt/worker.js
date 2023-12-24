@@ -3,7 +3,7 @@ importScripts("./protosearch.js")
 async function getQuerier() {
   let querier = fetch("./searchIndex.dat")
     .then(res => res.blob())
-    .then(blob => QuerierBuilder.loadIndexWithFields(blob, "body"))
+    .then(blob => QuerierBuilder.load(blob, "body"))
     .catch((error) => console.error("getQuerier error: ", error));
   return await querier
 }
@@ -17,8 +17,15 @@ async function searchIt(query) {
     .sort((h1, h2) => h1.score < h2.score)
     .forEach(h => {
       const score = parseInt(h.score*1000)
-      const preview = h.body.slice(0, 80) + "..."
-      list += '<li> id:' + h.id + ' score: ' + score + ' body: ' + preview + '</li>'
+      const preview = h.fields.body.slice(0, 80) + "..."
+      const title = h.fields.title
+      const path = h.fields.path
+      list += '<li> id:' + h.id
+      list += ' score: ' + score
+      list += ' title: ' + title
+      list += ' path: ' + path
+      list += ' body: ' + preview
+      list += '</li>'
     })
   return list
 }

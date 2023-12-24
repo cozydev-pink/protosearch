@@ -26,8 +26,8 @@ class ScorerSuite extends munit.FunSuite {
 
   val index = MultiIndex.apply[Book](
     "title",
-    ("title", _.title, analyzer),
-    ("author", _.author, analyzer),
+    (Field("title", analyzer, true, true), _.title),
+    (Field("author", analyzer, true, true), _.author),
   )(allBooks)
 
   val allDocs: Set[Int] = Range(0, allBooks.size).toSet
