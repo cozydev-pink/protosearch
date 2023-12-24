@@ -24,13 +24,13 @@ In order to index our domain type `Book`, we'll need a few things:
 And then to create the index itself with a default field:
 
 ```scala mdoc:silent
-import pink.cozydev.protosearch.SearchSchema
+import pink.cozydev.protosearch.{Field, SearchSchema}
 import pink.cozydev.protosearch.analysis.Analyzer
 
 val analyzer = Analyzer.default.withLowerCasing
 val searchSchema = SearchSchema[Book](
-  ("author", (b: Book) => b.author, analyzer),
-  ("title", (b: Book) => b.title, analyzer),
+  (Field("author", analyzer, stored=true, indexed=true), _.author),
+  (Field("title", analyzer, stored=true, indexed=true), _.title),
 )
 
 val index = searchSchema.indexBldr("title")(books)
