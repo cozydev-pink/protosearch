@@ -43,7 +43,7 @@ class MultiIndexSuite extends munit.FunSuite {
     q.flatMap(mq => index.searchMap(mq.qs))
   }
 
-  test("Term searchMap".only) {
+  test("Term searchMap") {
     val books = searchMap("Bad")
     val miceMap = Map(
       "title" -> "The Tale of Two Bad Mice",
