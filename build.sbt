@@ -38,14 +38,9 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
 }
 
-val calicoV = "0.2.2"
 val catsEffectV = "3.5.2"
 val catsV = "2.10.0"
-val circeFs2V = "0.14.1"
-val circeV = "0.14.6"
 val fs2V = "3.9.3"
-val http4sDomV = "0.2.10"
-val http4sV = "0.23.23"
 val laikaV = "1.0.0"
 val lucilleV = "0.0.1"
 val munitCatsEffectV = "2.0.0-M4"
@@ -59,10 +54,6 @@ lazy val root =
       core,
       laikaIO,
       jsInterop,
-      web,
-      searchdocsCore,
-      searchdocsIO,
-      searchdocsWeb,
     )
     .configureRoot { root =>
       root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
@@ -139,138 +130,11 @@ lazy val plugin =
       },
     )
 
-lazy val searchdocsCore = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("searchdocs"))
-  .enablePlugins(NoPublishPlugin)
-  .dependsOn(core)
-  .jsSettings(
-    scalaJSUseMainModuleInitializer := true,
-    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
-      import org.scalajs.linker.interface.ModuleSplitStyle
-      _.withModuleKind(ModuleKind.ESModule)
-        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("searchdocs")))
-    },
-  )
-  .settings(
-    name := "protosearch-searchdocs",
-    libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % catsV,
-      "org.typelevel" %%% "cats-effect" % catsEffectV,
-      "co.fs2" %%% "fs2-core" % fs2V,
-      "io.circe" %%% "circe-core" % circeV,
-      "io.circe" %%% "circe-generic" % circeV,
-      "io.circe" %%% "circe-parser" % circeV,
-      "io.circe" %%% "circe-fs2" % circeFs2V,
-    ),
-  )
-
-lazy val searchdocsIO = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("searchdocs-io"))
-  .enablePlugins(NoPublishPlugin)
-  .dependsOn(core, laikaIO, searchdocsCore)
-  .settings(
-    name := "protosearch-searchdocs-io",
-    libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % catsV,
-      "org.typelevel" %%% "cats-effect" % catsEffectV,
-      "co.fs2" %%% "fs2-core" % fs2V,
-      "co.fs2" %%% "fs2-io" % fs2V,
-      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
-      "io.circe" %%% "circe-core" % circeV,
-      "io.circe" %%% "circe-generic" % circeV,
-      "io.circe" %%% "circe-parser" % circeV,
-      "io.circe" %%% "circe-fs2" % circeFs2V,
-    ),
-  )
-
-lazy val searchdocsWeb = project
-  .in(file("searchdocs-web"))
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .dependsOn(core.js, searchdocsCore.js)
-  .settings(
-    name := "protosearch-searchdocs-web",
-    scalaJSUseMainModuleInitializer := true,
-    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
-      import org.scalajs.linker.interface.ModuleSplitStyle
-      _.withModuleKind(ModuleKind.ESModule)
-        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("searchdocs-web")))
-    },
-    scalacOptions := scalacOptions.value
-      .filterNot(_ == "-source:3.0-migration"),
-    Compile / mainClass := Some("pink.cozydev.protosearch.SearchDocs"),
-    libraryDependencies ++= {
-      if (scalaVersion.value.startsWith("3."))
-        Seq(
-          "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
-          "org.typelevel" %%% "cats-core" % catsV,
-          "org.typelevel" %%% "cats-effect" % catsEffectV,
-          "co.fs2" %%% "fs2-core" % fs2V,
-          "co.fs2" %%% "fs2-io" % fs2V,
-          "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
-          "pink.cozydev" %%% "lucille" % lucilleV,
-          "com.armanbilge" %%% "calico" % calicoV,
-          "io.circe" %%% "circe-core" % circeV,
-          "io.circe" %%% "circe-generic" % circeV,
-          "io.circe" %%% "circe-parser" % circeV,
-          "io.circe" %%% "circe-fs2" % circeFs2V,
-          "org.http4s" %%% "http4s-dom" % http4sDomV,
-          "org.http4s" %%% "http4s-core" % http4sV,
-          "org.http4s" %%% "http4s-circe" % http4sV,
-          "org.http4s" %%% "http4s-dsl" % http4sV,
-          "org.scalameta" %%% "munit" % munitV % Test,
-          "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-        )
-      else Seq()
-    },
-  )
-
-lazy val web = project
-  .in(file("web"))
-  .enablePlugins(ScalaJSPlugin, NoPublishPlugin)
-  .dependsOn(core.js)
-  .settings(
-    name := "protosearch-web",
-    scalaJSUseMainModuleInitializer := true,
-    Compile / fastLinkJS / scalaJSLinkerConfig ~= {
-      import org.scalajs.linker.interface.ModuleSplitStyle
-      _.withModuleKind(ModuleKind.ESModule)
-        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("reposearch")))
-    },
-    scalacOptions := scalacOptions.value
-      .filterNot(_ == "-source:3.0-migration"),
-    Compile / mainClass := Some("pink.cozydev.protosearch.RepoSearch"),
-    libraryDependencies ++= {
-      if (scalaVersion.value.startsWith("3."))
-        Seq(
-          "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
-          "org.typelevel" %%% "cats-core" % catsV,
-          "org.typelevel" %%% "cats-effect" % catsEffectV,
-          "co.fs2" %%% "fs2-core" % fs2V,
-          "co.fs2" %%% "fs2-io" % fs2V,
-          "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
-          "pink.cozydev" %%% "lucille" % lucilleV,
-          "com.armanbilge" %%% "calico" % calicoV,
-          "io.circe" %%% "circe-core" % circeV,
-          "io.circe" %%% "circe-parser" % circeV,
-          "io.circe" %%% "circe-fs2" % circeFs2V,
-          "org.http4s" %%% "http4s-dom" % http4sDomV,
-          "org.http4s" %%% "http4s-core" % http4sV,
-          "org.http4s" %%% "http4s-circe" % http4sV,
-          "org.http4s" %%% "http4s-dsl" % http4sV,
-          "org.scalameta" %%% "munit" % munitV % Test,
-          "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-        )
-      else Seq()
-    },
-  )
-
 import laika.helium.config.{IconLink, HeliumIcon}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
-  .dependsOn(core.jvm, web, searchdocsCore.js, searchdocsWeb, jsInterop.js)
+  .dependsOn(core.jvm, jsInterop.js)
   .settings(
     tlSiteGenerate := List(
       WorkflowStep.Sbt(
@@ -301,43 +165,21 @@ lazy val docs = project
     laikaInputs := {
       import laika.ast.Path.Root
       import laika.io.model.FilePath
-      val jsArtifact = (web / Compile / fullOptJS / artifactPath).value
-      val sourcemap = jsArtifact.getName + ".map"
-      val jsArtifactDS = (searchdocsWeb / Compile / fullOptJS / artifactPath).value
-      val sourcemapDS = jsArtifactDS.getName + ".map"
       val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS / artifactPath).value
       val sourcemapInterop = jsArtifactInterop.getName + ".map"
       laikaInputs.value.delegate
-        .addFile(
-          FilePath.fromJavaFile(jsArtifact),
-          Root / "reposearch" / "index.js",
-        )
-        .addFile(
-          FilePath.fromNioPath(jsArtifact.toPath.resolveSibling(sourcemap)),
-          Root / "reposearch" / sourcemap,
-        )
-        .addFile(
-          FilePath.fromJavaFile(jsArtifactDS),
-          Root / "searchdocs" / "index.js",
-        )
-        .addFile(
-          FilePath.fromNioPath(jsArtifactDS.toPath.resolveSibling(sourcemapDS)),
-          Root / "searchdocs" / sourcemap,
-        )
         .addFile(
           FilePath.fromJavaFile(jsArtifactInterop),
           Root / "interop" / "index.js",
         )
         .addFile(
           FilePath.fromNioPath(jsArtifactInterop.toPath.resolveSibling(sourcemapInterop)),
-          Root / "interop" / sourcemap,
+          Root / "interop" / sourcemapInterop,
         )
     },
     laikaSite := laikaSite
       .dependsOn(
-        web / Compile / fullOptJS,
-        searchdocsWeb / Compile / fullOptJS,
-        jsInterop.js / Compile / fullOptJS,
+        jsInterop.js / Compile / fullOptJS
       )
       .value,
   )
