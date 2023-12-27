@@ -16,11 +16,8 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 import cats.data.NonEmptyList
-
-case class Field(name: String, analyzer: Analyzer, stored: Boolean, indexed: Boolean)
 
 /**  For a type `A`, a SearchSchema describes the fields of the document representation
   *  of `A`.
