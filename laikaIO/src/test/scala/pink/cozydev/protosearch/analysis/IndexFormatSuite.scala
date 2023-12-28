@@ -41,7 +41,7 @@ class IndexFormatSuite extends CatsEffectSuite {
       .build
 
   def renderIndex(str: String): IO[MultiIndex] = {
-    val tree = InputTree[IO].addString(str, Path.Root / "doc.md")
+    val tree = InputTree[IO].addString(str, Path.Root / "client" / "doc.md")
     val bytes = fs2.io
       .readOutputStream[IO](1024)(out =>
         transformer.use(_.fromInput(tree).toStream(IO(out)).transform)
@@ -85,7 +85,7 @@ class IndexFormatSuite extends CatsEffectSuite {
          |normal **bold** *italics* `code`
          |""".stripMargin
     val path = renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(path, Some(List("doc.txt")))
+    assertIO(path, Some(List("client/doc.txt")))
   }
 
 }

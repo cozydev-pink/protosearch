@@ -58,7 +58,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             "body",
             (Field("body", analyzer, true, true), _.content),
             (Field("title", analyzer, true, true), d => renderTitle(d.title, d.path)),
-            (Field("path", analyzer, true, true), _.path.name),
+            (Field("path", analyzer, true, true), d => renderLink(d)),
           )(allDocs)
           val indexBytes = MultiIndex.codec
             .encode(index)
@@ -85,6 +85,12 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
     title match {
       case Some(span) => span.extractText
       case None => path.name
+    }
+
+  private def renderLink(doc: RenderedDocument): String =
+    doc.asNavigationItem().link match {
+      case None => ""
+      case Some(l) => l.target.render()
     }
 
 }
