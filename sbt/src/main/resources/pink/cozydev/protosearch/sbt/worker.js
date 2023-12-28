@@ -11,6 +11,7 @@ const querierPromise = getQuerier()
 
 function render(hit) {
   const path = hit.fields.path
+  const link = "../" + hit.fields.path.replace(".txt", ".html")
   const title = hit.fields.title
   const preview = hit.fields.body.slice(0, 150) + "..."
   return (
@@ -23,7 +24,9 @@ function render(hit) {
       </p>
       <div class="level-left">
         <p class="title is-capitalized is-flex-wrap-wrap">
-          <span>${title}</span>
+          <a href="${link}" target="_blank">
+            <span>${title}</span>
+          </a>
         </p>
       </div>
       <p class="subtitle">${preview}</p>
