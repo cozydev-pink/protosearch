@@ -26,8 +26,9 @@ import laika.api.builder.OperationConfig
 import laika.api.config.Config
 import laika.theme.Theme
 import java.io.OutputStream
-import pink.cozydev.protosearch.Index
 import pink.cozydev.protosearch.MultiIndex
+import pink.cozydev.protosearch.Field
+import laika.io.model.RenderedDocument
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
@@ -50,10 +51,15 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             output: BinaryOutput[F],
             config: OperationConfig,
         ): F[Unit] = {
-          val strs: List[String] = result.allDocuments.map(_.content).toList
+          val allDocs = result.allDocuments.toList
 
           val analyzer = Analyzer.default.withLowerCasing
-          val index = MultiIndex(Map("body" -> Index(strs.map(analyzer.tokenize))), "body")
+          val index = MultiIndex[RenderedDocument](
+            "body",
+            (Field("body", analyzer, true, true), _.content),
+            (Field("title", analyzer, true, true), d => renderTitle(d.title, d.path)),
+            (Field("path", analyzer, true, true), d => renderLink(d)),
+          )(allDocs)
           val indexBytes = MultiIndex.codec
             .encode(index)
             .map(_.bytes)
@@ -74,5 +80,17 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
       })
 
   }
+
+  private def renderTitle(title: Option[SpanSequence], path: Path): String =
+    title match {
+      case Some(span) => span.extractText
+      case None => path.name
+    }
+
+  private def renderLink(doc: RenderedDocument): String =
+    doc.asNavigationItem().link match {
+      case None => ""
+      case Some(l) => l.target.render()
+    }
 
 }

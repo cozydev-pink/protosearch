@@ -27,6 +27,7 @@ import scodec.bits.ByteVector
 class Hit(
     val id: Int,
     val score: Double,
+    val fields: js.Dictionary[String],
 ) extends js.Object
 
 @JSExportTopLevel("Querier")
@@ -38,23 +39,24 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
     defaultField,
     (defaultField, Analyzer.default.withLowerCasing),
   )
+
   @JSExport
   def search(query: String): js.Array[Hit] = {
     val hits = qAnalyzer
       .parse(query)
-      .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
-      .toOption
-      .getOrElse(Nil)
-    hits.toJSArray
-  }
-  @JSExport
-  def searchPrefix(query: String): js.Array[Hit] = {
-    val hits = qAnalyzer
-      .parse(query)
       .map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-      .flatMap(q => mIndex.search(q.qs).flatMap(ds => scorer.score(q.qs, ds.toSet)))
-      .map(hs => hs.map { case (id, score) => new Hit(id, score) })
+      .flatMap { q =>
+        val idFields = mIndex.searchMap(q.qs)
+        val scored = idFields.flatMap(dfs => scorer.score(q.qs, dfs.map(_._1).toSet))
+        scored.flatMap(idScores =>
+          idFields.map { idField =>
+            val ifm = idField.toMap
+            idScores.map { case ((i, d)) => new Hit(i, d, ifm(i).toJSDictionary) }
+          }
+        )
+        // TODO stitch things back together
+        // and then move this somewhere else, this is ridiculous to be in jsInterop
+      }
       .toOption
       .getOrElse(Nil)
     hits.toJSArray

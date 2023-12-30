@@ -26,11 +26,21 @@ case class MultiIndex(
     indexes: Map[String, Index],
     defaultField: String,
     defaultOR: Boolean = true,
+    fields: Map[String, Array[String]],
 ) {
 
   def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
     val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
     docs.map(_.toList.sorted)
+  }
+
+  def searchMap(q: NonEmptyList[Query]): Either[String, List[(Int, Map[String, String])]] = {
+    val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
+    val lstb = List.newBuilder[(Int, Map[String, String])]
+    docs.map(_.foreach { d =>
+      lstb += d -> fields.map { case (k, v) => (k, v(d)) }
+    })
+    docs.map(_ => lstb.result())
   }
 
   private val defaultIndex = indexes(defaultField)
@@ -68,28 +78,36 @@ object MultiIndex {
 
   def apply[A](
       defaultField: String,
-      head: (String, A => String, Analyzer),
-      tail: (String, A => String, Analyzer)*
+      head: (Field, A => String),
+      tail: (Field, A => String)*
   ): List[A] => MultiIndex = {
 
-    val bldrs = (head :: tail.toList).map { case (name, getter, tokenizer) =>
-      Bldr(name, getter, tokenizer, ListBuffer.empty)
+    val bldrs = (head :: tail.toList).map { case (field, getter) =>
+      Bldr(field.name, getter, field.analyzer, ListBuffer.empty)
     }
+
+    val storage = (head :: tail.toList).map(fg => fg._1.name -> ListBuffer.empty[String]).toMap
 
     docs => {
       docs.foreach { doc =>
         bldrs.foreach { bldr =>
-          bldr.acc += (bldr.analyzer.tokenize(bldr.getter(doc)))
+          val value = bldr.getter(doc)
+          storage(bldr.name) += value
+          bldr.acc += (bldr.analyzer.tokenize(value))
         }
       }
       // TODO let's delay defining the default field even further
       // Also, let's make it optional, with no field meaning all fields?
-      MultiIndex(
-        bldrs.map(bldr => (bldr.name, Index(bldr.acc.toList))).toMap,
-        defaultField,
+      new MultiIndex(
+        indexes = bldrs.map(bldr => (bldr.name, Index(bldr.acc.toList))).toMap,
+        defaultField = defaultField,
+        defaultOR = true,
+        fields = storage.map { case (k, v) => k -> v.toArray },
       )
     }
   }
+
+  import pink.cozydev.protosearch.codecs.IndexCodecs
 
   val codec: Codec[MultiIndex] = {
 
@@ -99,12 +117,21 @@ object MultiIndex {
         .xmap(_.toMap, _.toList)
     val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
     val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
+
+    val fieldStrings: Codec[Array[String]] =
+      IndexCodecs.arrayOfN(codecs.vint, codecs.variableSizeBytes(codecs.vint, codecs.utf8))
+
+    val fields: Codec[Map[String, Array[String]]] =
+      codecs
+        .listOfN(codecs.vint, (codecs.utf8_32 :: fieldStrings).as[(String, Array[String])])
+        .xmap(_.toMap, _.toList)
+
     val multiIndex: Codec[MultiIndex] =
-      (indexes :: defaultField :: defaultOr)
-        .as[(Map[String, Index], String, Boolean)]
+      (indexes :: defaultField :: defaultOr :: fields)
+        .as[(Map[String, Index], String, Boolean, Map[String, Array[String]])]
         .xmap(
-          { case (in, dF, dOr) => MultiIndex.apply(in, dF, dOr) },
-          mi => (mi.indexes, mi.defaultField, mi.defaultOR),
+          { case (in, dF, dOr, fs) => MultiIndex.apply(in, dF, dOr, fs) },
+          mi => (mi.indexes, mi.defaultField, mi.defaultOR, mi.fields),
         )
     multiIndex
   }

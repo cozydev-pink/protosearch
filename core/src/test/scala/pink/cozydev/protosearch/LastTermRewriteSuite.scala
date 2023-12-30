@@ -18,11 +18,11 @@ package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
-import pink.cozydev.lucille.Query.{Term, Field, Prefix, Group, Or}
 import pink.cozydev.protosearch.LastTermRewrite._
 import pink.cozydev.lucille.MultiQuery
 
 class LastTermRewriteSuite extends munit.FunSuite {
+  import pink.cozydev.lucille.Query._
 
   test("termToPrefix rewrites termQ to termQ and prefix") {
     val q = Term("f")
