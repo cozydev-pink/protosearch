@@ -246,7 +246,7 @@ jobs:
       - name: Submit Dependencies
         uses: scalacenter/sbt-dependency-submission@v2
         with:
-          modules-ignore: protosearch-searchdocs-io_2.12 protosearch-searchdocs-io_2.13 protosearch-searchdocs-io_3 protosearch-searchdocs_sjs1_2.12 protosearch-searchdocs_sjs1_2.13 protosearch-searchdocs_sjs1_3 protosearch-searchdocs_2.12 protosearch-searchdocs_2.13 protosearch-searchdocs_3 rootjs_2.12 rootjs_2.13 rootjs_3 docs_2.12 docs_2.13 docs_3 protosearch-searchdocs-web_sjs1_2.12 protosearch-searchdocs-web_sjs1_2.13 protosearch-searchdocs-web_sjs1_3 protosearch-web_sjs1_2.12 protosearch-web_sjs1_2.13 protosearch-web_sjs1_3 rootjvm_2.12 rootjvm_2.13 rootjvm_3 rootnative_2.12 rootnative_2.13 rootnative_3
+          modules-ignore: rootjs_2.12 rootjs_2.13 rootjs_3 docs_2.12 docs_2.13 docs_3 rootjvm_2.12 rootjvm_2.13 rootjvm_3 rootnative_2.12 rootnative_2.13 rootnative_3
           configs-ignore: test scala-tool scala-doc-tool test-internal
 
   site:
