@@ -16,38 +16,38 @@
 
 package pink.cozydev.protosearch
 
-import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuilder
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 
 import pink.cozydev.protosearch.codecs.IndexCodecs
+import pink.cozydev.protosearch.internal.TermDictionary
 
 sealed abstract class Index private (
-    private val termDict: Array[String],
+    val termDict: TermDictionary,
     private val tfData: Array[Array[Int]],
     val numDocs: Int,
 ) {
 
-  val numTerms = termDict.size
+  val numTerms = termDict.numTerms
   lazy val numData = tfData.map(_.size).sum / 2
 
   override def toString(): String = s"TermIndexArray($numTerms terms, $numData term-doc pairs)"
 
   def docCount(term: String): Int = {
-    val idx = termIndex(term)
+    val idx = termDict.termIndex(term)
     if (idx < 0) 0
     else tfData(idx).size / 2
   }
 
   def docsWithTerm(term: String): List[Int] = {
-    val idx = termIndex(term)
+    val idx = termDict.termIndex(term)
     if (idx < 0) Nil
     else evenElems(tfData(idx))
   }
 
   def docsWithTermSet(term: String): Set[Int] = {
-    val idx = termIndex(term)
+    val idx = termDict.termIndex(term)
     // println(s"looking for term: $term, idx: $idx")
     if (idx < 0) Set.empty
     else {
@@ -57,59 +57,29 @@ sealed abstract class Index private (
     }
   }
 
-  /** Find where the term would fit in the term list. */
-  def termIndexWhere(term: String): Int = {
-    val idx = termDict.indexWhere(_ >= term)
-    if (idx == -1) termDict.length else idx
-  }
-
-  /** Get the list of terms between left and right. */
-  def termsForRange(left: String, right: String): List[String] = {
-    val li = termIndexWhere(left)
-    val ri = termIndexWhere(right)
-    termDict.slice(li, ri).toList
-  }
-
   /** For every term between left and right, get the docs using those terms. */
   def docsForRange(left: String, right: String): Set[Int] = {
     val bldr = HashSet.empty[Int]
-    Range(termIndexWhere(left), termIndexWhere(right))
+    Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
       .foreach(i => bldr ++= evenElems(tfData(i)))
     bldr.toSet
   }
 
   /** For every term starting with prefix, get the docs using those terms. */
   def docsForPrefix(prefix: String): Set[Int] = {
-    var i = termIndexWhere(prefix)
-    if (i < termDict.length && termDict(i).startsWith(prefix)) {
+    val terms = termDict.indicesForPrefix(prefix)
+    if (terms.size == 0) Set.empty
+    else {
       val bldr = HashSet.empty[Int]
-      while (i < termDict.size)
-        if (termDict(i).startsWith(prefix)) {
-          bldr ++= evenElems(tfData(i))
-          i += 1
-        } else return bldr.toSet
+      terms.foreach(i => bldr ++= evenElems(tfData(i)))
       bldr.toSet
-    } else Set.empty
-  }
-
-  /** Get the list of terms starting with prefix . */
-  def termsForPrefix(prefix: String): List[String] = {
-    var i = termIndexWhere(prefix)
-    if (i < termDict.length && termDict(i).startsWith(prefix)) {
-      val bldr = ListBuffer.empty[String]
-      while (i < termDict.size)
-        if (termDict(i).startsWith(prefix)) {
-          bldr += termDict(i)
-          i += 1
-        } else return bldr.toList
-      bldr.toList
-    } else Nil
+    }
   }
 
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
     if (docs.size == 0) Nil
     else {
-      val idx = termIndex(term)
+      val idx = termDict.termIndex(term)
       if (idx == -1) Nil
       else {
         val arr = tfData(idx)
@@ -126,21 +96,6 @@ sealed abstract class Index private (
           }
         }
         bldr.result().sortBy(-_._2).toList
-      }
-    }
-
-  private def termIndex(term: String): Int =
-    binarySearch(term, 0, numTerms)
-
-  @tailrec
-  private def binarySearch(elem: String, from: Int, to: Int): Int =
-    if (to <= from) -1 // term doesn't exist, prefix search should start around here
-    else {
-      val idx = from + (to - from - 1) / 2
-      math.signum(elem.compareTo(termDict(idx))) match {
-        case -1 => binarySearch(elem, from, idx)
-        case 1 => binarySearch(elem, idx + 1, to)
-        case _ => idx
       }
     }
 
@@ -171,7 +126,7 @@ sealed abstract class Index private (
     -1
   }
 
-  private[protosearch] lazy val serializeToTuple3: (Int, Array[Array[Int]], Array[String]) =
+  private[protosearch] lazy val serializeToTuple3: (Int, Array[Array[Int]], TermDictionary) =
     (numDocs, tfData, termDict)
 
 }
@@ -218,16 +173,16 @@ object Index {
       keys += k
       values += v.toArray
     }
-    new Index(keys.result(), values.result(), docLen) {}
+    new Index(new TermDictionary(keys.result()), values.result(), docLen) {}
   }
 
   val codec: Codec[Index] = {
-    val terms = IndexCodecs.termList
+    val terms = TermDictionary.codec
     val postings = IndexCodecs.postings
     val numDocs = codecs.vint.withContext("numDocs")
 
     (numDocs :: postings :: terms)
-      .as[(Int, Array[Array[Int]], Array[String])]
+      .as[(Int, Array[Array[Int]], TermDictionary)]
       .xmap(
         { case (numDocs, tfData, terms) => new Index(terms, tfData, numDocs) {} },
         ti => ti.serializeToTuple3,

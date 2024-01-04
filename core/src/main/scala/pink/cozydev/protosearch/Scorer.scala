@@ -63,7 +63,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       docs: Set[Int],
       q: Query.Prefix,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
-    NonEmptyList.fromList(idx.termsForPrefix(q.str)) match {
+    NonEmptyList.fromList(idx.termDict.termsForPrefix(q.str)) match {
       case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
       case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
     }
@@ -77,7 +77,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       case (Some(l), Some(r)) =>
         // TODO handle inclusive / exclusive, optionality
         NonEmptyList
-          .fromList(idx.termsForRange(l, r))
+          .fromList(idx.termDict.termsForRange(l, r))
           .toRight(
             s"No terms found while processing TermRange: $q"
           )
