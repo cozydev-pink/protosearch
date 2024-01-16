@@ -20,6 +20,7 @@ abstract class MeowMeow {
 // We could take in the `Query.Phrase`, or the list of terms and positions
 // Or perhaps we take in our own Query representation?
 class PhraseMeowMeow(
+    val terms: Array[String], // TODO remove
     val postings: Array[PositionalPostingsReader],
     val relativePositions: Array[Int],
 ) extends MeowMeow {
@@ -53,12 +54,15 @@ class PhraseMeowMeow(
   private var currDocId: Int = 0
   private var inMatch: Boolean = false
 
+  def printPosting(i: Int): String =
+    s"i=$i term=${terms(i)}, posting=${postings(i)}"
+
   def next(docId: Int): Int = {
     var i = 0
     currDocId = docId
     // advance all postings until they are in match position
     while (i < postings.size && !allDocsMatch) {
-      println(s"while-loop: i=$i postings:${postings.map(_.toString()).mkString("\n", "\n", "\n")}")
+      println(printPosting(i))
       val posting = postings(i)
       if (!posting.hasNext) {
         println(s"Exiting while-loop early, i=$i, posting=$posting")
@@ -91,6 +95,8 @@ object PhraseMeowMeow {
     val terms = q.str.split(" ")
     val relativePositions = (0 to terms.size).toArray
     val maybePostings = terms.toList.traverse(t => index.postingForTerm(t))
-    maybePostings.map(ps => new PhraseMeowMeow(ps.map(_.reader()).toArray, relativePositions))
+    maybePostings.map(ps =>
+      new PhraseMeowMeow(terms, ps.map(_.reader()).toArray, relativePositions)
+    )
   }
 }
