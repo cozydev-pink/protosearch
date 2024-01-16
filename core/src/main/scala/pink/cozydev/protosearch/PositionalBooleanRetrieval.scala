@@ -19,6 +19,7 @@ package pink.cozydev.protosearch
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.MultiQuery
+import pink.cozydev.protosearch.internal.PositionalIter
 
 case class PositionalBooleanRetrieval(index: PositionalIndex, defaultOR: Boolean = true) {
 
@@ -51,11 +52,13 @@ case class PositionalBooleanRetrieval(index: PositionalIndex, defaultOR: Boolean
     }
 
   private def phraseSearch(q: Query.Phrase): Either[String, Set[Int]] = {
-    // Optimistic phrase query handling for single term only
-    val resultSet = index.docsWithTermSet(q.str)
-    if (resultSet.nonEmpty) Right(resultSet)
-    else
-      Left(s"Phrase queries require position data, which we don't have yet. q: $q")
+    // TODO Split phrase here for now. Probably should be done in Query Analysis
+    val m = PositionalIter.exact(index, q)
+    m match {
+      case None => Right(Set.empty)
+      case Some(mm) => Right(mm.takeWhile(_ > -1).toSet)
+    }
+
   }
 
   private def rangeSearch(q: Query.TermRange): Either[String, Set[Int]] =

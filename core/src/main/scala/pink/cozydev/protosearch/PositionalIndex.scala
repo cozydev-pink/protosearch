@@ -30,6 +30,14 @@ sealed abstract class PositionalIndex private (
 ) {
   val numTerms = termDict.numTerms
 
+  def postingForTerm(term: String): Option[PositionalPostingsList] = {
+    val idx = termDict.termIndex(term)
+    if (idx < 0) None
+    else {
+      Some(tfData(idx))
+    }
+  }
+
   def docsWithTermSet(term: String): Set[Int] = {
     val idx = termDict.termIndex(term)
     if (idx < 0) Set.empty
