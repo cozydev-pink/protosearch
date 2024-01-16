@@ -38,7 +38,7 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
 }
 
-val catsEffectV = "3.5.2"
+val catsEffectV = "3.5.3"
 val catsV = "2.10.0"
 val fs2V = "3.9.3"
 val laikaV = "1.0.0"
