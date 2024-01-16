@@ -9,13 +9,7 @@ abstract class MeowMeow {
     // A parent iterator can request the next match and specify a minimum matching
     // docID to consider, we can thus skip over other documents that we might match,
     // but which other iterators will not match
-    def next(docId: Int): (Int, Int)
-
-    // TODO
-    // Perhaps there is a case initially where we do not have a minimum to skip?
-    def next(): (Int, Int) = next(0)
-
-
+    def next(docId: Int): Int
 }
 
 // TODO Where does this class start?
@@ -32,17 +26,18 @@ class PhraseMeowMeow (
   // The most infrequent terms should be checked first to enable quick short circuiting
   val postings: Array[PositionalPostingsReader] = Array.empty
 
+  val positionArr = new Array[Int](terms.length)
+
   def allDocsMatch: Boolean =
     postings.forall(p => p.currentDocId() == postings(0).currentDocId())
 
   // TODO ....do
   // TODO for assume no "slop"
   def positionsMatch: Boolean =
-    postings.forall(p => p.currentDocId() == postings(0).currentDocId())
+    // Check that each position is satisfying it's relative position
+    true
 
-  var inMatch = false
-
-  val positionArr = new Array[Int](terms.length)
+  def spanPos: (Int, Int) = (positionArr.min, positionArr.max)
             
 
   // #phrase - next "green" 9
@@ -53,7 +48,7 @@ class PhraseMeowMeow (
 
   var currDocId: Int = 0
 
-  def next(docId: Int): (Int, Int) = {
+  def next(docId: Int): Int = {
     var i = 0
     currDocId = docId
     // advance all postings until they are in match position
@@ -74,18 +69,8 @@ class PhraseMeowMeow (
     // All PositionReaders at the same docID
     // If so, check their relative positions
     if (positionsMatch) {
-      (positionArr.min, positionArr.max)
-    }
-    ???
+      //
+      currDocId
+    } else -1
   }
 }
-
-//final class PositionalPostingsIterator private[internal] (val postings: PositionalPostingsList) {
-//  var currentDocId: Int = _
-//  var currentPosition: Int = _
-//
-//  def nextDoc(): Int = ???
-//  def nextDoc(docId: Int): Int = ???
-//  def nextPosition(): Int = ???
-//  def nextPosition(position: Int): Int = ???
-//}
