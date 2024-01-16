@@ -57,6 +57,19 @@ sealed abstract class PositionalIndex private (
     bldr.toSet
   }
 
+  def docsForPhrase(phrase: String): Set[Int] = {
+    // TODO tokenize this somewhere else
+    val terms = phrase.split(" ").toList
+    val indices = terms.map(t => termDict.termIndex(t))
+    if (indices.forall(i => i > 0)) {
+      val postings = indices.map(i => tfData(i))
+      // TODO create postings iterator
+      // for each postings, iterate through all simultaneously, reporting back matches
+      println(postings)
+      Set(1)
+    } else Set.empty
+  }
+
 }
 object PositionalIndex {
   import scala.collection.mutable.{TreeMap => MMap}

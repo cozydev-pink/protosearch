@@ -16,7 +16,18 @@
 
 package pink.cozydev.protosearch.internal
 
+private[internal] abstract class PositionalPostingsReader {
+  def currentDocId(): Int
+  def currentPosition(): Int
+  def nextDoc(): Int
+  def nextDoc(docId: Int): Int
+  def nextPosition(): Int
+  def nextPosition(position: Int): Int
+}
+
 final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
+
+  def reader(): PositionalPostingsReader = ??? //new PositionalPostingsReader { }
 
   def docs: Iterator[Int] = new Iterator[Int] {
     var i = 0
