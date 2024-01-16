@@ -19,6 +19,7 @@ package pink.cozydev.protosearch.internal
 private[internal] abstract class PositionalPostingsReader {
   def currentDocId(): Int
   def currentPosition(): Int
+  def hasNext(): Boolean
   def nextDoc(): Int
   def nextDoc(docId: Int): Int
   def nextPosition(): Int
@@ -27,7 +28,46 @@ private[internal] abstract class PositionalPostingsReader {
 
 final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
 
-  def reader(): PositionalPostingsReader = ??? //new PositionalPostingsReader { }
+  def reader(): PositionalPostingsReader = new PositionalPostingsReader {
+    // TODO require non-empty?
+    require(postings.size >= 3, "PositionalPostingsList must have at least one entry")
+
+    var i = 0
+    var currDocId = postings(i)
+    var currDocFreq = postings(i + 1)
+    var currPosition = postings(i + 2)
+
+    override def toString(): String =
+      s"PositionalPostingsReader(i=$i, currentDocId=$currDocId, currentPosition=$currPosition)"
+
+    def hasNext: Boolean = postings(i) != 0 || postings(i + 1) != 0
+    def currentDocId(): Int = currDocId
+
+    def currentPosition(): Int = currPosition
+
+    def nextDoc(): Int = {
+      i += 1 + currDocFreq + 1
+      currDocId = postings(i)
+      currDocFreq = postings(i + 1)
+      currPosition = postings(i + 2)
+      currDocId
+    }
+
+    def nextDoc(docId: Int): Int = {
+      while (currDocId <= docId && hasNext) {
+        i += 1 + currDocFreq + 1
+        currDocId = postings(i)
+        currDocFreq = postings(i + 1)
+        currPosition = postings(i + 2)
+      }
+      currDocId
+    }
+
+    def nextPosition(): Int = ???
+
+    def nextPosition(position: Int): Int = ???
+
+  }
 
   def docs: Iterator[Int] = new Iterator[Int] {
     var i = 0

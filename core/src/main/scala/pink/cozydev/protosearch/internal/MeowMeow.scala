@@ -1,35 +1,40 @@
 package pink.cozydev.protosearch.internal
 
+import pink.cozydev.lucille.Query
+import pink.cozydev.protosearch.PositionalIndex
+import cats.syntax.all._
+
 // This is a mutable structure that callers will repeated call `next()` on.
 abstract class MeowMeow {
-    // This is going to represent a node in the "Query Tree"
-    // Where the whole tree, and it's various nodes acts like an iterator
-    // This iterator both matches and can score documents
+  // This is going to represent a node in the "Query Tree"
+  // Where the whole tree, and it's various nodes acts like an iterator
+  // This iterator both matches and can score documents
 
-    // A parent iterator can request the next match and specify a minimum matching
-    // docID to consider, we can thus skip over other documents that we might match,
-    // but which other iterators will not match
-    def next(docId: Int): Int
+  // A parent iterator can request the next match and specify a minimum matching
+  // docID to consider, we can thus skip over other documents that we might match,
+  // but which other iterators will not match
+  def next(docId: Int): Int
 }
 
 // TODO Where does this class start?
 // We could take in the `Query.Phrase`, or the list of terms and positions
 // Or perhaps we take in our own Query representation?
-class PhraseMeowMeow (
-    val terms: Array[String],
-    val relativePositions: Array[Int]
+class PhraseMeowMeow(
+    val postings: Array[PositionalPostingsReader],
+    val relativePositions: Array[Int],
 ) extends MeowMeow {
-
   // TODO can this not be a concrete collection?
   // Could it not just be pointers into the tfData?
   // The ordering here perhaps matters. I think we want them ordered by frequency or length.
   // The most infrequent terms should be checked first to enable quick short circuiting
-  val postings: Array[PositionalPostingsReader] = Array.empty
 
-  val positionArr = new Array[Int](terms.length)
+  val positionArr = new Array[Int](postings.length)
 
-  def allDocsMatch: Boolean =
-    postings.forall(p => p.currentDocId() == postings(0).currentDocId())
+  def allDocsMatch: Boolean = {
+    val res = postings.forall(p => p.currentDocId() == postings(0).currentDocId())
+    println(s"allDocsMatch: ${postings.map(_.currentDocId()).toList}, returning $res")
+    res
+  }
 
   // TODO ....do
   // TODO for assume no "slop"
@@ -38,7 +43,6 @@ class PhraseMeowMeow (
     true
 
   def spanPos: (Int, Int) = (positionArr.min, positionArr.max)
-            
 
   // #phrase - next "green" 9
   // green - 9,7
@@ -46,31 +50,47 @@ class PhraseMeowMeow (
   // eggs - 9,8
   // #phrase - match 9:7,8
 
-  var currDocId: Int = 0
+  private var currDocId: Int = 0
+  private var inMatch: Boolean = false
 
   def next(docId: Int): Int = {
     var i = 0
     currDocId = docId
     // advance all postings until they are in match position
-    while (i <= postings.size && !allDocsMatch) {
-      val di = postings(i).nextDoc(currDocId)
-      if (di == -1) {
-        // no more matches in this posting
-        // return -1
+    while (i < postings.size && !allDocsMatch) {
+      println(s"while-loop: i=$i postings:${postings.map(_.toString()).mkString("\n", "\n", "\n")}")
+      val posting = postings(i)
+      if (!posting.hasNext) {
+        println(s"Exiting while-loop early, i=$i, posting=$posting")
+        return -1
       }
-      if (di != -1 && di != currDocId) {
+      val di = posting.nextDoc(currDocId)
+      if (di != currDocId) {
         // that posting didn't have a match at currDocId
         // start back at the top of the postings list
         i = 0
         currDocId = di
+      } else {
+        i += 1
       }
-      i += 1
     }
+    if (allDocsMatch) {
+      inMatch = true
+    }
+    println(s"finished while-loop with currDocId=$currDocId")
     // All PositionReaders at the same docID
     // If so, check their relative positions
     if (positionsMatch) {
-      //
-      currDocId
+      postings(0).currentDocId()
     } else -1
+  }
+}
+object PhraseMeowMeow {
+  // TODO do we want this to live here? It makes this file depend on Lucille and the index
+  def exact(index: PositionalIndex, q: Query.Phrase): Option[PhraseMeowMeow] = {
+    val terms = q.str.split(" ")
+    val relativePositions = (0 to terms.size).toArray
+    val maybePostings = terms.toList.traverse(t => index.postingForTerm(t))
+    maybePostings.map(ps => new PhraseMeowMeow(ps.map(_.reader()).toArray, relativePositions))
   }
 }
