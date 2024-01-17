@@ -38,9 +38,11 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     var currPosition = postings(i + 2)
 
     override def toString(): String =
-      s"PositionalPostingsReader(i=$i, currentDocId=$currDocId, currentPosition=$currPosition)"
+      s"PositionalPostingsReader(i=$i, currentDocId=$currDocId, currentPosition=$currPosition)\n  ${postings.toList}"
 
-    def hasNext: Boolean = postings(i) != 0 || postings(i + 1) != 0
+    def hasNext: Boolean =
+      (i + 2) < postings.size &&
+        (i + 1 + postings(i + 1) + 1) < postings.size
     def currentDocId(): Int = currDocId
 
     def currentPosition(): Int = currPosition
@@ -54,7 +56,8 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     }
 
     def nextDoc(docId: Int): Int = {
-      while (currDocId <= docId && hasNext) {
+      while (currDocId < docId && hasNext) {
+        println(s"nextDoc while: i=$i currDocId=$currDocId, docId=$docId, currDocFreq=$currDocFreq")
         i += 1 + currDocFreq + 1
         currDocId = postings(i)
         currDocFreq = postings(i + 1)
@@ -71,7 +74,10 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
 
   def docs: Iterator[Int] = new Iterator[Int] {
     var i = 0
-    def hasNext: Boolean = postings(i) != 0 || postings(i + 1) != 0
+    def hasNext: Boolean =
+      (i + 2) < postings.size &&
+        // TODO why is this one <=
+        (i + 1 + postings(i + 1) + 1) <= postings.size
     def next(): Int = {
       val docId = postings(i)
       val freq = postings(i + 1)
@@ -128,5 +134,5 @@ final class PositionalPostingsBuilder {
     }
 
   def toPositionalPostingsList: PositionalPostingsList =
-    new PositionalPostingsList(buffer)
+    new PositionalPostingsList(buffer.slice(0, length))
 }

@@ -64,14 +64,14 @@ class PhraseMeowMeow(
     while (i < postings.size && !allDocsMatch) {
       println(printPosting(i))
       val posting = postings(i)
-      if (!posting.hasNext) {
-        println(s"Exiting while-loop early, i=$i, posting=$posting")
-        return -1
-      }
+      // if (!posting.hasNext) {
+      //   println(s"Exiting while-loop early, i=$i, posting=$posting")
+      //   return -1
+      // }
       val di = posting.nextDoc(currDocId)
       if (di != currDocId) {
         // that posting didn't have a match at currDocId
-        // start back at the top of the postings list
+        println("start back at the top of the postings list")
         i = 0
         currDocId = di
       } else {
