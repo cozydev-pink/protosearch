@@ -56,9 +56,7 @@ case class PositionalBooleanRetrieval(index: PositionalIndex, defaultOR: Boolean
     val m = PhraseMeowMeow.exact(index, q)
     m match {
       case None => Left("NOOONE")
-      case Some(mm) =>
-        val res = mm.next(0)
-        if (res == -1) Right(Set.empty) else Right(Set(res))
+      case Some(mm) => Right(mm.takeWhile(_ > -1).toSet)
     }
 
   }

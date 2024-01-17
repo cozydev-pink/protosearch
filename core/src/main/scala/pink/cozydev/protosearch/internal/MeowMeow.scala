@@ -23,7 +23,8 @@ class PhraseMeowMeow(
     val terms: Array[String], // TODO remove
     val postings: Array[PositionalPostingsReader],
     val relativePositions: Array[Int],
-) extends MeowMeow {
+) extends MeowMeow
+    with Iterator[Int] {
   // TODO can this not be a concrete collection?
   // Could it not just be pointers into the tfData?
   // The ordering here perhaps matters. I think we want them ordered by frequency or length.
@@ -31,11 +32,8 @@ class PhraseMeowMeow(
 
   val positionArr = new Array[Int](postings.length)
 
-  def allDocsMatch: Boolean = {
-    val res = postings.forall(p => p.currentDocId() == postings(0).currentDocId())
-    println(s"allDocsMatch: ${postings.map(_.currentDocId()).toList}, returning $res")
-    res
-  }
+  def allDocsMatch(n: Int): Boolean =
+    postings.forall(p => p.currentDocId() == n)
 
   // TODO ....do
   // TODO for assume no "slop"
@@ -57,11 +55,22 @@ class PhraseMeowMeow(
   def printPosting(i: Int): String =
     s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
+  def hasNext: Boolean = currDocId != -1
+
+  def next(): Int = {
+    require(hasNext, "We have no next document!")
+    val res = next(currDocId)
+    if (res == currDocId && currDocId != -1) {
+      currDocId += 1
+    }
+    res
+  }
+
   def next(docId: Int): Int = {
     var i = 0
     currDocId = docId
     // advance all postings until they are in match position
-    while (i < postings.size && !allDocsMatch) {
+    while (i < postings.size && !allDocsMatch(currDocId)) {
       println(printPosting(i))
       val posting = postings(i)
       // if (!posting.hasNext) {
@@ -71,22 +80,27 @@ class PhraseMeowMeow(
       val di = posting.nextDoc(currDocId)
       if (di != currDocId) {
         // that posting didn't have a match at currDocId
-        println("start back at the top of the postings list")
-        i = 0
-        currDocId = di
+        println("we didn't find a match")
+        if (di > currDocId) {
+          println("start back at the top of the postings list")
+          i = 0
+          currDocId = di
+        } else {
+          println("early exit")
+          currDocId = -1
+          return -1
+        }
       } else {
         i += 1
       }
     }
-    if (allDocsMatch) {
-      inMatch = true
+    if (!allDocsMatch(currDocId)) {
+      currDocId = -1
     }
     println(s"finished while-loop with currDocId=$currDocId")
+    currDocId
     // All PositionReaders at the same docID
     // If so, check their relative positions
-    if (positionsMatch) {
-      postings(0).currentDocId()
-    } else -1
   }
 }
 object PhraseMeowMeow {
