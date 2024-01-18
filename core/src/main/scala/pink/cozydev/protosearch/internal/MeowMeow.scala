@@ -46,16 +46,28 @@ class PhraseMeowMeow(
   // The ordering here perhaps matters. I think we want them ordered by frequency or length.
   // The most infrequent terms should be checked first to enable quick short circuiting
 
-  val positionArr = new Array[Int](postings.length)
-
-  def allDocsMatch(n: Int): Boolean =
+  def allDocsMatch(n: Int): Boolean = {
+    println("allDocsMatch: " + printAllPostings)
     postings.forall(p => p.currentDocId() == n)
+  }
 
-  // TODO ....do
+  val positionArr: Array[Int] = postings.map(p => p.currentPosition())
+
   // TODO for assume no "slop"
-  def positionsMatch: Boolean =
+  def positionsMatch: Boolean = {
+    println("-- positions: " + printAllPostingPositions)
+    println("-- relativep: " + relativePositions.toList)
     // Check that each position is satisfying it's relative position
-    true
+    if (positionArr.size >= 2) {
+      positionArr.zipWithIndex.sliding(2).forall { pair =>
+        val ((p1, i1), (p2, i2)) = (pair(0), pair(1))
+        val r1 = relativePositions(i1)
+        val r2 = relativePositions(i2)
+        println(s"r2=$r2 r1=$r1 p2=$p2 p1=$p1")
+        r2 - r1 == p2 - p1
+      }
+    } else true
+  }
 
   def spanPos: (Int, Int) = (positionArr.min, positionArr.max)
 
@@ -67,6 +79,20 @@ class PhraseMeowMeow(
 
   private var currDocId: Int = 0
   private var inMatch: Boolean = false
+
+  def printAllPostings: String =
+    postings
+      .map(p => p.currentDocId())
+      .zipWithIndex
+      .map { case (docId, i) => s"${terms(i)}:$docId" }
+      .mkString(", ")
+
+  def printAllPostingPositions: String =
+    postings
+      .map(p => p.currentPosition())
+      .zipWithIndex
+      .map { case (posId, i) => s"${terms(i)}:$posId" }
+      .mkString(", ")
 
   def printPosting(i: Int): String =
     s"i=$i term=${terms(i)}, posting=${postings(i)}"
@@ -96,13 +122,13 @@ class PhraseMeowMeow(
       val di = posting.nextDoc(currDocId)
       if (di != currDocId) {
         // that posting didn't have a match at currDocId
-        println("we didn't find a match")
+        println(s"no match for term '${terms(i)}' with docID=$currDocId")
         if (di > currDocId) {
-          println("start back at the top of the postings list")
+          println(s"term '${terms(i)}' has other matches, update currDocId, go to top of loop")
           i = 0
           currDocId = di
         } else {
-          println("early exit")
+          println(s"early exit, term '${terms(i)}' has no other matches")
           currDocId = -1
           return -1
         }
@@ -113,10 +139,27 @@ class PhraseMeowMeow(
     if (!allDocsMatch(currDocId)) {
       currDocId = -1
     }
-    println(s"finished while-loop with currDocId=$currDocId")
-    currDocId
+    // all docs match, try to match positions
+    // Maybe a two iterator approach makes sense
+    // One iterator matches docs
+    // second iterator on iterates over the doc-matching cases
+    // and it only emits values if the positions match
+    // TODO NEXT do this ^^^ two iterators!
+
+    println(s"finished doc-matching while-loop with currDocId=$currDocId")
+
     // All PositionReaders at the same docID
     // If so, check their relative positions
+    if (!positionsMatch) {
+      println(s"!! docs matched, but positions did not")
+      // NOT currDocId = -1
+      // GOTO top, consider next doc
+      // perhaps move this inside the while-loop as the terminating condition?
+      // then we can i+=1....
+      currDocId = -1
+    }
+
+    currDocId
   }
 }
 object PhraseMeowMeow {

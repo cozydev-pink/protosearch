@@ -32,43 +32,62 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     // TODO require non-empty?
     require(postings.size >= 3, "PositionalPostingsList must have at least one entry")
 
-    var i = 0
-    var currDocId = postings(i)
-    var currDocFreq = postings(i + 1)
-    var currPosition = postings(i + 2)
+    private var docIndex = 0
+    private var posIndex = 0
+
+    // TODO perhaps don't need this, just access with the indexes?
+    private var currDocId = postings(docIndex)
+    private var currDocFreq = postings(docIndex + 1)
+    private var currPosition = postings(docIndex + 2)
 
     override def toString(): String =
-      s"PositionalPostingsReader(i=$i, currentDocId=$currDocId, currentPosition=$currPosition)\n  ${postings.toList}"
+      s"PositionalPostingsReader(i=$docIndex, currentDocId=$currDocId, currentPosition=$currPosition)\n  ${postings.toList}"
 
     def hasNext: Boolean =
-      (i + 2) < postings.size &&
-        (i + 1 + postings(i + 1) + 1) < postings.size
+      (docIndex + 2) < postings.size &&
+        (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
     def currentDocId(): Int = currDocId
 
     def currentPosition(): Int = currPosition
 
     def nextDoc(): Int = {
-      i += 1 + currDocFreq + 1
-      currDocId = postings(i)
-      currDocFreq = postings(i + 1)
-      currPosition = postings(i + 2)
+      docIndex += 1 + currDocFreq + 1
+      posIndex = docIndex + 2
+      currDocId = postings(docIndex)
+      currDocFreq = postings(docIndex + 1)
+      currPosition = postings(docIndex + 2)
       currDocId
     }
 
+    // TODO could we not just call `next()` in a loop?
     def nextDoc(docId: Int): Int = {
       while (currDocId < docId && hasNext) {
-        println(s"nextDoc while: i=$i currDocId=$currDocId, docId=$docId, currDocFreq=$currDocFreq")
-        i += 1 + currDocFreq + 1
-        currDocId = postings(i)
-        currDocFreq = postings(i + 1)
-        currPosition = postings(i + 2)
+        println(
+          s"nextDoc while: i=$docIndex currDocId=$currDocId, docId=$docId, currDocFreq=$currDocFreq"
+        )
+        docIndex += 1 + currDocFreq + 1
+        posIndex = docIndex + 2
+        currDocId = postings(docIndex)
+        currDocFreq = postings(docIndex + 1)
+        currPosition = postings(docIndex + 2)
       }
       currDocId
     }
 
-    def nextPosition(): Int = ???
+    def hasNextPosition: Boolean =
+      posIndex < docIndex + currDocFreq
 
-    def nextPosition(position: Int): Int = ???
+    def nextPosition(): Int =
+      if (hasNextPosition) {
+        posIndex += 1
+        currPosition = postings(posIndex)
+        currPosition
+      } else -1
+
+    def nextPosition(position: Int): Int =
+      // TODO whats the condition here? one before pos? after? within 2?
+
+      0
 
   }
 
