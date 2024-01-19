@@ -41,7 +41,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     private var currPosition = postings(docIndex + 2)
 
     override def toString(): String =
-      s"PositionalPostingsReader(i=$docIndex, currentDocId=$currDocId, currentPosition=$currPosition)\n  ${postings.toList}"
+      s"PositionalPostingsReader(i=$docIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
 
     def hasNext: Boolean =
       (docIndex + 2) < postings.size &&
@@ -86,9 +86,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
 
     def nextPosition(position: Int): Int =
       // TODO whats the condition here? one before pos? after? within 2?
-
-      0
-
+      ???
   }
 
   def docs: Iterator[Int] = new Iterator[Int] {

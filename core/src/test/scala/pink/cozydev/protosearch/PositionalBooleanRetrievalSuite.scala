@@ -142,7 +142,7 @@ class PositionalBooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("phrase, multi word(5), single match".only) {
+  test("phrase, multi word(5), single match") {
     val q = search("\"the very fast cat jumped\"")
     val results = Set(1)
     assertEquals(
