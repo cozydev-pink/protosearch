@@ -123,7 +123,7 @@ class PhraseMeowMeow(
       val doc = nextDoc()
       println(s"------before allpost match loop in next(), currDocId=$currDocId")
       if (doc == -1) return -1
-      while (!allPositionsMatch) {
+      while (currStartPosition != -1 && !allPositionsMatch) {
         val pos = nextPosition(currStartPosition)
         println(s"------next() inner pos loop, pos=$pos")
       }
@@ -198,6 +198,7 @@ class PhraseMeowMeow(
       } else {
         if (pi == -1) {
           println(s"no other matches")
+          currStartPosition = -1
           return -1
         }
         // we have made enough progress, set i to the current positionsMatch + 1
