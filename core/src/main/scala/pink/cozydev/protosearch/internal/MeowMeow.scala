@@ -53,17 +53,16 @@ class PhraseMeowMeow(
   private var currDocId: Int = 0
   private var currStartPosition: Int = 0
 
-  def allDocsMatch(n: Int): Boolean = {
-    println(s"allDocsMatch($n): " + printAllPostings)
+  def allDocsMatch(n: Int): Boolean =
+    // println(s"allDocsMatch($n): " + printAllPostings)
     postings.forall(p => p.currentDocId() == n)
-  }
 
   def positionArr: Array[Int] = postings.map(p => p.currentPosition())
 
   // TODO for assume no "slop"
   def allPositionsMatch: Boolean = {
     val res = positionsMatch == -1
-    println(s"allPositionsMatch=$res positionsMatch=$positionsMatch")
+    // println(s"allPositionsMatch=$res positionsMatch=$positionsMatch")
     res
   }
 
@@ -73,8 +72,7 @@ class PhraseMeowMeow(
       println(s"EXCEEDED RECURSION LIMIT")
       throw new IllegalStateException
     }
-    println("-- positions: " + printAllPostingPositions)
-    println("-- posArr   : " + positionArr.toList)
+    // println("-- positions: " + printAllPostingPositions)
     // Check that each position is satisfying it's relative position
     if (positionArr.size >= 2) {
       positionArr.zipWithIndex.sliding(2).indexWhere { pair =>
@@ -87,14 +85,6 @@ class PhraseMeowMeow(
       // only one position, so we must be in match
     } else -1
   }
-
-  def spanPos: (Int, Int) = (positionArr.min, positionArr.max)
-
-  // #phrase - next "green" 9
-  // green - 9,7
-  // #phrase - next "eggs" 9
-  // eggs - 9,8
-  // #phrase - match 9:7,8
 
   def printAllPostings: String =
     postings
@@ -118,17 +108,11 @@ class PhraseMeowMeow(
   def hasNextPosition: Boolean = currStartPosition != -1
 
   def next(): Int = {
-    // while (!allDocsMatch(currDocId) && !allPositionsMatch) {
-    // var doc = nextDoc()
     while (!allDocsMatch(currDocId)) {
       val doc = nextDoc()
-      println(s"------before allpost match loop in next(), currDocId=$currDocId")
       if (doc == -1) return -1
-      while (currStartPosition != -1 && !allPositionsMatch) {
-        val pos = nextPosition(currStartPosition)
-        println(s"------next() inner pos loop, pos=$pos")
-      }
-      println(s"------OUTSIDE allpost match loop in next(), currDocId=$currDocId")
+      while (currStartPosition != -1 && !allPositionsMatch)
+        nextPosition(currStartPosition)
     }
     val res = currDocId
     if (currDocId != -1) {
@@ -140,9 +124,6 @@ class PhraseMeowMeow(
   def nextDoc(): Int = {
     require(hasNext, "We have no next document!")
     val res = next(currDocId)
-    // if (res == currDocId && currDocId != -1) {
-    //   currDocId += 1
-    // }
     res
   }
 

@@ -79,7 +79,6 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
       posIndex <= docIndex + currDocFreq
 
     def nextPosition(): Int =
-      // println(toString())
       if (hasNextPosition) {
         posIndex += 1
         currPosition = postings(posIndex)
