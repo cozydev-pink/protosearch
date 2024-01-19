@@ -124,54 +124,63 @@ class PositionalBooleanRetrievalSuite extends munit.FunSuite {
     )
   }
 
-  test("phrase, single word \"very\"") {
-    val q = search("\"very\"")
-    val results = Set(1)
-    assertEquals(
-      q,
-      Right(results),
-    )
+  test("phrase, single word, start \"a\"") {
+    val q = search("\"a\"")
+    assertEquals(q, Right(Set(2)))
   }
 
-  test("phrase, multi word, single match \"very fast\"") {
+  test("phrase, single word, middle \"very\"") {
+    val q = search("\"very\"")
+    assertEquals(q, Right(Set(1)))
+  }
+
+  test("phrase, single word, end \"day\"") {
+    val q = search("\"day\"")
+    assertEquals(q, Right(Set(2)))
+  }
+
+  test("phrase, multi word, single match, start \"the quick brown\"") {
+    val q = search("\"the quick brown\"")
+    assertEquals(q, Right(Set(0)))
+  }
+
+  test("phrase, multi word, single match, middle \"very fast\"") {
     val q = search("\"very fast\"")
-    val results = Set(1)
-    assertEquals(
-      q,
-      Right(results),
-    )
+    assertEquals(q, Right(Set(1)))
+  }
+
+  test("phrase, multi word, single match, end \"sleeps all day\"") {
+    val q = search("\"sleeps all day\"")
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, multi word(5), single match") {
     val q = search("\"the very fast cat jumped\"")
-    val results = Set(1)
-    assertEquals(
-      q,
-      Right(results),
-    )
+    assertEquals(q, Right(Set(1)))
   }
 
   test("phrase, multi word(7), repeated words, single match") {
     val q = search("\"the very fast cat jumped across the\"")
-    val results = Set(1)
-    assertEquals(
-      q,
-      Right(results),
-    )
+    assertEquals(q, Right(Set(1)))
+  }
+
+  test("phrase, all words, repeated words, single match") {
+    val q = search("\"the very fast cat jumped across the room\"")
+    assertEquals(q, Right(Set(1)))
   }
 
   test("phrase, multi word, multi match \"lazy cat\"") {
     val q = search("\"lazy cat\"")
-    val results = Set(0, 2)
-    assertEquals(
-      q,
-      Right(results),
-    )
+    assertEquals(q, Right(Set(0, 2)))
   }
 
   test("phrase, multi word, false match \"sleeps day\"") {
     val q = search("\"sleeps day\"")
-    // assertNotEquals(q, Right(Set(2)))
+    assertEquals(q, Right(Set.empty[Int]))
+  }
+
+  test("phrase, multi word, false match \"the cat\"") {
+    val q = search("\"the cat\"")
     assertEquals(q, Right(Set.empty[Int]))
   }
 
