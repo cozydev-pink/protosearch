@@ -84,7 +84,8 @@ class PhraseMeowMeow(
         // println(s"r2=$r2 r1=$r1 p2=$p2 p1=$p1")
         r2 - r1 != p2 - p1
       }
-    } else 1
+      // only one position, so we must be in match
+    } else -1
   }
 
   def spanPos: (Int, Int) = (positionArr.min, positionArr.max)
@@ -133,7 +134,7 @@ class PhraseMeowMeow(
     if (currDocId != -1) {
       currDocId += 1
     }
-    res
+    if (allPositionsMatch) res else -1
   }
 
   def nextDoc(): Int = {
@@ -183,7 +184,7 @@ class PhraseMeowMeow(
   // and it only emits values if the positions match
   // TODO NEXT do this ^^^ two iterators!
   def nextPosition(target: Int): Int = {
-    var i = 0
+    var i = positionsMatch
     currStartPosition = target
     while (i < postings.size && !allPositionsMatch) {
       println(s"nextPosition (i=$i): " + printAllPostingPositions)
@@ -191,6 +192,10 @@ class PhraseMeowMeow(
       val pi = posting.nextPosition()
       // Have we made progress? Or do we need the next position on this posting?
       val pm = positionsMatch
+      if (pm != -1) {
+        i = pm
+      }
+      // TODO need to use pm info to retarget i
       println(s"+ i=$i, term=${terms(i)}, positionsMatch=$pm, pi=$pi")
       if (pi != -1 && i > pm) {
         // we have more positions, and we have not made enough progress

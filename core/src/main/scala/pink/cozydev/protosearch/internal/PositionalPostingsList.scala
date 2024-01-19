@@ -41,7 +41,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     private var currPosition = postings(docIndex + 2)
 
     override def toString(): String =
-      s"PositionalPostingsReader(i=$docIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
+      s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
 
     def hasNext: Boolean =
       (docIndex + 2) < postings.size &&
@@ -75,9 +75,11 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     }
 
     def hasNextPosition: Boolean =
-      posIndex < docIndex + currDocFreq
+      // less than or equal to catch the very last position
+      posIndex <= docIndex + currDocFreq
 
     def nextPosition(): Int =
+      // println(toString())
       if (hasNextPosition) {
         posIndex += 1
         currPosition = postings(posIndex)
