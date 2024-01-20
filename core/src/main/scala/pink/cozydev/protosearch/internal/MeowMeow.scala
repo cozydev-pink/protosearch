@@ -103,7 +103,7 @@ class PhraseMeowMeow(
   def printPosting(i: Int): String =
     s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
-  def hasNext(): Boolean = hasNextDoc && hasNextPosition
+  def hasNext: Boolean = hasNextDoc && hasNextPosition
   def hasNextDoc: Boolean = currDocId != -1
   def hasNextPosition: Boolean = currStartPosition != -1
 
@@ -123,7 +123,7 @@ class PhraseMeowMeow(
   }
 
   def nextDoc(): Int = {
-    require(hasNext(), "We have no next document!")
+    require(hasNext, "We have no next document!")
     val res = next(currDocId)
     res
   }

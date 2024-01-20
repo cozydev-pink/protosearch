@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.internal
 private[internal] abstract class PositionalPostingsReader {
   def currentDocId(): Int
   def currentPosition(): Int
-  def hasNext(): Boolean
+  def hasNext: Boolean
   def nextDoc(): Int
   def nextDoc(docId: Int): Int
   def nextPosition(): Int
@@ -43,7 +43,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     override def toString(): String =
       s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
 
-    def hasNext(): Boolean =
+    def hasNext: Boolean =
       (docIndex + 2) < postings.size &&
         (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
     def currentDocId(): Int = currDocId
@@ -61,7 +61,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
 
     // TODO could we not just call `next()` in a loop?
     def nextDoc(docId: Int): Int = {
-      while (currDocId < docId && hasNext()) {
+      while (currDocId < docId && hasNext) {
         println(
           s"nextDoc while: i=$docIndex currDocId=$currDocId, docId=$docId, currDocFreq=$currDocFreq"
         )
