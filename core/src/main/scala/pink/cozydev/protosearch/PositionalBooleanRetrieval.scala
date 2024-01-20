@@ -55,7 +55,7 @@ case class PositionalBooleanRetrieval(index: PositionalIndex, defaultOR: Boolean
     // TODO Split phrase here for now. Probably should be done in Query Analysis
     val m = PhraseMeowMeow.exact(index, q)
     m match {
-      case None => Left("NOOONE")
+      case None => Right(Set.empty)
       case Some(mm) => Right(mm.takeWhile(_ > -1).toSet)
     }
 

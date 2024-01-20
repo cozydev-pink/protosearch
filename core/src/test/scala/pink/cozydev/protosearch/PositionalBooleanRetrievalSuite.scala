@@ -184,4 +184,8 @@ class PositionalBooleanRetrievalSuite extends munit.FunSuite {
     assertEquals(q, Right(Set.empty[Int]))
   }
 
+  test("phrase, single word, false match \"fakeword\"") {
+    val q = search("\"fakeword\"")
+    assertEquals(q, Right(Set.empty[Int]))
+  }
 }
