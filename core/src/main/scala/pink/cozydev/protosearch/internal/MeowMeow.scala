@@ -123,7 +123,7 @@ class PhraseMeowMeow(
   }
 
   def nextDoc(): Int = {
-    require(hasNext, "We have no next document!")
+    require(hasNext(), "We have no next document!")
     val res = next(currDocId)
     res
   }
