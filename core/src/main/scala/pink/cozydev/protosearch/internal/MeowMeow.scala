@@ -103,7 +103,7 @@ class PhraseMeowMeow(
   def printPosting(i: Int): String =
     s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
-  def hasNext: Boolean = hasNextDoc && hasNextPosition
+  def hasNext(): Boolean = hasNextDoc && hasNextPosition
   def hasNextDoc: Boolean = currDocId != -1
   def hasNextPosition: Boolean = currStartPosition != -1
 
@@ -111,8 +111,9 @@ class PhraseMeowMeow(
     while (!allDocsMatch(currDocId)) {
       val doc = nextDoc()
       if (doc == -1) return -1
-      while (currStartPosition != -1 && !allPositionsMatch)
-        nextPosition(currStartPosition)
+      while (currStartPosition != -1 && !allPositionsMatch) {
+        val _ = nextPosition(currStartPosition)
+      }
     }
     val res = currDocId
     if (currDocId != -1) {
