@@ -33,12 +33,12 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     require(postings.size >= 3, "PositionalPostingsList must have at least one entry")
 
     private var docIndex = 0
-    private var posIndex = 0
+    private var posIndex = 2
 
     // TODO perhaps don't need this, just access with the indexes?
-    private var currDocId = postings(docIndex)
-    private var currDocFreq = postings(docIndex + 1)
-    private var currPosition = postings(docIndex + 2)
+    private def currDocId = postings(docIndex)
+    private def currDocFreq = postings(docIndex + 1)
+    private def currPosition = postings(posIndex)
 
     override def toString(): String =
       s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
@@ -46,6 +46,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     def hasNext: Boolean =
       (docIndex + 2) < postings.size &&
         (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
+
     def currentDocId(): Int = currDocId
 
     def currentPosition(): Int = currPosition
@@ -53,9 +54,6 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     def nextDoc(): Int = {
       docIndex += 1 + currDocFreq + 1
       posIndex = docIndex + 2
-      currDocId = postings(docIndex)
-      currDocFreq = postings(docIndex + 1)
-      currPosition = postings(docIndex + 2)
       currDocId
     }
 
@@ -67,9 +65,6 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
         )
         docIndex += 1 + currDocFreq + 1
         posIndex = docIndex + 2
-        currDocId = postings(docIndex)
-        currDocFreq = postings(docIndex + 1)
-        currPosition = postings(docIndex + 2)
       }
       currDocId
     }
@@ -81,7 +76,6 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     def nextPosition(): Int =
       if (hasNextPosition) {
         posIndex += 1
-        currPosition = postings(posIndex)
         currPosition
       } else -1
 

@@ -166,7 +166,7 @@ class PhraseMeowMeow(
   // and it only emits values if the positions match
   // TODO NEXT do this ^^^ two iterators!
   def nextPosition(target: Int): Int = {
-    var i = positionsMatch
+    var i = positionsMatch + 1
     currStartPosition = target
     while (i < postings.size && !allPositionsMatch) {
       println(s"nextPosition (i=$i): " + printAllPostingPositions)
@@ -174,24 +174,20 @@ class PhraseMeowMeow(
       val pi = posting.nextPosition()
       // Have we made progress? Or do we need the next position on this posting?
       val pm = positionsMatch
-      if (pm != -1) {
-        i = pm
-      }
-      // TODO need to use pm info to retarget i
       println(s"+ i=$i, term=${terms(i)}, positionsMatch=$pm, pi=$pi")
       if (pi != -1 && i > pm) {
         // we have more positions, and we have not made enough progress
         println(s"!! no pos match for term '${terms(i)}' with pi=$pi")
       } else {
         if (pi == -1) {
-          println(s"no other matches")
+          println(s"no other matches (pi == -1)")
           currStartPosition = -1
           return -1
         }
         // we have made enough progress, set i to the current positionsMatch + 1
         println(s"made progress, i=$i, positionsMatch=$pm, pi=$pi")
-        i = pm + 1
       }
+      i = pm + 1
     }
     if (!allPositionsMatch) {
       println(s"!! positions not in match")
