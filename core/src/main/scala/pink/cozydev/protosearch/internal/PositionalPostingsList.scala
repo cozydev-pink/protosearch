@@ -17,8 +17,8 @@
 package pink.cozydev.protosearch.internal
 
 private[internal] abstract class PositionalPostingsReader {
-  def currentDocId(): Int
-  def currentPosition(): Int
+  def currentDocId: Int
+  def currentPosition: Int
   def hasNext: Boolean
   def nextDoc(): Int
   def nextDoc(docId: Int): Int
@@ -29,44 +29,39 @@ private[internal] abstract class PositionalPostingsReader {
 final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
 
   def reader(): PositionalPostingsReader = new PositionalPostingsReader {
-    // TODO require non-empty?
     require(postings.size >= 3, "PositionalPostingsList must have at least one entry")
 
     private var docIndex = 0
     private var posIndex = 2
 
-    // TODO perhaps don't need this, just access with the indexes?
-    private def currDocId = postings(docIndex)
     private def currDocFreq = postings(docIndex + 1)
-    private def currPosition = postings(posIndex)
+
+    def currentDocId: Int = postings(docIndex)
+    def currentPosition: Int = postings(posIndex)
 
     override def toString(): String =
-      s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currDocId, currentPosition=$currPosition\n  positions=${postings.toList})"
+      s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currentDocId, currentPosition=$currentPosition\n  positions=${postings.toList})"
 
     def hasNext: Boolean =
       (docIndex + 2) < postings.size &&
         (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
 
-    def currentDocId(): Int = currDocId
-
-    def currentPosition(): Int = currPosition
-
     def nextDoc(): Int = {
       docIndex += 1 + currDocFreq + 1
       posIndex = docIndex + 2
-      currDocId
+      currentDocId
     }
 
     // TODO could we not just call `next()` in a loop?
     def nextDoc(docId: Int): Int = {
-      while (currDocId < docId && hasNext) {
+      while (currentDocId < docId && hasNext) {
         println(
-          s"nextDoc while: i=$docIndex currDocId=$currDocId, docId=$docId, currDocFreq=$currDocFreq"
+          s"nextDoc while: i=$docIndex currDocId=$currentDocId, docId=$docId, currDocFreq=$currDocFreq"
         )
         docIndex += 1 + currDocFreq + 1
         posIndex = docIndex + 2
       }
-      currDocId
+      currentDocId
     }
 
     def hasNextPosition: Boolean =
@@ -76,7 +71,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
     def nextPosition(): Int =
       if (hasNextPosition) {
         posIndex += 1
-        currPosition
+        currentPosition
       } else -1
 
     def nextPosition(position: Int): Int =

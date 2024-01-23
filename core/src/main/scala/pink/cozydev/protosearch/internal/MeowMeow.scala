@@ -55,9 +55,9 @@ class PhraseMeowMeow(
 
   def allDocsMatch(n: Int): Boolean =
     // println(s"allDocsMatch($n): " + printAllPostings)
-    postings.forall(p => p.currentDocId() == n)
+    postings.forall(p => p.currentDocId == n)
 
-  def positionArr: Array[Int] = postings.map(p => p.currentPosition())
+  def positionArr: Array[Int] = postings.map(p => p.currentPosition)
 
   // TODO for assume no "slop"
   def allPositionsMatch: Boolean = {
@@ -88,14 +88,14 @@ class PhraseMeowMeow(
 
   def printAllPostings: String =
     postings
-      .map(p => p.currentDocId())
+      .map(p => p.currentDocId)
       .zipWithIndex
       .map { case (docId, i) => s"${terms(i)}:$docId" }
       .mkString(", ")
 
   def printAllPostingPositions: String =
     postings
-      .map(p => (p.currentDocId(), p.currentPosition()))
+      .map(p => (p.currentDocId, p.currentPosition))
       .zipWithIndex
       .map { case ((docId, posId), i) => s"${terms(i)}:$docId,$posId" }
       .mkString("  ")
