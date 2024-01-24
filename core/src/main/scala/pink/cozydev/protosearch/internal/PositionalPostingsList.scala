@@ -31,11 +31,14 @@ private[internal] abstract class PositionalPostingsReader {
     */
   def nextDoc(docId: Int): Int
 
+  def hasNextPosition: Boolean
+
   /** Advances and returns the next position if possible, returns -1 if there are no remaining positions.
     *
     * @return new `currentPosition` value
     */
   def nextPosition(): Int
+  def nextPosition(target: Int): Int
 }
 
 /** A non-empty array of postings for a single term. */
@@ -72,12 +75,15 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
       // less than or equal to catch the very last position
       posIndex <= docIndex + currDocFreq
 
-    // TODO either use -1 everywhere or ditch it
-    def nextPosition(): Int =
-      if (hasNextPosition) {
-        posIndex += 1
-        currentPosition
-      } else -1
+    def nextPosition(): Int = {
+      posIndex += 1
+      currentPosition
+    }
+
+    def nextPosition(target: Int): Int = {
+      while (currentPosition < target && hasNextPosition) nextPosition()
+      currentPosition
+    }
   }
 
   def docs: Iterator[Int] = new Iterator[Int] {

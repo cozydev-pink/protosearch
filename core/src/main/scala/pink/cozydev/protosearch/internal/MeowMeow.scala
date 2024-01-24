@@ -53,35 +53,18 @@ class PhraseMeowMeow(
   private[this] var currDocId: Int = 0
   private[this] var currStartPosition: Int = 0
 
-  private def printAllPostings: String =
-    postings
-      .map(p => p.currentDocId)
-      .zipWithIndex
-      .map { case (docId, i) => s"${terms(i)}:$docId" }
-      .mkString(", ")
-
-  private def printAllPostingPositions: String =
-    postings
-      .map(p => (p.currentDocId, p.currentPosition))
-      .zipWithIndex
-      .map { case ((docId, posId), i) => s"${terms(i)}:$docId,$posId" }
-      .mkString("  ")
-
-  private def printPosting(i: Int): String =
-    s"i=$i term=${terms(i)}, posting=${postings(i)}"
+  def hasNext: Boolean = hasNextDoc && hasNextPosition
+  def hasNextDoc: Boolean = currDocId != -1
+  def hasNextPosition: Boolean = currStartPosition != -1
 
   def allDocsMatch(n: Int): Boolean =
-    docsMatch(n) == -1
+    firstNonMatching(n) == -1
 
-  def docsMatch(n: Int): Int =
+  def firstNonMatching(n: Int): Int =
     postings.indexWhere(p => p.currentDocId != n)
 
-  // TODO for assume no "slop"
-  def allPositionsMatch: Boolean = {
-    val res = positionsMatch == -1
-    // println(s"allPositionsMatch=$res positionsMatch=$positionsMatch")
-    res
-  }
+  def allPositionsMatch: Boolean =
+    positionsMatch == -1
 
   /** Returns the index of the first posting that is not in a positional match
     * with the postings preceding it according to the constraints set by `relativePositions`.
@@ -89,28 +72,33 @@ class PhraseMeowMeow(
   def positionsMatch: Int = {
     iterationLimit += 1
     require(iterationLimit <= 100, "Exceeded iteration limit on positionsMatch")
+    // TODO handle "slop" / error distance
     // Check that each position is satisfying it's relative position
     if (postings.size < 2)
       -1
-    else
-      postings.map(_.currentPosition).zipWithIndex.sliding(2).indexWhere { pair =>
-        val ((p1, i1), (p2, i2)) = (pair(0), pair(1))
-        val r1 = relativePositions(i1)
-        val r2 = relativePositions(i2)
-        r2 - r1 != p2 - p1
-      }
+    else {
+      val firstIndexNotInMatchWithNextIndex =
+        postings.map(_.currentPosition).zipWithIndex.sliding(2).indexWhere { pair =>
+          val ((p1, i1), (p2, i2)) = (pair(0), pair(1))
+          val r1 = relativePositions(i1)
+          val r2 = relativePositions(i2)
+          r2 - r1 != p2 - p1
+        }
+      // Because of the `sliding(2)` we want to increment by one if not -1
+      // This let's us target the "NextIndex" we're not in match with
+      if (firstIndexNotInMatchWithNextIndex == -1)
+        -1
+      else firstIndexNotInMatchWithNextIndex + 1
+    }
   }
-
-  def hasNext: Boolean = hasNextDoc && hasNextPosition
-  def hasNextDoc: Boolean = currDocId != -1
-  def hasNextPosition: Boolean = currStartPosition != -1
 
   def next(): Int = {
     while (!allDocsMatch(currDocId)) {
       val doc = nextDoc()
       if (doc == -1) return -1
+      currStartPosition = 0
       while (currStartPosition != -1 && !allPositionsMatch) {
-        val _ = nextPosition(currStartPosition)
+        val _ = nextPosition()
       }
     }
     val res = currDocId
@@ -131,7 +119,7 @@ class PhraseMeowMeow(
     currDocId = docId
     // Iterate over all postings until they match
     while (!allDocsMatch(currDocId)) {
-      val i = docsMatch(currDocId)
+      val i = firstNonMatching(currDocId)
       val newDocId = postings(i).nextDoc(currDocId)
       if (newDocId < currDocId)
         // posting has no docIds at or above currDocId, bail
@@ -141,35 +129,20 @@ class PhraseMeowMeow(
     currDocId
   }
 
-  def nextPosition(target: Int): Int = {
-    var i = positionsMatch + 1
-    currStartPosition = target
-    while (i < postings.size && !allPositionsMatch) {
-      // println(s"nextPosition (i=$i): " + printAllPostingPositions)
+  def nextPosition(): Int = {
+    // Iterate until all postings in positional match
+    while (!allPositionsMatch) {
+      val i = positionsMatch
       val posting = postings(i)
-      val pi = posting.nextPosition()
-      // Have we made progress? Or do we need the next position on this posting?
-      val pm = positionsMatch
-      // println(s"+ i=$i, term=${terms(i)}, positionsMatch=$pm, pi=$pi")
-      if (pi != -1 && i > pm) {
-        // we have more positions, and we have not made enough progress
-        // println(s"!! no pos match for term '${terms(i)}' with pi=$pi")
-      } else {
-        if (pi == -1) {
-          // println(s"no other matches (pi == -1)")
-          currStartPosition = -1
-          return -1
-        }
-        // we have made enough progress, set i to the current positionsMatch + 1
-        // println(s"made progress, i=$i, positionsMatch=$pm, pi=$pi")
+      if (posting.hasNextPosition)
+        posting.nextPosition()
+      else {
+        // we're not in positional match
+        // and we have no more positions, bail
+        currStartPosition = -1
+        return -1
       }
-      i = pm + 1
     }
-    if (!allPositionsMatch) {
-      // println(s"!! positions not in match")
-      currStartPosition = -1
-    }
-    // println(s"!! finished pos-matching, currStartPosition=$currStartPosition")
     currStartPosition
   }
 
