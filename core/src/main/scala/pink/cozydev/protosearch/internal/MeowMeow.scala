@@ -71,8 +71,10 @@ class PhraseMeowMeow(
     s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
   def allDocsMatch(n: Int): Boolean =
-    // println(s"allDocsMatch($n): " + printAllPostings)
-    postings.forall(p => p.currentDocId == n)
+    docsMatch(n) == -1
+
+  def docsMatch(n: Int): Int =
+    postings.indexWhere(p => p.currentDocId != n)
 
   // TODO for assume no "slop"
   def allPositionsMatch: Boolean = {
@@ -125,33 +127,17 @@ class PhraseMeowMeow(
   }
 
   def next(docId: Int): Int = {
-    var i = 0
+    // Advance currDocId to at least docId target
     currDocId = docId
-    // advance all postings until they are in match position
-    while (i < postings.size && !allDocsMatch(currDocId)) {
-      // println(printPosting(i))
-      val posting = postings(i)
-      val di = posting.nextDoc(currDocId)
-      if (di != currDocId) {
-        // that posting didn't have a match at currDocId
-        // println(s"no match for term '${terms(i)}' with docID=$currDocId")
-        if (di > currDocId) {
-          // println(s"term '${terms(i)}' has other matches, update currDocId, go to top of loop")
-          i = 0
-          currDocId = di
-        } else {
-          // println(s"early exit, term '${terms(i)}' has no other matches")
-          currDocId = -1
-          return -1
-        }
-      } else {
-        i += 1
-      }
+    // Iterate over all postings until they match
+    while (!allDocsMatch(currDocId)) {
+      val i = docsMatch(currDocId)
+      val newDocId = postings(i).nextDoc(currDocId)
+      if (newDocId < currDocId)
+        // posting has no docIds at or above currDocId, bail
+        return -1
+      currDocId = newDocId
     }
-    if (!allDocsMatch(currDocId)) {
-      currDocId = -1
-    }
-    // println(s"YAY, finished doc-matching while-loop with currDocId=$currDocId")
     currDocId
   }
 
