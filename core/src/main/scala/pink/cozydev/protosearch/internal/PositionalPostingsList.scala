@@ -30,7 +30,7 @@ private[internal] abstract class PositionalPostingsReader {
   def nextPosition(): Int
 }
 
-final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
+final class PositionalPostingsList private[internal] (private val postings: Array[Int]) {
 
   def reader(): PositionalPostingsReader = new PositionalPostingsReader {
     private var docIndex = 0
