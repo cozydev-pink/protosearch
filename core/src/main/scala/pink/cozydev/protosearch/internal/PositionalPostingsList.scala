@@ -21,9 +21,13 @@ private[internal] abstract class PositionalPostingsReader {
   def currentPosition: Int
   def hasNext: Boolean
   def nextDoc(): Int
+
+  /** Advances until `docId` or greater if possible, skipping docs less than `docId`.
+    * Does not advance if already at `docId`.
+    * @return new `currentDocId` value
+    */
   def nextDoc(docId: Int): Int
   def nextPosition(): Int
-  def nextPosition(position: Int): Int
 }
 
 final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
@@ -73,10 +77,6 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
         posIndex += 1
         currentPosition
       } else -1
-
-    def nextPosition(position: Int): Int =
-      // TODO whats the condition here? one before pos? after? within 2?
-      ???
   }
 
   def docs: Iterator[Int] = new Iterator[Int] {
