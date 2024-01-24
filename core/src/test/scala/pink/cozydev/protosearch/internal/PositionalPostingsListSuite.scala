@@ -55,4 +55,33 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     val posList = ppb.toPositionalPostingsList
     assertEquals(posList.docs.toList, List(1, 2, 3, 4, 5, 6))
   }
+
+  test("PositionalPostingsList Reader nextDoc(i < max) does not advance past i") {
+    val ppb = new PositionalPostingsBuilder
+    ppb.addTermPosition(1, 3)
+    ppb.addTermPosition(1, 8)
+    ppb.addTermPosition(2, 1)
+    ppb.addTermPosition(2, 2)
+    ppb.addTermPosition(2, 3)
+    ppb.addTermPosition(3, 33)
+    ppb.addTermPosition(42, 1)
+    val posList = ppb.toPositionalPostingsList.reader()
+    (0 to 10).foreach(_ => posList.nextDoc(2))
+    assertEquals(posList.nextDoc(2), 2)
+  }
+
+  test("PositionalPostingsList Reader nextDoc(i > max) does not advance past max") {
+    val ppb = new PositionalPostingsBuilder
+    ppb.addTermPosition(1, 3)
+    ppb.addTermPosition(1, 8)
+    ppb.addTermPosition(2, 1)
+    ppb.addTermPosition(2, 2)
+    ppb.addTermPosition(2, 3)
+    ppb.addTermPosition(3, 33)
+    ppb.addTermPosition(42, 1)
+    val posList = ppb.toPositionalPostingsList.reader()
+    (0 to 10).foreach(_ => posList.nextDoc(100))
+    assertEquals(posList.nextDoc(100), 42)
+  }
+
 }
