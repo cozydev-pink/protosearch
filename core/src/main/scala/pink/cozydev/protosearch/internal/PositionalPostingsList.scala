@@ -16,6 +16,9 @@
 
 package pink.cozydev.protosearch.internal
 
+/** A stateful reader for `PositionalPostingsList`s, tracking the `currentDocId` and
+  * `currentPosition` as it iterates through the postings.
+  */
 private[internal] abstract class PositionalPostingsReader {
   def currentDocId: Int
   def currentPosition: Int
@@ -27,16 +30,22 @@ private[internal] abstract class PositionalPostingsReader {
     * @return new `currentDocId` value
     */
   def nextDoc(docId: Int): Int
+
+  /** Advances and returns the next position if possible, returns -1 if there are no remaining positions.
+    *
+    * @return new `currentPosition` value
+    */
   def nextPosition(): Int
 }
 
+/** A non-empty array of postings for a single term. */
 final class PositionalPostingsList private[internal] (private val postings: Array[Int]) {
 
   def reader(): PositionalPostingsReader = new PositionalPostingsReader {
-    private var docIndex = 0
-    private var posIndex = 2
+    private[this] var docIndex = 0
+    private[this] var posIndex = 2
 
-    private def currDocFreq = postings(docIndex + 1)
+    private[this] def currDocFreq = postings(docIndex + 1)
 
     def currentDocId: Int = postings(docIndex)
     def currentPosition: Int = postings(posIndex)
@@ -54,15 +63,8 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
       currentDocId
     }
 
-    // TODO could we not just call `next()` in a loop?
     def nextDoc(docId: Int): Int = {
-      while (currentDocId < docId && hasNext) {
-        println(
-          s"nextDoc while: i=$docIndex currDocId=$currentDocId, docId=$docId, currDocFreq=$currDocFreq"
-        )
-        docIndex += 1 + currDocFreq + 1
-        posIndex = docIndex + 2
-      }
+      while (currentDocId < docId && hasNext) nextDoc()
       currentDocId
     }
 
@@ -108,7 +110,6 @@ final class PositionalPostingsBuilder {
   // Keeps track of the index for the current document's term frequency
   private[this] var freqIndex = -1
 
-  // TODO how does this work for first addition?
   def addTermPosition(docId: Int, position: Int): Unit = {
     checkAndGrow()
     if (docId == currentDocId) {

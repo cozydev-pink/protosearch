@@ -48,16 +48,31 @@ class PhraseMeowMeow(
   // Position Postings need to be ordered according to their relativePositions
   // i.e. we need to check the first posting first...
 
-  private var recursionLim = 0
+  private[this] var iterationLimit = 0
 
-  private var currDocId: Int = 0
-  private var currStartPosition: Int = 0
+  private[this] var currDocId: Int = 0
+  private[this] var currStartPosition: Int = 0
+
+  private def printAllPostings: String =
+    postings
+      .map(p => p.currentDocId)
+      .zipWithIndex
+      .map { case (docId, i) => s"${terms(i)}:$docId" }
+      .mkString(", ")
+
+  private def printAllPostingPositions: String =
+    postings
+      .map(p => (p.currentDocId, p.currentPosition))
+      .zipWithIndex
+      .map { case ((docId, posId), i) => s"${terms(i)}:$docId,$posId" }
+      .mkString("  ")
+
+  private def printPosting(i: Int): String =
+    s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
   def allDocsMatch(n: Int): Boolean =
     // println(s"allDocsMatch($n): " + printAllPostings)
     postings.forall(p => p.currentDocId == n)
-
-  def positionArr: Array[Int] = postings.map(p => p.currentPosition)
 
   // TODO for assume no "slop"
   def allPositionsMatch: Boolean = {
@@ -66,42 +81,23 @@ class PhraseMeowMeow(
     res
   }
 
+  /** Returns the index of the first posting that is not in a positional match
+    * with the postings preceding it according to the constraints set by `relativePositions`.
+    */
   def positionsMatch: Int = {
-    recursionLim += 1
-    if (recursionLim >= 100) {
-      println(s"EXCEEDED RECURSION LIMIT")
-      throw new IllegalStateException
-    }
-    // println("-- positions: " + printAllPostingPositions)
+    iterationLimit += 1
+    require(iterationLimit <= 100, "Exceeded iteration limit on positionsMatch")
     // Check that each position is satisfying it's relative position
-    if (positionArr.size >= 2) {
-      positionArr.zipWithIndex.sliding(2).indexWhere { pair =>
+    if (postings.size < 2)
+      -1
+    else
+      postings.map(_.currentPosition).zipWithIndex.sliding(2).indexWhere { pair =>
         val ((p1, i1), (p2, i2)) = (pair(0), pair(1))
         val r1 = relativePositions(i1)
         val r2 = relativePositions(i2)
-        // println(s"r2=$r2 r1=$r1 p2=$p2 p1=$p1")
         r2 - r1 != p2 - p1
       }
-      // only one position, so we must be in match
-    } else -1
   }
-
-  def printAllPostings: String =
-    postings
-      .map(p => p.currentDocId)
-      .zipWithIndex
-      .map { case (docId, i) => s"${terms(i)}:$docId" }
-      .mkString(", ")
-
-  def printAllPostingPositions: String =
-    postings
-      .map(p => (p.currentDocId, p.currentPosition))
-      .zipWithIndex
-      .map { case ((docId, posId), i) => s"${terms(i)}:$docId,$posId" }
-      .mkString("  ")
-
-  def printPosting(i: Int): String =
-    s"i=$i term=${terms(i)}, posting=${postings(i)}"
 
   def hasNext: Boolean = hasNextDoc && hasNextPosition
   def hasNextDoc: Boolean = currDocId != -1
@@ -133,18 +129,18 @@ class PhraseMeowMeow(
     currDocId = docId
     // advance all postings until they are in match position
     while (i < postings.size && !allDocsMatch(currDocId)) {
-      println(printPosting(i))
+      // println(printPosting(i))
       val posting = postings(i)
       val di = posting.nextDoc(currDocId)
       if (di != currDocId) {
         // that posting didn't have a match at currDocId
-        println(s"no match for term '${terms(i)}' with docID=$currDocId")
+        // println(s"no match for term '${terms(i)}' with docID=$currDocId")
         if (di > currDocId) {
-          println(s"term '${terms(i)}' has other matches, update currDocId, go to top of loop")
+          // println(s"term '${terms(i)}' has other matches, update currDocId, go to top of loop")
           i = 0
           currDocId = di
         } else {
-          println(s"early exit, term '${terms(i)}' has no other matches")
+          // println(s"early exit, term '${terms(i)}' has no other matches")
           currDocId = -1
           return -1
         }
@@ -155,45 +151,39 @@ class PhraseMeowMeow(
     if (!allDocsMatch(currDocId)) {
       currDocId = -1
     }
-    println(s"YAY, finished doc-matching while-loop with currDocId=$currDocId")
+    // println(s"YAY, finished doc-matching while-loop with currDocId=$currDocId")
     currDocId
   }
 
-  // all docs match, try to match positions
-  // Maybe a two iterator approach makes sense
-  // One iterator matches docs
-  // second iterator on iterates over the doc-matching cases
-  // and it only emits values if the positions match
-  // TODO NEXT do this ^^^ two iterators!
   def nextPosition(target: Int): Int = {
     var i = positionsMatch + 1
     currStartPosition = target
     while (i < postings.size && !allPositionsMatch) {
-      println(s"nextPosition (i=$i): " + printAllPostingPositions)
+      // println(s"nextPosition (i=$i): " + printAllPostingPositions)
       val posting = postings(i)
       val pi = posting.nextPosition()
       // Have we made progress? Or do we need the next position on this posting?
       val pm = positionsMatch
-      println(s"+ i=$i, term=${terms(i)}, positionsMatch=$pm, pi=$pi")
+      // println(s"+ i=$i, term=${terms(i)}, positionsMatch=$pm, pi=$pi")
       if (pi != -1 && i > pm) {
         // we have more positions, and we have not made enough progress
-        println(s"!! no pos match for term '${terms(i)}' with pi=$pi")
+        // println(s"!! no pos match for term '${terms(i)}' with pi=$pi")
       } else {
         if (pi == -1) {
-          println(s"no other matches (pi == -1)")
+          // println(s"no other matches (pi == -1)")
           currStartPosition = -1
           return -1
         }
         // we have made enough progress, set i to the current positionsMatch + 1
-        println(s"made progress, i=$i, positionsMatch=$pm, pi=$pi")
+        // println(s"made progress, i=$i, positionsMatch=$pm, pi=$pi")
       }
       i = pm + 1
     }
     if (!allPositionsMatch) {
-      println(s"!! positions not in match")
+      // println(s"!! positions not in match")
       currStartPosition = -1
     }
-    println(s"!! finished pos-matching, currStartPosition=$currStartPosition")
+    // println(s"!! finished pos-matching, currStartPosition=$currStartPosition")
     currStartPosition
   }
 
