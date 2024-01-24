@@ -33,8 +33,6 @@ private[internal] abstract class PositionalPostingsReader {
 final class PositionalPostingsList private[internal] (val postings: Array[Int]) {
 
   def reader(): PositionalPostingsReader = new PositionalPostingsReader {
-    require(postings.size >= 3, "PositionalPostingsList must have at least one entry")
-
     private var docIndex = 0
     private var posIndex = 2
 
@@ -72,6 +70,7 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
       // less than or equal to catch the very last position
       posIndex <= docIndex + currDocFreq
 
+    // TODO either use -1 everywhere or ditch it
     def nextPosition(): Int =
       if (hasNextPosition) {
         posIndex += 1
@@ -80,17 +79,14 @@ final class PositionalPostingsList private[internal] (val postings: Array[Int]) 
   }
 
   def docs: Iterator[Int] = new Iterator[Int] {
-    var i = 0
-    def hasNext: Boolean =
-      (i + 2) < postings.size &&
-        // TODO why is this one <=
-        (i + 1 + postings(i + 1) + 1) <= postings.size
+    // PositionalPostingsList always have at least one element
+    var oneAfter: Boolean = true
+    def hasNext: Boolean = oneAfter
+    val rdr = reader()
     def next(): Int = {
-      val docId = postings(i)
-      val freq = postings(i + 1)
-      // jump ahead one to the freq, then the freq amount, then one more to the next docId
-      i += 1 + freq + 1
-      docId
+      val res = rdr.currentDocId
+      if (rdr.hasNext) rdr.nextDoc() else { oneAfter = false }
+      res
     }
   }
 
@@ -140,6 +136,8 @@ final class PositionalPostingsBuilder {
       buffer = buffer2
     }
 
-  def toPositionalPostingsList: PositionalPostingsList =
+  def toPositionalPostingsList: PositionalPostingsList = {
+    require(length > 0, "Cannot make empty PositionalPostingsList")
     new PositionalPostingsList(buffer.slice(0, length))
+  }
 }

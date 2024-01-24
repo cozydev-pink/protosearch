@@ -18,10 +18,11 @@ package pink.cozydev.protosearch.internal
 
 class PositionalPostingsListSuite extends munit.FunSuite {
 
-  test("PositionalPostingsList docs returns no docs for empty PostingsList") {
+  test("PositionalPostingsList cannot be empty") {
     val ppb = new PositionalPostingsBuilder
-    val posList = ppb.toPositionalPostingsList
-    assertEquals(posList.docs.toList, Nil)
+    intercept[java.lang.IllegalArgumentException] {
+      ppb.toPositionalPostingsList
+    }
   }
 
   test("PositionalPostingsList docs returns correct one doc") {
