@@ -97,9 +97,8 @@ class PhraseMeowMeow(
       val doc = nextDoc()
       if (doc == -1) return -1
       currStartPosition = 0
-      while (currStartPosition != -1 && !allPositionsMatch) {
-        val _ = nextPosition()
-      }
+      while (currStartPosition != -1 && !allPositionsMatch)
+        currStartPosition = nextPosition()
     }
     val res = currDocId
     if (currDocId != -1) {
@@ -134,9 +133,9 @@ class PhraseMeowMeow(
     while (!allPositionsMatch) {
       val i = positionsMatch
       val posting = postings(i)
-      if (posting.hasNextPosition)
-        posting.nextPosition()
-      else {
+      if (posting.hasNextPosition) {
+        val _ = posting.nextPosition()
+      } else {
         // we're not in positional match
         // and we have no more positions, bail
         currStartPosition = -1

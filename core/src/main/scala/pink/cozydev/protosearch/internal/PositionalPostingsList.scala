@@ -67,8 +67,10 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
     }
 
     def nextDoc(docId: Int): Int = {
-      while (currentDocId < docId && hasNext) nextDoc()
-      currentDocId
+      var newDocId = currentDocId
+      while (currentDocId < docId && hasNext)
+        newDocId = nextDoc()
+      newDocId
     }
 
     def hasNextPosition: Boolean =
@@ -81,8 +83,10 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
     }
 
     def nextPosition(target: Int): Int = {
-      while (currentPosition < target && hasNextPosition) nextPosition()
-      currentPosition
+      var newPos = currentPosition
+      while (currentPosition < target && hasNextPosition)
+        newPos = nextPosition()
+      newPos
     }
   }
 
