@@ -20,27 +20,11 @@ import pink.cozydev.lucille.Query
 import pink.cozydev.protosearch.PositionalIndex
 import cats.syntax.all._
 
-// This is a mutable structure that callers will repeated call `next()` on.
-abstract class MeowMeow {
-  // This is going to represent a node in the "Query Tree"
-  // Where the whole tree, and it's various nodes acts like an iterator
-  // This iterator both matches and can score documents
-
-  // A parent iterator can request the next match and specify a minimum matching
-  // docID to consider, we can thus skip over other documents that we might match,
-  // but which other iterators will not match
-  def next(docId: Int): Int
-}
-
-// TODO Where does this class start?
-// We could take in the `Query.Phrase`, or the list of terms and positions
-// Or perhaps we take in our own Query representation?
-class PhraseMeowMeow(
+class PositionalIter(
     val terms: Array[String], // TODO remove
     val postings: Array[PositionalPostingsReader],
     val relativePositions: Array[Int],
-) extends MeowMeow
-    with Iterator[Int] {
+) extends Iterator[Int] {
 
   // TODO optimized ordering
   // We could check for doc matches with postings ordered by term frequency
@@ -145,14 +129,14 @@ class PhraseMeowMeow(
   }
 
 }
-object PhraseMeowMeow {
+object PositionalIter {
   // TODO do we want this to live here? It makes this file depend on Lucille and the index
-  def exact(index: PositionalIndex, q: Query.Phrase): Option[PhraseMeowMeow] = {
+  def exact(index: PositionalIndex, q: Query.Phrase): Option[PositionalIter] = {
     val terms = q.str.split(" ")
     val relativePositions = (0 to terms.size).toArray
     val maybePostings = terms.toList.traverse(t => index.postingForTerm(t))
     maybePostings.map(ps =>
-      new PhraseMeowMeow(terms, ps.map(_.reader()).toArray, relativePositions)
+      new PositionalIter(terms, ps.map(_.reader()).toArray, relativePositions)
     )
   }
 }
