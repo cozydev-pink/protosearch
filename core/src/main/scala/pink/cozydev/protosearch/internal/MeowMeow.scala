@@ -41,35 +41,55 @@ class PhraseMeowMeow(
     val relativePositions: Array[Int],
 ) extends MeowMeow
     with Iterator[Int] {
-  // TODO can this not be a concrete collection?
-  // Could it not just be pointers into the tfData?
-  // The ordering here perhaps matters. I think we want them ordered by frequency or length.
+
+  // TODO optimized ordering
+  // We could check for doc matches with postings ordered by term frequency
   // The most infrequent terms should be checked first to enable quick short circuiting
-  // Position Postings need to be ordered according to their relativePositions
+  // However, Position Postings need to be ordered according to their relativePositions
   // i.e. we need to check the first posting first...
 
+  // TODO remove
   private[this] var iterationLimit = 0
 
   private[this] var currDocId: Int = 0
-  private[this] var currStartPosition: Int = 0
 
-  def hasNext: Boolean = hasNextDoc && hasNextPosition
-  def hasNextDoc: Boolean = currDocId != -1
-  def hasNextPosition: Boolean = currStartPosition != -1
+  /* Tests whether we have more matching documents */
+  def hasNext: Boolean = currDocId != -1
 
-  def allDocsMatch(n: Int): Boolean =
-    firstNonMatching(n) == -1
+  /* Produces the next matching docId, returns -1 if no more matches */
+  def next(): Int = {
+    while (!allDocsMatch(currDocId)) {
+      // bail early if no more matching docs
+      if (next(currDocId) == -1) return -1
+      // iterate until positional match
+      var currStartPosition = 0
+      while (currStartPosition != -1 && !allPositionsMatch)
+        currStartPosition = nextPosition()
+    }
+    val res = currDocId
+    // prepare for next, increment current docId if we're not done
+    if (currDocId != -1) {
+      currDocId += 1
+    }
+    if (allPositionsMatch) res else -1
+  }
 
-  def firstNonMatching(n: Int): Int =
-    postings.indexWhere(p => p.currentDocId != n)
+  /** Returns true if all postings match `docId` */
+  def allDocsMatch(docId: Int): Boolean =
+    firstNonMatching(docId) == -1
 
+  /** Returns first index that does not match `docId` */
+  def firstNonMatching(docId: Int): Int =
+    postings.indexWhere(p => p.currentDocId != docId)
+
+  /** Returns true if all postings are in positional match */
   def allPositionsMatch: Boolean =
-    positionsMatch == -1
+    firstNonPositionMatching == -1
 
   /** Returns the index of the first posting that is not in a positional match
     * with the postings preceding it according to the constraints set by `relativePositions`.
     */
-  def positionsMatch: Int = {
+  def firstNonPositionMatching: Int = {
     iterationLimit += 1
     require(iterationLimit <= 100, "Exceeded iteration limit on positionsMatch")
     // TODO handle "slop" / error distance
@@ -92,27 +112,6 @@ class PhraseMeowMeow(
     }
   }
 
-  def next(): Int = {
-    while (!allDocsMatch(currDocId)) {
-      val doc = nextDoc()
-      if (doc == -1) return -1
-      currStartPosition = 0
-      while (currStartPosition != -1 && !allPositionsMatch)
-        currStartPosition = nextPosition()
-    }
-    val res = currDocId
-    if (currDocId != -1) {
-      currDocId += 1
-    }
-    if (allPositionsMatch) res else -1
-  }
-
-  def nextDoc(): Int = {
-    require(hasNext, "We have no next document!")
-    val res = next(currDocId)
-    res
-  }
-
   def next(docId: Int): Int = {
     // Advance currDocId to at least docId target
     currDocId = docId
@@ -129,20 +128,20 @@ class PhraseMeowMeow(
   }
 
   def nextPosition(): Int = {
+    var currPosition = 0
     // Iterate until all postings in positional match
     while (!allPositionsMatch) {
-      val i = positionsMatch
+      val i = firstNonPositionMatching
       val posting = postings(i)
       if (posting.hasNextPosition) {
-        val _ = posting.nextPosition()
+        currPosition = posting.nextPosition()
       } else {
         // we're not in positional match
         // and we have no more positions, bail
-        currStartPosition = -1
         return -1
       }
     }
-    currStartPosition
+    currPosition
   }
 
 }
