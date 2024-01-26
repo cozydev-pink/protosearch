@@ -103,6 +103,19 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
   }
 
 }
+object PositionalPostingsList {
+  import scodec.{Codec, codecs}
+  import pink.cozydev.protosearch.codecs.IndexCodecs
+
+  val codec: Codec[PositionalPostingsList] =
+    IndexCodecs
+      .arrayOfN(codecs.vint, codecs.vint)
+      .xmap(
+        arr => new PositionalPostingsList(arr),
+        p => p.postings,
+      )
+}
+
 final class PositionalPostingsBuilder {
   // TODO do we want to encode the number of doc matches?
 

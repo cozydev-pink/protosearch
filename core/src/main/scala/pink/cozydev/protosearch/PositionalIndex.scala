@@ -68,6 +68,8 @@ sealed abstract class PositionalIndex private (
 }
 object PositionalIndex {
   import scala.collection.mutable.{TreeMap => MMap}
+  import scodec.{Codec, codecs}
+  import pink.cozydev.protosearch.codecs.IndexCodecs
 
   def apply(docs: Iterable[Iterable[String]]): PositionalIndex = {
     val termPostingsMap = new MMap[String, PositionalPostingsBuilder].empty
@@ -92,6 +94,20 @@ object PositionalIndex {
       values += v.toPositionalPostingsList
     }
     new PositionalIndex(new TermDictionary(keys.result()), values.result(), docId) {}
+  }
+
+  val codec: Codec[PositionalIndex] = {
+    val terms = TermDictionary.codec
+    val postings =
+      IndexCodecs.arrayOfN(codecs.vint, PositionalPostingsList.codec).withContext("postings")
+    val numDocs = codecs.vint.withContext("numDocs")
+
+    (numDocs :: postings :: terms)
+      .as[(Int, Array[PositionalPostingsList], TermDictionary)]
+      .xmap(
+        { case (numDocs, tfData, terms) => new PositionalIndex(terms, tfData, numDocs) {} },
+        idx => (idx.numDocs, idx.tfData, idx.termDict),
+      )
   }
 
 }
