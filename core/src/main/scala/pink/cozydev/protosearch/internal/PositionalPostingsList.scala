@@ -106,11 +106,11 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 final class PositionalPostingsBuilder {
   // TODO do we want to encode the number of doc matches?
 
-  // cat, 2 ->         // "cat" appears in 2 documents
+  // cat ->            // "cat" appears in 2 documents
   // 4, 3, 7, 12, 47   // doc 4, 3 occurrences at positions 7, 12, and 47
   // 7, 1, 3           // doc 7, 1 occurrence at position 3
   // cat array:
-  // 2, 4, 3, 7, 12, 47, 7, 1, 3
+  // 4, 3, 7, 12, 47, 7, 1, 3
   private[this] var buffer = new Array[Int](16)
   private[this] var length = 0
 
