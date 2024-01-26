@@ -21,7 +21,6 @@ import pink.cozydev.protosearch.PositionalIndex
 import cats.syntax.all._
 
 class PositionalIter(
-    val terms: Array[String], // TODO remove
     val postings: Array[PositionalPostingsReader],
     val relativePositions: Array[Int],
 ) extends Iterator[Int] {
@@ -135,8 +134,6 @@ object PositionalIter {
     val terms = q.str.split(" ")
     val relativePositions = (0 to terms.size).toArray
     val maybePostings = terms.toList.traverse(t => index.postingForTerm(t))
-    maybePostings.map(ps =>
-      new PositionalIter(terms, ps.map(_.reader()).toArray, relativePositions)
-    )
+    maybePostings.map(ps => new PositionalIter(ps.map(_.reader()).toArray, relativePositions))
   }
 }
