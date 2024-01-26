@@ -31,9 +31,6 @@ class PositionalIter(
   // However, Position Postings need to be ordered according to their relativePositions
   // i.e. we need to check the first posting first...
 
-  // TODO remove
-  private[this] var iterationLimit = 0
-
   private[this] var currDocId: Int = 0
 
   /* Tests whether we have more matching documents */
@@ -72,9 +69,7 @@ class PositionalIter(
   /** Returns the index of the first posting that is not in a positional match
     * with the postings preceding it according to the constraints set by `relativePositions`.
     */
-  def firstNonPositionMatching: Int = {
-    iterationLimit += 1
-    require(iterationLimit <= 100, "Exceeded iteration limit on positionsMatch")
+  def firstNonPositionMatching: Int =
     // TODO handle "slop" / error distance
     // Check that each position is satisfying it's relative position
     if (postings.size < 2)
@@ -93,7 +88,6 @@ class PositionalIter(
         -1
       else firstIndexNotInMatchWithNextIndex + 1
     }
-  }
 
   def next(docId: Int): Int = {
     // Advance currDocId to at least docId target
