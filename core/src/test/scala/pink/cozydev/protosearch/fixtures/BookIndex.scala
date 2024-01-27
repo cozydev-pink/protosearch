@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.fixtures
 
 object BookIndex {
   case class Book(title: String, author: String) {

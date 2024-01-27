@@ -21,7 +21,7 @@ import pink.cozydev.lucille.QueryParser
 
 class PositionalBooleanRetrievalSuite extends munit.FunSuite {
 
-  val index = PositionalIndex(CatIndex.docs)
+  val index = PositionalIndex(fixtures.CatIndex.docs)
   val analyzer = Analyzer.default
 
   def search(qStr: String): Either[String, Set[Int]] =

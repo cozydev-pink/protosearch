@@ -17,6 +17,7 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import fixtures.BookIndex
 
 class WriteReadLoopSuite extends munit.FunSuite {
   import BookIndex.{Book, allBooks, fish}

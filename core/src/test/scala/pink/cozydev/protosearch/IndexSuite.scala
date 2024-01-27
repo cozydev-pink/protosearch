@@ -18,7 +18,7 @@ package pink.cozydev.protosearch
 
 class IndexSuite extends munit.FunSuite {
 
-  val index = CatIndex.index
+  val index = fixtures.CatIndex.index
 
   test("apply builds from list of lists of strings") {
     assertEquals(index.numTerms, 16)

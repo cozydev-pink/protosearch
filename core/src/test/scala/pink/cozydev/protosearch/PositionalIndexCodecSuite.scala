@@ -18,7 +18,7 @@ package pink.cozydev.protosearch
 
 class PositionalIndexCodecSuite extends munit.FunSuite {
 
-  val index = PositionalIndex(CatIndex.docs)
+  val index = PositionalIndex(fixtures.CatIndex.docs)
 
   test("PositionalIndex.codec encodes") {
     val bytes = PositionalIndex.codec.encode(index)
