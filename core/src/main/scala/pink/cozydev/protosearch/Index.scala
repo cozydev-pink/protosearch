@@ -126,9 +126,6 @@ sealed abstract class Index private (
     -1
   }
 
-  private[protosearch] lazy val serializeToTuple3: (Int, Array[Array[Int]], TermDictionary) =
-    (numDocs, tfData, termDict)
-
 }
 object Index {
   import scala.collection.mutable.{TreeMap => MMap}
@@ -185,7 +182,7 @@ object Index {
       .as[(Int, Array[Array[Int]], TermDictionary)]
       .xmap(
         { case (numDocs, tfData, terms) => new Index(terms, tfData, numDocs) {} },
-        ti => ti.serializeToTuple3,
+        ti => (ti.numDocs, ti.tfData, ti.termDict),
       )
   }
 }
