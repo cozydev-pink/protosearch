@@ -39,7 +39,4 @@ object IndexCodecs {
 
   val termList: Codec[Array[String]] =
     arrayOfN(codecs.vint, codecs.utf8_32).withContext("termList")
-
-  val postings: Codec[Array[Array[Int]]] =
-    arrayOfN(codecs.vint, arrayOfN(codecs.vint, codecs.vint)).withContext("postings")
 }
