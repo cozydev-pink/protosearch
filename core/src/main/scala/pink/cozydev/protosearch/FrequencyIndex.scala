@@ -22,36 +22,29 @@ import scala.collection.mutable.HashSet
 
 import pink.cozydev.protosearch.codecs.IndexCodecs
 import pink.cozydev.protosearch.internal.TermDictionary
+import pink.cozydev.protosearch.internal.FrequencyPostingsList
+import pink.cozydev.protosearch.internal.FrequencyPostingsBuilder
 
 sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
-    private val tfData: Array[Array[Int]],
+    private val tfData: Array[FrequencyPostingsList],
     val numDocs: Int,
 ) extends Index {
 
   val numTerms = termDict.numTerms
-  lazy val numData = tfData.map(_.size).sum / 2
 
-  override def toString(): String = s"TermIndexArray($numTerms terms, $numData term-doc pairs)"
+  override def toString(): String = s"TermIndexArray($numTerms terms, $numDocs docs)"
 
   def docCount(term: String): Int = {
     val idx = termDict.termIndex(term)
     if (idx < 0) 0
-    else tfData(idx).size / 2
+    else tfData(idx).docs.size
   }
 
   def docsWithTerm(term: String): Iterator[Int] = {
     val idx = termDict.termIndex(term)
-    if (idx < 0) Nil
-    else evenElems(tfData(idx))
-  }.iterator
-
-  /** For every term between left and right, get the docs using those terms. */
-  def docsForRange(left: String, right: String): Iterator[Int] = {
-    val bldr = HashSet.empty[Int]
-    Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
-      .foreach(i => bldr ++= evenElems(tfData(i)))
-    bldr.iterator
+    if (idx < 0) Iterator.empty
+    else tfData(idx).docs
   }
 
   /** For every term starting with prefix, get the docs using those terms. */
@@ -60,9 +53,17 @@ sealed abstract class FrequencyIndex private (
     if (terms.size == 0) Iterator.empty
     else {
       val bldr = HashSet.empty[Int]
-      terms.foreach(i => bldr ++= evenElems(tfData(i)))
+      terms.foreach(i => bldr ++= tfData(i).docs)
       bldr.iterator
     }
+  }
+
+  /** For every term between left and right, get the docs using those terms. */
+  def docsForRange(left: String, right: String): Iterator[Int] = {
+    val bldr = HashSet.empty[Int]
+    Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
+      .foreach(i => bldr ++= tfData(i).docs)
+    bldr.iterator
   }
 
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
@@ -71,14 +72,14 @@ sealed abstract class FrequencyIndex private (
       val idx = termDict.termIndex(term)
       if (idx == -1) Nil
       else {
-        val arr = tfData(idx)
-        val idf: Double = 2.0 / arr.size.toDouble
+        val posting = tfData(idx)
+        val idf: Double = 2.0 / posting.docs.size.toDouble
         val bldr = ListBuffer.newBuilder[(Int, Double)]
         bldr.sizeHint(docs.size)
         docs.foreach { docId =>
-          val i = indexForDocId(arr, docId)
-          if (i >= 0) {
-            val tf = Math.log(1.0 + arr(i + 1))
+          val freq = posting.frequencyForDocID(docId)
+          if (freq != -1) {
+            val tf = Math.log(1.0 + freq)
             val tfidf: Double = tf * idf
             // println(s"term($term) doc($docId) tf: $tf, idf: $idf, tfidf: $tfidf")
             bldr += (docId -> tfidf)
@@ -87,88 +88,42 @@ sealed abstract class FrequencyIndex private (
         bldr.result().sortBy(-_._2).toList
       }
     }
-
-  private def evenElems(arr: Array[Int]): List[Int] = {
-    require(
-      arr.size >= 2 && arr.size % 2 == 0,
-      "evenElems expects even sized arrays of 2 or greater",
-    )
-    if (arr.size == 2) arr(0) :: Nil
-    else {
-      var i = 0
-      val bldr = ListBuffer.newBuilder[Int]
-      bldr.sizeHint(arr.size / 2)
-      while (i < arr.length) {
-        bldr += arr(i)
-        i += 2
-      }
-      bldr.result().toList
-    }
-  }
-
-  private def indexForDocId(arr: Array[Int], id: Int): Int = {
-    var i = 0
-    while (i < arr.length) {
-      if (arr(i) == id) return i
-      i += 2
-    }
-    -1
-  }
-
 }
 object FrequencyIndex {
   import scala.collection.mutable.{TreeMap => MMap}
   import scodec.{Codec, codecs}
 
-  // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
-  // a Stream[F, A] with evidence of Indexable[A]
-  def apply(docs: List[List[String]]): FrequencyIndex = {
-    val m = new MMap[String, List[Int]].empty
+  def apply(docs: Iterable[Iterable[String]]): FrequencyIndex = {
+    val termPostingsMap = new MMap[String, FrequencyPostingsBuilder].empty
     var docId = 0
-    val docLen = docs.length
     docs.foreach { doc =>
       doc.foreach { term =>
-        var s = m.getOrElseUpdate(term, List.empty[Int])
-        if (s.isEmpty) {
-          // println(s"doc($docId), term($term), init freq = 1")
-          // s.prepend(1).prepend(docId)
-          s = docId :: 1 :: Nil
-        } else {
-          val lastDoc = s.head
-          val freq = s.tail.head
-          if (lastDoc == docId) {
-            //   println(s"doc($docId), term($term), INCREMENT newFreq=${freq + 1}")
-            // s.prepend(freq + 1).prepend(docId)
-            s = docId :: (freq + 1) :: s.tail.tail
-          } else {
-            //   println(s"doc($docId), term($term) new doc! init freq = 1")
-            // s.prepend(freq).prepend(lastDoc).prepend(1).prepend(docId)
-            s = docId :: 1 :: s
-          }
-        }
-        m += ((term, s))
+        termPostingsMap
+          .getOrElseUpdate(term, new FrequencyPostingsBuilder)
+          .addTerm(docId)
       }
       docId += 1
     }
     val keys = ArrayBuilder.make[String]
-    val values = ArrayBuilder.make[Array[Int]]
-    val size = m.size
+    val values = ArrayBuilder.make[FrequencyPostingsList]
+    val size = termPostingsMap.size
     keys.sizeHint(size)
     values.sizeHint(size)
-    m.foreach { case (k, v) =>
+    termPostingsMap.foreach { case (k, v) =>
       keys += k
-      values += v.toArray
+      values += v.toFrequencyPostingsList
     }
-    new FrequencyIndex(new TermDictionary(keys.result()), values.result(), docLen) {}
+    new FrequencyIndex(new TermDictionary(keys.result()), values.result(), docId) {}
   }
 
   val codec: Codec[FrequencyIndex] = {
     val terms = TermDictionary.codec
-    val postings = IndexCodecs.postings
+    val postings =
+      IndexCodecs.arrayOfN(codecs.vint, FrequencyPostingsList.codec).withContext("postings")
     val numDocs = codecs.vint.withContext("numDocs")
 
     (numDocs :: postings :: terms)
-      .as[(Int, Array[Array[Int]], TermDictionary)]
+      .as[(Int, Array[FrequencyPostingsList], TermDictionary)]
       .xmap(
         { case (numDocs, tfData, terms) => new FrequencyIndex(terms, tfData, numDocs) {} },
         ti => (ti.numDocs, ti.tfData, ti.termDict),
