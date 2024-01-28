@@ -33,7 +33,7 @@ sealed abstract class FrequencyIndex private (
 
   val numTerms = termDict.numTerms
 
-  override def toString(): String = s"TermIndexArray($numTerms terms, $numDocs docs)"
+  override def toString(): String = s"FrequencyIndex($numTerms terms, $numDocs docs)"
 
   def docCount(term: String): Int = {
     val idx = termDict.termIndex(term)
