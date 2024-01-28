@@ -45,12 +45,12 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
-    val indexB = Index(List(List("bb", "cc", "dd")))
+    val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
     assertEquals(indexB.termDict.termIndexWhere("a"), 0)
   }
 
   test("termIndexWhere returns length of termDict when nonexistent would insert at end") {
-    val indexB = Index(List(List("bb", "cc", "dd")))
+    val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
     assertEquals(indexB.termDict.termIndexWhere("x"), 3)
   }
 
@@ -67,7 +67,7 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsForPrefix returns empty set if no prefix matches and it would insert at beginning") {
-    val indexB = Index(List(List("bb")))
+    val indexB = FrequencyIndex(List(List("bb")))
     assertEquals(indexB.docsForPrefix("a"), Set.empty[Int])
   }
 
@@ -84,18 +84,18 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("termsForPrefix returns Nil if no prefix matches and it would insert at beginning") {
-    val indexB = Index(List(List("bb")))
+    val indexB = FrequencyIndex(List(List("bb")))
     assertEquals(indexB.termDict.termsForPrefix("a"), Nil)
   }
 
   test("Index.codec encodes") {
-    val bytes = Index.codec.encode(index)
+    val bytes = FrequencyIndex.codec.encode(index)
     assert(bytes.isSuccessful)
   }
 
   test("Index.codec round trips") {
-    val bytes = Index.codec.encode(index)
-    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
+    val bytes = FrequencyIndex.codec.encode(index)
+    val indexDecoded = bytes.flatMap(FrequencyIndex.codec.decodeValue)
     assert(indexDecoded.isSuccessful)
   }
 

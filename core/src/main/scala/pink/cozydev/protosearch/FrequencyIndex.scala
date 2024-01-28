@@ -23,7 +23,7 @@ import scala.collection.mutable.HashSet
 import pink.cozydev.protosearch.codecs.IndexCodecs
 import pink.cozydev.protosearch.internal.TermDictionary
 
-sealed abstract class Index private (
+sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
     private val tfData: Array[Array[Int]],
     val numDocs: Int,
@@ -127,13 +127,13 @@ sealed abstract class Index private (
   }
 
 }
-object Index {
+object FrequencyIndex {
   import scala.collection.mutable.{TreeMap => MMap}
   import scodec.{Codec, codecs}
 
   // don't want to take in Stream[F, Stream[F, A]] because we should really be taking in
   // a Stream[F, A] with evidence of Indexable[A]
-  def apply(docs: List[List[String]]): Index = {
+  def apply(docs: List[List[String]]): FrequencyIndex = {
     val m = new MMap[String, List[Int]].empty
     var docId = 0
     val docLen = docs.length
@@ -170,10 +170,10 @@ object Index {
       keys += k
       values += v.toArray
     }
-    new Index(new TermDictionary(keys.result()), values.result(), docLen) {}
+    new FrequencyIndex(new TermDictionary(keys.result()), values.result(), docLen) {}
   }
 
-  val codec: Codec[Index] = {
+  val codec: Codec[FrequencyIndex] = {
     val terms = TermDictionary.codec
     val postings = IndexCodecs.postings
     val numDocs = codecs.vint.withContext("numDocs")
@@ -181,7 +181,7 @@ object Index {
     (numDocs :: postings :: terms)
       .as[(Int, Array[Array[Int]], TermDictionary)]
       .xmap(
-        { case (numDocs, tfData, terms) => new Index(terms, tfData, numDocs) {} },
+        { case (numDocs, tfData, terms) => new FrequencyIndex(terms, tfData, numDocs) {} },
         ti => (ti.numDocs, ti.tfData, ti.termDict),
       )
   }

@@ -32,10 +32,10 @@ class PositionalIndexCodecSuite extends munit.FunSuite {
   }
 
   // TODO Fix this, it can only lead to sorrow....
-  test("Index.codec errors when trying to decode a PositionalIndex".fail) {
+  test("FrequencyIndex.codec errors when trying to decode a PositionalIndex".fail) {
     val bytes = PositionalIndex.codec.encode(index)
     // oops, using the wrong decoder
-    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
+    val indexDecoded = bytes.flatMap(FrequencyIndex.codec.decodeValue)
     assert(indexDecoded.isFailure)
   }
 

@@ -17,7 +17,7 @@
 package pink.cozydev.protosearch.fixtures
 
 import pink.cozydev.protosearch.analysis.TokenStream.tokenizeSpaceL
-import pink.cozydev.protosearch.Index
+import pink.cozydev.protosearch.FrequencyIndex
 
 object CatIndex {
   val docs: List[List[String]] =
@@ -27,5 +27,5 @@ object CatIndex {
       tokenizeSpaceL("a lazy cat sleeps all day"),
     )
 
-  lazy val index = Index(docs)
+  lazy val index = FrequencyIndex(docs)
 }

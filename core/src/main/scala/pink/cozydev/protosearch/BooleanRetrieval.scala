@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import pink.cozydev.lucille.Query
 import pink.cozydev.lucille.MultiQuery
 
-case class BooleanRetrieval(index: Index, defaultOR: Boolean = true) {
+case class BooleanRetrieval(index: FrequencyIndex, defaultOR: Boolean = true) {
 
   private lazy val allDocs: Set[Int] = Range(0, index.numDocs).toSet
 

@@ -26,9 +26,9 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
   def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
     // TODO unsafe
-    val defaultIdx: Index = index.indexes(index.defaultField)
+    val defaultIdx: FrequencyIndex = index.indexes(index.defaultField)
     def accScore(
-        idx: Index,
+        idx: FrequencyIndex,
         queries: NonEmptyList[Query],
     ): Either[String, NonEmptyList[Map[Int, Double]]] =
       queries.flatTraverse {
@@ -59,7 +59,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
   }
 
   private def prefixScore(
-      idx: Index,
+      idx: FrequencyIndex,
       docs: Set[Int],
       q: Query.Prefix,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
@@ -69,7 +69,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     }
 
   private def rangeScore(
-      idx: Index,
+      idx: FrequencyIndex,
       docs: Set[Int],
       q: Query.TermRange,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
