@@ -45,25 +45,25 @@ case class MultiIndex(
 
   private val defaultIndex = indexes(defaultField)
   private val defaultBooleanQ =
-    BooleanRetrieval(indexes(defaultField), defaultOR)
+    IndexSearcher(indexes(defaultField), defaultOR)
 
   private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
 
   private def booleanModel(q: Query): Either[String, Set[Int]] =
     q match {
-      case Query.Or(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.unionSets)
-      case Query.And(qs) => qs.traverse(booleanModel).map(BooleanRetrieval.intersectSets)
+      case Query.Or(qs) => qs.traverse(booleanModel).map(IndexSearcher.unionSets)
+      case Query.And(qs) => qs.traverse(booleanModel).map(IndexSearcher.intersectSets)
       case Query.Not(q) => booleanModel(q).map(matches => allDocs -- matches)
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.Field(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          BooleanRetrieval(index, defaultOR).search(q)
+          IndexSearcher(index, defaultOR).search(q)
         }
       case _ => defaultBooleanQ.search(q)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) BooleanRetrieval.unionSets(sets) else BooleanRetrieval.intersectSets(sets)
+    if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
 
 }
 object MultiIndex {

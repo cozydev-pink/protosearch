@@ -27,8 +27,16 @@ sealed abstract class PositionalIndex private (
     private val termDict: TermDictionary,
     private val tfData: Array[PositionalPostingsList],
     val numDocs: Int,
-) {
+) extends Index {
   val numTerms = termDict.numTerms
+
+  def docCount(term: String): Int = {
+    val idx = termDict.termIndex(term)
+    if (idx < 0) 0
+    else {
+      tfData(idx).docs.size
+    }
+  }
 
   def postingForTerm(term: String): Option[PositionalPostingsList] = {
     val idx = termDict.termIndex(term)
@@ -38,31 +46,31 @@ sealed abstract class PositionalIndex private (
     }
   }
 
-  def docsWithTermSet(term: String): Set[Int] = {
+  def docsWithTerm(term: String): Iterator[Int] = {
     val idx = termDict.termIndex(term)
-    if (idx < 0) Set.empty
+    if (idx < 0) Iterator.empty
     else {
-      tfData(idx).docs.toSet
+      tfData(idx).docs
     }
   }
 
   /** For every term starting with prefix, get the docs using those terms. */
-  def docsForPrefix(prefix: String): Set[Int] = {
+  def docsForPrefix(prefix: String): Iterator[Int] = {
     val terms = termDict.indicesForPrefix(prefix)
-    if (terms.size == 0) Set.empty
+    if (terms.size == 0) Iterator.empty
     else {
       val bldr = HashSet.empty[Int]
       terms.foreach(i => bldr ++= tfData(i).docs)
-      bldr.toSet
+      bldr.iterator
     }
   }
 
   /** For every term between left and right, get the docs using those terms. */
-  def docsForRange(left: String, right: String): Set[Int] = {
+  def docsForRange(left: String, right: String): Iterator[Int] = {
     val bldr = HashSet.empty[Int]
     Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
       .foreach(i => bldr ++= tfData(i).docs)
-    bldr.toSet
+    bldr.iterator
   }
 
 }

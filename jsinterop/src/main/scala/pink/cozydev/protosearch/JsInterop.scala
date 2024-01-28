@@ -70,6 +70,7 @@ object QuerierBuilder {
     MultiIndex.codec.decodeValue(bv.bits).require
   }
 
+  // TODO the default field is in the MultiIndex, just use that
   @JSExport
   def load(bytes: Blob, defaultField: String): js.Promise[Querier] =
     bytes.arrayBuffer().`then`[Querier] { buf =>

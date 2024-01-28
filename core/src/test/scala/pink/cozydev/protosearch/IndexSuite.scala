@@ -35,13 +35,13 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsWithTerm returns empty list when no docs contain term") {
-    assertEquals(index.docsWithTerm("???"), Nil)
+    assertEquals(index.docsWithTerm("???").toList, Nil)
   }
 
   test("docsWithTerm returns list of docIDs containing term") {
-    assertEquals(index.docsWithTerm("cat").sorted, List(0, 1, 2))
-    assertEquals(index.docsWithTerm("the").sorted, List(0, 1))
-    assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
+    assertEquals(index.docsWithTerm("cat").toList.sorted, List(0, 1, 2))
+    assertEquals(index.docsWithTerm("the").toList.sorted, List(0, 1))
+    assertEquals(index.docsWithTerm("lazy").toList.sorted, List(0, 2))
   }
 
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
@@ -55,20 +55,20 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsForPrefix returns set of docIDs containing prefixes") {
-    assertEquals(index.docsForPrefix("f"), Set(0, 1))
+    assertEquals(index.docsForPrefix("f").toSet, Set(0, 1))
   }
 
   test("docsForPrefix returns set of docIDs containing exact term as prefix") {
-    assertEquals(index.docsForPrefix("sleeps"), Set(2))
+    assertEquals(index.docsForPrefix("sleeps").toSet, Set(2))
   }
 
   test("docsForPrefix returns empty set when no docs contain prefix") {
-    assertEquals(index.docsForPrefix("x"), Set.empty[Int])
+    assertEquals(index.docsForPrefix("x").toSet, Set.empty[Int])
   }
 
   test("docsForPrefix returns empty set if no prefix matches and it would insert at beginning") {
     val indexB = FrequencyIndex(List(List("bb")))
-    assertEquals(indexB.docsForPrefix("a"), Set.empty[Int])
+    assertEquals(indexB.docsForPrefix("a").toSet, Set.empty[Int])
   }
 
   test("termsForPrefix returns all terms starting with prefix") {

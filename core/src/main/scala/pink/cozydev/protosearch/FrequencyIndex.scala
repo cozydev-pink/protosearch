@@ -27,7 +27,7 @@ sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
     private val tfData: Array[Array[Int]],
     val numDocs: Int,
-) {
+) extends Index {
 
   val numTerms = termDict.numTerms
   lazy val numData = tfData.map(_.size).sum / 2
@@ -40,39 +40,28 @@ sealed abstract class FrequencyIndex private (
     else tfData(idx).size / 2
   }
 
-  def docsWithTerm(term: String): List[Int] = {
+  def docsWithTerm(term: String): Iterator[Int] = {
     val idx = termDict.termIndex(term)
     if (idx < 0) Nil
     else evenElems(tfData(idx))
-  }
-
-  def docsWithTermSet(term: String): Set[Int] = {
-    val idx = termDict.termIndex(term)
-    // println(s"looking for term: $term, idx: $idx")
-    if (idx < 0) Set.empty
-    else {
-      val x = evenElems(tfData(idx)).toSet
-      // println(s"returning set: $x")
-      x
-    }
-  }
+  }.iterator
 
   /** For every term between left and right, get the docs using those terms. */
-  def docsForRange(left: String, right: String): Set[Int] = {
+  def docsForRange(left: String, right: String): Iterator[Int] = {
     val bldr = HashSet.empty[Int]
     Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
       .foreach(i => bldr ++= evenElems(tfData(i)))
-    bldr.toSet
+    bldr.iterator
   }
 
   /** For every term starting with prefix, get the docs using those terms. */
-  def docsForPrefix(prefix: String): Set[Int] = {
+  def docsForPrefix(prefix: String): Iterator[Int] = {
     val terms = termDict.indicesForPrefix(prefix)
-    if (terms.size == 0) Set.empty
+    if (terms.size == 0) Iterator.empty
     else {
       val bldr = HashSet.empty[Int]
       terms.foreach(i => bldr ++= evenElems(tfData(i)))
-      bldr.toSet
+      bldr.iterator
     }
   }
 
