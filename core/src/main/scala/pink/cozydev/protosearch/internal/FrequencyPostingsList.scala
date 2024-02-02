@@ -21,6 +21,7 @@ package pink.cozydev.protosearch.internal
   */
 private[internal] abstract class FrequencyPostingsReader {
   def currentDocId: Int
+  def currentFrequency: Int
   def hasNext: Boolean
   def nextDoc(): Int
 
@@ -38,6 +39,7 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
     private[this] var docIndex = 0
 
     def currentDocId: Int = postings(docIndex)
+    def currentFrequency: Int = postings(docIndex + 1)
 
     override def toString(): String =
       s"FrequencyPostingsReader(i=$docIndex, currentDocId=$currentDocId, positions=${postings.toList})"

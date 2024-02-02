@@ -21,6 +21,7 @@ package pink.cozydev.protosearch.internal
   */
 private[internal] abstract class PositionalPostingsReader {
   def currentDocId: Int
+  def currentFrequency: Int
   def currentPosition: Int
   def hasNext: Boolean
   def nextDoc(): Int
@@ -48,9 +49,8 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
     private[this] var docIndex = 0
     private[this] var posIndex = 2
 
-    private[this] def currDocFreq = postings(docIndex + 1)
-
     def currentDocId: Int = postings(docIndex)
+    def currentFrequency: Int = postings(docIndex + 1)
     def currentPosition: Int = postings(posIndex)
 
     override def toString(): String =
@@ -61,7 +61,7 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
         (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
 
     def nextDoc(): Int = {
-      docIndex += 1 + currDocFreq + 1
+      docIndex += 1 + currentFrequency + 1
       posIndex = docIndex + 2
       currentDocId
     }
@@ -75,7 +75,7 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 
     def hasNextPosition: Boolean =
       // less than or equal to catch the very last position
-      posIndex <= docIndex + currDocFreq
+      posIndex <= docIndex + currentFrequency
 
     def nextPosition(): Int = {
       posIndex += 1
