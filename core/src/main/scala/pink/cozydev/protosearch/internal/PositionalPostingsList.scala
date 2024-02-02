@@ -105,15 +105,19 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 }
 object PositionalPostingsList {
   import scodec.{Codec, codecs}
+  import scodec.codecs._
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
-  val codec: Codec[PositionalPostingsList] =
-    IndexCodecs
+  val codec: Codec[PositionalPostingsList] = {
+    val header = "typeFlag" | constant(0x42)
+
+    header ~> IndexCodecs
       .arrayOfN(codecs.vint, codecs.vint)
       .xmap(
         arr => new PositionalPostingsList(arr),
         p => p.postings,
       )
+  }
 }
 
 final class PositionalPostingsBuilder {

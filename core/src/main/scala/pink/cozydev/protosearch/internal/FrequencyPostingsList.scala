@@ -82,15 +82,19 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
 }
 object FrequencyPostingsList {
   import scodec.{Codec, codecs}
+  import scodec.codecs._
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
-  val codec: Codec[FrequencyPostingsList] =
-    IndexCodecs
+  val codec: Codec[FrequencyPostingsList] = {
+    val header = "typeFlag" | constant(0x41)
+
+    header ~> IndexCodecs
       .arrayOfN(codecs.vint, codecs.vint)
       .xmap(
         arr => new FrequencyPostingsList(arr),
         p => p.postings,
       )
+  }
 }
 final class FrequencyPostingsBuilder {
 

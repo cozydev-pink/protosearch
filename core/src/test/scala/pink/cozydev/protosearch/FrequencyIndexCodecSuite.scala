@@ -16,25 +16,25 @@
 
 package pink.cozydev.protosearch
 
-class PositionalIndexCodecSuite extends munit.FunSuite {
+class FrequencyIndexCodecSuite extends munit.FunSuite {
 
-  val index = PositionalIndex(fixtures.CatIndex.docs)
+  val index = FrequencyIndex(fixtures.CatIndex.docs)
 
-  test("PositionalIndex.codec encodes") {
-    val bytes = PositionalIndex.codec.encode(index)
+  test("FrequencyIndex.codec encodes") {
+    val bytes = FrequencyIndex.codec.encode(index)
     assert(bytes.isSuccessful)
   }
 
-  test("PositionalIndex.codec round trips") {
-    val bytes = PositionalIndex.codec.encode(index)
-    val indexDecoded = bytes.flatMap(PositionalIndex.codec.decodeValue)
+  test("FrequencyIndex.codec round trips") {
+    val bytes = FrequencyIndex.codec.encode(index)
+    val indexDecoded = bytes.flatMap(FrequencyIndex.codec.decodeValue)
     assert(indexDecoded.isSuccessful)
   }
 
-  test("FrequencyIndex.codec errors when trying to decode a PositionalIndex") {
-    val bytes = PositionalIndex.codec.encode(index)
+  test("PositionalIndex.codec errors when trying to decode a FrequencyIndex") {
+    val bytes = FrequencyIndex.codec.encode(index)
     // oops, using the wrong decoder
-    val indexDecoded = bytes.flatMap(FrequencyIndex.codec.decodeValue)
+    val indexDecoded = bytes.flatMap(PositionalIndex.codec.decodeValue)
     assert(indexDecoded.isFailure)
   }
 
