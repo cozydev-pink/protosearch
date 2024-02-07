@@ -73,6 +73,27 @@ sealed abstract class PositionalIndex private (
     bldr.iterator
   }
 
+  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
+    if (docs.size == 0) Nil
+    else {
+      val idx = termDict.termIndex(term)
+      if (idx == -1) Nil
+      else {
+        val posting = tfData(idx)
+        val idf: Double = 2.0 / posting.docs.size.toDouble
+        val bldr = List.newBuilder[(Int, Double)]
+        bldr.sizeHint(docs.size)
+        docs.foreach { docId =>
+          val freq = posting.frequencyForDocID(docId)
+          if (freq != -1) {
+            val tf = Math.log(1.0 + freq)
+            val tfidf: Double = tf * idf
+            bldr += (docId -> tfidf)
+          }
+        }
+        bldr.result().sortBy(-_._2).toList
+      }
+    }
 }
 object PositionalIndex {
   import scala.collection.mutable.{TreeMap => MMap}

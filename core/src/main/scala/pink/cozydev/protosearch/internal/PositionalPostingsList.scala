@@ -102,6 +102,12 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
     }
   }
 
+  def frequencyForDocID(docID: Int): Int = {
+    val rdr = reader()
+    rdr.nextDoc(docID)
+    if (rdr.currentDocId == docID) rdr.currentFrequency else -1
+  }
+
 }
 object PositionalPostingsList {
   import scodec.{Codec, codecs}
