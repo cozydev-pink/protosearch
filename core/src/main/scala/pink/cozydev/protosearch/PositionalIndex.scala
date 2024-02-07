@@ -24,7 +24,7 @@ import pink.cozydev.protosearch.internal.PositionalPostingsBuilder
 import pink.cozydev.protosearch.internal.TermDictionary
 
 sealed abstract class PositionalIndex private (
-    private val termDict: TermDictionary,
+    val termDict: TermDictionary,
     private val tfData: Array[PositionalPostingsList],
     val numDocs: Int,
 ) extends Index {

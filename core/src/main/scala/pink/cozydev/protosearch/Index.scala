@@ -16,6 +16,8 @@
 
 package pink.cozydev.protosearch
 
+import pink.cozydev.protosearch.internal.TermDictionary
+
 trait Index {
   def numDocs: Int
   def numTerms: Int
@@ -24,4 +26,8 @@ trait Index {
   def docsWithTerm(term: String): Iterator[Int]
   def docsForRange(left: String, right: String): Iterator[Int]
   def docsForPrefix(prefix: String): Iterator[Int]
+
+  // Preliminary Scoring support
+  def termDict: TermDictionary
+  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)]
 }
