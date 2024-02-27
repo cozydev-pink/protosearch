@@ -29,8 +29,8 @@ import pink.cozydev.protosearch.analysis.Analyzer
 
 val analyzer = Analyzer.default.withLowerCasing
 val searchSchema = SearchSchema[Book](
-  (Field("author", analyzer, stored=true, indexed=true), _.author),
-  (Field("title", analyzer, stored=true, indexed=true), _.title),
+  (Field("author", analyzer, stored=true, indexed=true, positions=false), _.author),
+  (Field("title", analyzer, stored=true, indexed=true, positions=true), _.title),
 )
 
 val index = searchSchema.indexBldr("title")(books)
