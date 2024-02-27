@@ -21,6 +21,7 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import scala.collection.mutable.{HashMap => MMap}
 import pink.cozydev.lucille.MultiQuery
+import pink.cozydev.protosearch.internal.PositionalIter
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -35,9 +36,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.Term(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
         case q: Query.Prefix => prefixScore(idx, docs, q)
         case q: Query.TermRange => rangeScore(idx, docs, q)
-        case Query.Phrase(p) =>
-          // TODO Hack, only works for single term phrase
-          Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
+        case q: Query.Phrase => phraseScore(idx, docs, q)
         case Query.Or(qs) => accScore(idx, qs)
         case Query.And(qs) => accScore(idx, qs)
         case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
@@ -57,6 +56,29 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       }
     accScore(defaultIdx, qs).map(combineMaps)
   }
+
+  def phraseScore(
+      idx: Index,
+      docs: Set[Int],
+      q: Query.Phrase,
+  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+    idx match {
+      case pindex: PositionalIndex =>
+        val m = PositionalIter.exact(pindex, q)
+        m match {
+          case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+          case Some(mm) =>
+            val tf = mm.takeWhile(_ > -1).toList.groupBy(identity).map { case (k, vs) =>
+              (k, vs.size.toDouble)
+            }
+            // val idf = 1.0 // TODO sum of idfs
+            val m = tf.filter { case (k, _) => docs.contains(k) }
+            Right(NonEmptyList.one(m))
+        }
+      case idx: Index =>
+        // Optimistic phrase query handling for single term only
+        Right(NonEmptyList.one(idx.scoreTFIDF(docs, q.str).toMap))
+    }
 
   private def prefixScore(
       idx: Index,

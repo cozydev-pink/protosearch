@@ -20,10 +20,8 @@ import scala.collection.mutable.ListBuffer
 import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
 
-import pink.cozydev.protosearch.analysis.Analyzer
-
 case class MultiIndex(
-    indexes: Map[String, FrequencyIndex],
+    indexes: Map[String, Index],
     defaultField: String,
     defaultOR: Boolean = true,
     fields: Map[String, Array[String]],
@@ -70,9 +68,8 @@ object MultiIndex {
   import scodec.{Codec, codecs}
 
   private case class Bldr[A](
-      name: String,
+      field: Field,
       getter: A => String,
-      analyzer: Analyzer,
       acc: ListBuffer[List[String]],
   )
 
@@ -83,7 +80,7 @@ object MultiIndex {
   ): List[A] => MultiIndex = {
 
     val bldrs = (head :: tail.toList).map { case (field, getter) =>
-      Bldr(field.name, getter, field.analyzer, ListBuffer.empty)
+      Bldr(field, getter, ListBuffer.empty)
     }
 
     val storage = (head :: tail.toList).map(fg => fg._1.name -> ListBuffer.empty[String]).toMap
@@ -92,14 +89,21 @@ object MultiIndex {
       docs.foreach { doc =>
         bldrs.foreach { bldr =>
           val value = bldr.getter(doc)
-          storage(bldr.name) += value
-          bldr.acc += (bldr.analyzer.tokenize(value))
+          storage(bldr.field.name) += value
+          bldr.acc += (bldr.field.analyzer.tokenize(value))
         }
       }
       // TODO let's delay defining the default field even further
       // Also, let's make it optional, with no field meaning all fields?
       new MultiIndex(
-        indexes = bldrs.map(bldr => (bldr.name, FrequencyIndex(bldr.acc.toList))).toMap,
+        indexes = bldrs.map { bldr =>
+          val index =
+            if (bldr.field.positions)
+              PositionalIndex(bldr.acc.toList)
+            else
+              FrequencyIndex(bldr.acc.toList)
+          (bldr.field.name, index)
+        }.toMap,
         defaultField = defaultField,
         defaultOR = true,
         fields = storage.map { case (k, v) => k -> v.toArray },
@@ -109,12 +113,29 @@ object MultiIndex {
 
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
+  import scodec.codecs._
+  import scodec.{Attempt, Err}
+
+  def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
+    i match {
+      case idx: PositionalIndex => Attempt.successful(Right(idx))
+      case idx: FrequencyIndex => Attempt.successful(Left(idx))
+      case _ => Attempt.failure(Err("Index was neither FrequencyIndex or PositionalIndex"))
+    }
+
   val codec: Codec[MultiIndex] = {
 
-    val indexes: Codec[Map[String, FrequencyIndex]] =
+    val index: Codec[Index] = discriminated[Either[FrequencyIndex, PositionalIndex]]
+      .by(uint2)
+      .caseP(0) { case Left(l) => l }(Left.apply)(FrequencyIndex.codec)
+      .caseP(1) { case Right(r) => r }(Right.apply)(PositionalIndex.codec)
+      .widen(eitherFP => eitherFP.merge, encodeIndex)
+
+    val indexes: Codec[Map[String, Index]] =
       codecs
-        .listOfN(codecs.vint, (codecs.utf8_32 :: FrequencyIndex.codec).as[(String, FrequencyIndex)])
+        .listOfN(codecs.vint, (codecs.utf8_32 :: index).as[(String, Index)])
         .xmap(_.toMap, _.toList)
+
     val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
     val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
 
@@ -128,7 +149,7 @@ object MultiIndex {
 
     val multiIndex: Codec[MultiIndex] =
       (indexes :: defaultField :: defaultOr :: fields)
-        .as[(Map[String, FrequencyIndex], String, Boolean, Map[String, Array[String]])]
+        .as[(Map[String, Index], String, Boolean, Map[String, Array[String]])]
         .xmap(
           { case (in, dF, dOr, fs) => MultiIndex.apply(in, dF, dOr, fs) },
           mi => (mi.indexes, mi.defaultField, mi.defaultOR, mi.fields),

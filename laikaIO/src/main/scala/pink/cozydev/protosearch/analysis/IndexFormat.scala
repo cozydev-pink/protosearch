@@ -56,9 +56,9 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
           val analyzer = Analyzer.default.withLowerCasing
           val index = MultiIndex[RenderedDocument](
             "body",
-            (Field("body", analyzer, true, true), _.content),
-            (Field("title", analyzer, true, true), d => renderTitle(d.title, d.path)),
-            (Field("path", analyzer, true, true), d => renderLink(d)),
+            (Field("body", analyzer, true, true, true), _.content),
+            (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
+            (Field("path", analyzer, true, true, false), d => renderLink(d)),
           )(allDocs)
           val indexBytes = MultiIndex.codec
             .encode(index)

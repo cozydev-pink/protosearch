@@ -82,17 +82,11 @@ case class QueryAnalyzer(
       case q: Query.Prefix => Right(q)
       case q: Query.TermRange => Right(q)
       case Query.Phrase(q) =>
-        // TODO This is also a hack, we don't really support phrase queries yet
-        // But if the phrase contains a single term, we can do it!
         val qs: List[String] = analyzers(defaultField).tokenize(q)
         NonEmptyList.fromList(qs) match {
           case None => Left(s"Query analysis error, no terms found after tokenizing $query")
-          case Some(qs) =>
-            if (qs.length == 1) Right(Query.Phrase(qs.head))
-            else
-              Left(
-                s"Query analysis error, Phrase tokenized into multiple terms, this should be supported, but isn't yet"
-              )
+          // TODO This is also a hack, we shouldn't reconstruct a string!
+          case Some(qs) => Right(Query.Phrase(qs.toList.mkString(" ")))
         }
       case q: Query.Or => q.qs.traverse(analyzeQ).map(Query.Or.apply)
       case q: Query.And => q.qs.traverse(analyzeQ).map(Query.And.apply)
