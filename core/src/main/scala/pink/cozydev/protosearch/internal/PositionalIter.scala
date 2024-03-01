@@ -51,7 +51,8 @@ class PositionalIter(
     if (currDocId != -1) {
       currDocId += 1
     }
-    if (allPositionsMatch) res else -1
+    // if we're in match, return it, else, keep going
+    if (allPositionsMatch) res else next()
   }
 
   /** Returns true if all postings match `docId` */
@@ -71,23 +72,8 @@ class PositionalIter(
     */
   def firstNonPositionMatching: Int =
     // TODO handle "slop" / error distance
-    // Check that each position is satisfying it's relative position
-    if (postings.size < 2)
-      -1
-    else {
-      val firstIndexNotInMatchWithNextIndex =
-        postings.map(_.currentPosition).zipWithIndex.sliding(2).indexWhere { pair =>
-          val ((p1, i1), (p2, i2)) = (pair(0), pair(1))
-          val r1 = relativePositions(i1)
-          val r2 = relativePositions(i2)
-          r2 - r1 != p2 - p1
-        }
-      // Because of the `sliding(2)` we want to increment by one if not -1
-      // This let's us target the "NextIndex" we're not in match with
-      if (firstIndexNotInMatchWithNextIndex == -1)
-        -1
-      else firstIndexNotInMatchWithNextIndex + 1
-    }
+    if (postings.size < 2) -1
+    else NextPositionToMatch.nextNotInOrderWithLargest(postings.map(_.currentPosition))
 
   def next(docId: Int): Int = {
     // Advance currDocId to at least docId target
@@ -126,7 +112,7 @@ object PositionalIter {
   // TODO do we want this to live here? It makes this file depend on Lucille and the index
   def exact(index: PositionalIndex, q: Query.Phrase): Option[PositionalIter] = {
     val terms = q.str.split(" ")
-    val relativePositions = (0 to terms.size).toArray
+    val relativePositions = (1 to terms.size).toArray
     val maybePostings = terms.toList.traverse(t => index.postingForTerm(t))
     maybePostings.map(ps => new PositionalIter(ps.map(_.reader()).toArray, relativePositions))
   }
