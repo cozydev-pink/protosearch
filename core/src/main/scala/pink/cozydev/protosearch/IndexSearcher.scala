@@ -54,10 +54,9 @@ case class IndexSearcher(index: Index, defaultOR: Boolean = true) {
   private def phraseSearch(q: Query.Phrase): Either[String, Set[Int]] =
     index match {
       case pindex: PositionalIndex =>
-        val m = PositionalIter.exact(pindex, q)
-        m match {
+        PositionalIter.exact(pindex, q) match {
           case None => Right(Set.empty)
-          case Some(mm) => Right(mm.takeWhile(_ > -1).toSet)
+          case Some(pIter) => Right(pIter.takeWhile(_ > -1).toSet)
         }
       case idx: Index =>
         // Optimistic phrase query handling for single term only

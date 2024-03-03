@@ -64,16 +64,12 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
     idx match {
       case pindex: PositionalIndex =>
-        val m = PositionalIter.exact(pindex, q)
-        m match {
+        PositionalIter.exact(pindex, q) match {
           case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-          case Some(mm) =>
-            val tf = mm.takeWhile(_ > -1).toList.groupBy(identity).map { case (k, vs) =>
-              (k, vs.size.toDouble)
-            }
-            // val idf = 1.0 // TODO sum of idfs
-            val m = tf.filter { case (k, _) => docs.contains(k) }
-            Right(NonEmptyList.one(m))
+          case Some(pIter) =>
+            // TODO this is a total hack, and not how phrase scoring works
+            val scoreMap = pIter.takeWhile(_ > -1).map(docId => (docId, 1.0)).toMap
+            Right(NonEmptyList.one(scoreMap))
         }
       case idx: Index =>
         // Optimistic phrase query handling for single term only
