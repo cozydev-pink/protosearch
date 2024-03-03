@@ -87,7 +87,7 @@ class PositionalIter(
     // Iterate over all postings until they match
     while (!allDocsMatch(currDocId)) {
       val i = firstNonMatching(currDocId)
-      val newDocId = postings(i).nextDoc(currDocId)
+      val newDocId = postings(i).advance(currDocId)
       if (newDocId < currDocId)
         // posting has no docIds at or above currDocId, bail
         return -1

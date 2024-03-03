@@ -67,8 +67,8 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
     val posList = ppb.toPositionalPostingsList.reader()
-    (0 to 10).foreach(_ => posList.nextDoc(2))
-    assertEquals(posList.nextDoc(2), 2)
+    (0 to 10).foreach(_ => posList.advance(2))
+    assertEquals(posList.advance(2), 2)
   }
 
   test("PositionalPostingsList Reader nextDoc(i > max) does not advance past max") {
@@ -81,8 +81,8 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
     val posList = ppb.toPositionalPostingsList.reader()
-    (0 to 10).foreach(_ => posList.nextDoc(100))
-    assertEquals(posList.nextDoc(100), 42)
+    (0 to 10).foreach(_ => posList.advance(100))
+    assertEquals(posList.advance(100), 42)
   }
 
   test("PositionalPostingsList Reader nextPosition(i < max) does not advance past i") {
@@ -95,7 +95,7 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
     val posReader = ppb.toPositionalPostingsList.reader()
-    posReader.nextDoc(2)
+    posReader.advance(2)
     (0 to 10).foreach(_ => posReader.nextPosition(2))
     assertEquals(posReader.nextPosition(2), 2)
   }
@@ -110,7 +110,7 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
     val posReader = ppb.toPositionalPostingsList.reader()
-    posReader.nextDoc(2)
+    posReader.advance(2)
     (0 to 10).foreach(_ => posReader.nextPosition(200))
     assertEquals(posReader.nextPosition(200), 3)
   }

@@ -29,7 +29,7 @@ private[internal] abstract class FrequencyPostingsReader {
     * Does not advance if already at `docId`.
     * @return new `currentDocId` value
     */
-  def nextDoc(docId: Int): Int
+  def advance(docId: Int): Int
 }
 
 /** A non-empty array of postings for a single term. */
@@ -52,7 +52,7 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
       currentDocId
     }
 
-    def nextDoc(docId: Int): Int = {
+    def advance(docId: Int): Int = {
       var newDocId = currentDocId
       while (currentDocId < docId && hasNext)
         newDocId = nextDoc()

@@ -30,7 +30,7 @@ private[internal] abstract class PositionalPostingsReader {
     * Does not advance if already at `docId`.
     * @return new `currentDocId` value
     */
-  def nextDoc(docId: Int): Int
+  def advance(docId: Int): Int
 
   def hasNextPosition: Boolean
 
@@ -66,7 +66,7 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
       currentDocId
     }
 
-    def nextDoc(docId: Int): Int = {
+    def advance(docId: Int): Int = {
       var newDocId = currentDocId
       while (currentDocId < docId && hasNext)
         newDocId = nextDoc()
@@ -104,7 +104,7 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 
   def frequencyForDocID(docID: Int): Int = {
     val rdr = reader()
-    rdr.nextDoc(docID)
+    rdr.advance(docID)
     if (rdr.currentDocId == docID) rdr.currentFrequency else -1
   }
 
