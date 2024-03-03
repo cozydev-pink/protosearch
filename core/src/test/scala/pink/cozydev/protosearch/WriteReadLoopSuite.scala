@@ -17,6 +17,7 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import fixtures.BookIndex
 
 class WriteReadLoopSuite extends munit.FunSuite {
   import BookIndex.{Book, allBooks, fish}
@@ -26,8 +27,8 @@ class WriteReadLoopSuite extends munit.FunSuite {
 
     val index = MultiIndex.apply[Book](
       "title",
-      (Field("title", analyzer, true, true), _.title),
-      (Field("author", analyzer, true, true), _.author),
+      (Field("title", analyzer, true, true, true), _.title),
+      (Field("author", analyzer, true, true, false), _.author),
     )(allBooks)
 
     val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)

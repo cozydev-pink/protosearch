@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import cats.syntax.all._
 import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import fixtures.BookIndex
 
 class MultiIndexSuite extends munit.FunSuite {
   import BookIndex._
@@ -25,8 +26,8 @@ class MultiIndexSuite extends munit.FunSuite {
   val analyzer = Analyzer.default.withLowerCasing
   val index = MultiIndex.apply[Book](
     "title",
-    (Field("title", analyzer, true, true), _.title),
-    (Field("author", analyzer, true, true), _.author),
+    (Field("title", analyzer, true, true, true), _.title),
+    (Field("author", analyzer, true, true, false), _.author),
   )(allBooks)
 
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
@@ -117,9 +118,9 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(eggs)))
   }
 
-  test("multi term phrase query fails") {
+  test("multi term phrase query") {
     val books = search("\"Green Eggs\"")
-    assert(books.isLeft)
+    assertEquals(books, Right(List(eggs)))
   }
 
 }

@@ -27,5 +27,5 @@ object TokenStream {
     Stream.chunk(splitSpace(s))
 
   def tokenizeSpaceL(s: String): List[String] =
-    s.split(" ").toList
+    s.split("\\s+").toList
 }

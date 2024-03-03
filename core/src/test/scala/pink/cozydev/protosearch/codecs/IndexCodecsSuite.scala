@@ -49,17 +49,4 @@ class IndexCodecsSuite extends munit.FunSuite {
     assertEquals(decodedList, expected)
   }
 
-  test("IndexCodecs.postings round trips") {
-    val array2 = Array(
-      Array(345, 678),
-      intArray,
-      Array(0, 9, 7),
-    )
-    val bytes = IndexCodecs.postings.encode(array2)
-    val array2Decoded = bytes.flatMap(IndexCodecs.postings.decodeValue)
-    val decodedList = array2Decoded.map(aa => aa.map(_.toList).toList)
-    val expected = Attempt.Successful(array2.map(_.toList).toList)
-    assertEquals(decodedList, expected)
-  }
-
 }

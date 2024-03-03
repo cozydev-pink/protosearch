@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.QueryParser
+import fixtures.BookIndex
 
 class ScorerSuite extends munit.FunSuite {
   import BookIndex.{Book, allBooks}
@@ -26,8 +27,8 @@ class ScorerSuite extends munit.FunSuite {
 
   val index = MultiIndex.apply[Book](
     "title",
-    (Field("title", analyzer, true, true), _.title),
-    (Field("author", analyzer, true, true), _.author),
+    (Field("title", analyzer, true, true, true), _.title),
+    (Field("author", analyzer, true, true, false), _.author),
   )(allBooks)
 
   val allDocs: Set[Int] = Range(0, allBooks.size).toSet
@@ -71,6 +72,11 @@ class ScorerSuite extends munit.FunSuite {
   test("scores prefix queries") {
     val hits = score("T*", allDocs)
     assertEquals(ordered(hits), List(1, 0, 2))
+  }
+
+  test("scores phrase query") {
+    val hits = score("\"Two Bad Mice\"", allDocs)
+    assertEquals(ordered(hits), List(1))
   }
 
 }

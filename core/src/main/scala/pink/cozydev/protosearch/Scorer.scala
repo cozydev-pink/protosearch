@@ -21,6 +21,7 @@ import cats.syntax.all._
 import pink.cozydev.lucille.Query
 import scala.collection.mutable.{HashMap => MMap}
 import pink.cozydev.lucille.MultiQuery
+import pink.cozydev.protosearch.internal.PositionalIter
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -35,9 +36,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.Term(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
         case q: Query.Prefix => prefixScore(idx, docs, q)
         case q: Query.TermRange => rangeScore(idx, docs, q)
-        case Query.Phrase(p) =>
-          // TODO Hack, only works for single term phrase
-          Right(NonEmptyList.one(idx.scoreTFIDF(docs, p).toMap))
+        case q: Query.Phrase => phraseScore(idx, docs, q)
         case Query.Or(qs) => accScore(idx, qs)
         case Query.And(qs) => accScore(idx, qs)
         case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
@@ -58,12 +57,31 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     accScore(defaultIdx, qs).map(combineMaps)
   }
 
+  def phraseScore(
+      idx: Index,
+      docs: Set[Int],
+      q: Query.Phrase,
+  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+    idx match {
+      case pindex: PositionalIndex =>
+        PositionalIter.exact(pindex, q) match {
+          case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+          case Some(pIter) =>
+            // TODO this is a total hack, and not how phrase scoring works
+            val scoreMap = pIter.takeWhile(_ > -1).map(docId => (docId, 1.0)).toMap
+            Right(NonEmptyList.one(scoreMap))
+        }
+      case idx: Index =>
+        // Optimistic phrase query handling for single term only
+        Right(NonEmptyList.one(idx.scoreTFIDF(docs, q.str).toMap))
+    }
+
   private def prefixScore(
       idx: Index,
       docs: Set[Int],
       q: Query.Prefix,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
-    NonEmptyList.fromList(idx.termsForPrefix(q.str)) match {
+    NonEmptyList.fromList(idx.termDict.termsForPrefix(q.str)) match {
       case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
       case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
     }
@@ -77,7 +95,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       case (Some(l), Some(r)) =>
         // TODO handle inclusive / exclusive, optionality
         NonEmptyList
-          .fromList(idx.termsForRange(l, r))
+          .fromList(idx.termDict.termsForRange(l, r))
           .toRight(
             s"No terms found while processing TermRange: $q"
           )

@@ -25,4 +25,10 @@ import pink.cozydev.protosearch.analysis.Analyzer
   * @param stored Whether the raw field value should be stored in the index
   * @param indexed Whether the field value should be indexed for fast querying
   */
-case class Field(name: String, analyzer: Analyzer, stored: Boolean, indexed: Boolean)
+case class Field(
+    name: String,
+    analyzer: Analyzer,
+    stored: Boolean,
+    indexed: Boolean,
+    positions: Boolean,
+)

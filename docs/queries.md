@@ -29,8 +29,8 @@ import pink.cozydev.protosearch.analysis.Analyzer
 
 val analyzer = Analyzer.default.withLowerCasing
 val searchSchema = SearchSchema[Book](
-  (Field("author", analyzer, stored=true, indexed=true), _.author),
-  (Field("title", analyzer, stored=true, indexed=true), _.title),
+  (Field("author", analyzer, stored=true, indexed=true, positions=false), _.author),
+  (Field("title", analyzer, stored=true, indexed=true, positions=true), _.title),
 )
 
 val index = searchSchema.indexBldr("title")(books)
@@ -86,18 +86,9 @@ search("[fi TO gz]") // matching 'fish' and 'green'
 
 A phrase query is made up of one or more terms surrounded by double quotes, and matches documents containing those terms in exactly that order.
 
-```scala mdoc
-search("\"Red\"")
-```
-
-@:callout(warning)
-
-We do not yet support position data in the index and thus only support trivial one term phrase queries.
-
-@:@
 
 ```scala mdoc
-search("\"Red Fish\"") // does not work yet
+search("\"red fish, blue fish\"")
 ```
 
 ## Boolean Queries

@@ -18,7 +18,7 @@ package pink.cozydev.protosearch
 
 class IndexSuite extends munit.FunSuite {
 
-  val index = CatIndex.index
+  val index = fixtures.CatIndex.index
 
   test("apply builds from list of lists of strings") {
     assertEquals(index.numTerms, 16)
@@ -35,67 +35,67 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsWithTerm returns empty list when no docs contain term") {
-    assertEquals(index.docsWithTerm("???"), Nil)
+    assertEquals(index.docsWithTerm("???").toList, Nil)
   }
 
   test("docsWithTerm returns list of docIDs containing term") {
-    assertEquals(index.docsWithTerm("cat").sorted, List(0, 1, 2))
-    assertEquals(index.docsWithTerm("the").sorted, List(0, 1))
-    assertEquals(index.docsWithTerm("lazy").sorted, List(0, 2))
+    assertEquals(index.docsWithTerm("cat").toList.sorted, List(0, 1, 2))
+    assertEquals(index.docsWithTerm("the").toList.sorted, List(0, 1))
+    assertEquals(index.docsWithTerm("lazy").toList.sorted, List(0, 2))
   }
 
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
-    val indexB = Index(List(List("bb", "cc", "dd")))
-    assertEquals(indexB.termIndexWhere("a"), 0)
+    val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
+    assertEquals(indexB.termDict.termIndexWhere("a"), 0)
   }
 
   test("termIndexWhere returns length of termDict when nonexistent would insert at end") {
-    val indexB = Index(List(List("bb", "cc", "dd")))
-    assertEquals(indexB.termIndexWhere("x"), 3)
+    val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
+    assertEquals(indexB.termDict.termIndexWhere("x"), 3)
   }
 
   test("docsForPrefix returns set of docIDs containing prefixes") {
-    assertEquals(index.docsForPrefix("f"), Set(0, 1))
+    assertEquals(index.docsForPrefix("f").toSet, Set(0, 1))
   }
 
   test("docsForPrefix returns set of docIDs containing exact term as prefix") {
-    assertEquals(index.docsForPrefix("sleeps"), Set(2))
+    assertEquals(index.docsForPrefix("sleeps").toSet, Set(2))
   }
 
   test("docsForPrefix returns empty set when no docs contain prefix") {
-    assertEquals(index.docsForPrefix("x"), Set.empty[Int])
+    assertEquals(index.docsForPrefix("x").toSet, Set.empty[Int])
   }
 
   test("docsForPrefix returns empty set if no prefix matches and it would insert at beginning") {
-    val indexB = Index(List(List("bb")))
-    assertEquals(indexB.docsForPrefix("a"), Set.empty[Int])
+    val indexB = FrequencyIndex(List(List("bb")))
+    assertEquals(indexB.docsForPrefix("a").toSet, Set.empty[Int])
   }
 
   test("termsForPrefix returns all terms starting with prefix") {
-    assertEquals(index.termsForPrefix("f"), List("fast", "fox"))
+    assertEquals(index.termDict.termsForPrefix("f"), List("fast", "fox"))
   }
 
   test("termsForPrefix returns term if it exactly matches prefix") {
-    assertEquals(index.termsForPrefix("sleeps"), List("sleeps"))
+    assertEquals(index.termDict.termsForPrefix("sleeps"), List("sleeps"))
   }
 
   test("termsForPrefix returns empty list if no prefix matches") {
-    assertEquals(index.termsForPrefix("x"), Nil)
+    assertEquals(index.termDict.termsForPrefix("x"), Nil)
   }
 
   test("termsForPrefix returns Nil if no prefix matches and it would insert at beginning") {
-    val indexB = Index(List(List("bb")))
-    assertEquals(indexB.termsForPrefix("a"), Nil)
+    val indexB = FrequencyIndex(List(List("bb")))
+    assertEquals(indexB.termDict.termsForPrefix("a"), Nil)
   }
 
   test("Index.codec encodes") {
-    val bytes = Index.codec.encode(index)
+    val bytes = FrequencyIndex.codec.encode(index)
     assert(bytes.isSuccessful)
   }
 
   test("Index.codec round trips") {
-    val bytes = Index.codec.encode(index)
-    val indexDecoded = bytes.flatMap(Index.codec.decodeValue)
+    val bytes = FrequencyIndex.codec.encode(index)
+    val indexDecoded = bytes.flatMap(FrequencyIndex.codec.decodeValue)
     assert(indexDecoded.isSuccessful)
   }
 
