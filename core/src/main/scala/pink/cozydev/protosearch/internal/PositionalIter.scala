@@ -36,15 +36,21 @@ class PositionalIter(
   /* Tests whether we have more matching documents */
   def hasNext: Boolean = currDocId != -1
 
-  /* Produces the next matching docId, returns -1 if no more matches */
+  /* Produces the next matching docId, returns -1 if no more matches.
+   * First attempts to advance all postings to matching docId, and only then
+   * attempts to find a matching position.
+   */
   def next(): Int = {
     while (!allDocsMatch(currDocId)) {
-      // bail early if no more matching docs
-      if (next(currDocId) == -1) return -1
+      // Advance all docs to currDocId
+      if (advanceAllDocs(currDocId) == -1)
+        // bail early if no more matching docs
+        return -1
+
       // iterate until positional match
       var currStartPosition = 0
       while (currStartPosition != -1 && !allPositionsMatch)
-        currStartPosition = nextPosition()
+        currStartPosition = nextPositionAllDocs()
     }
     val res = currDocId
     // prepare for next, increment current docId if we're not done
@@ -75,7 +81,7 @@ class PositionalIter(
     if (postings.size < 2) -1
     else NextPositionToMatch.nextNotInOrderWithLargest(postings.map(_.currentPosition))
 
-  def next(docId: Int): Int = {
+  def advanceAllDocs(docId: Int): Int = {
     // Advance currDocId to at least docId target
     currDocId = docId
     // Iterate over all postings until they match
@@ -90,7 +96,8 @@ class PositionalIter(
     currDocId
   }
 
-  def nextPosition(): Int = {
+  // advance all postings to next matching position
+  def nextPositionAllDocs(): Int = {
     var currPosition = 0
     // Iterate until all postings in positional match
     while (!allPositionsMatch) {
