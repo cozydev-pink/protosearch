@@ -18,15 +18,13 @@ package pink.cozydev.protosearch.analysis
 
 // Hopefully temporary, this should probably live in textmogrify
 sealed class Analyzer private (
-    lowerCase: Boolean,
-    stopWords: Set[String],
+    lowerCase: Boolean
 ) {
 
   def copy(
-      lowerCase: Boolean = lowerCase,
-      stopWords: Set[String] = stopWords,
+      lowerCase: Boolean = lowerCase
   ): Analyzer =
-    new Analyzer(lowerCase, stopWords)
+    new Analyzer(lowerCase)
 
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
@@ -40,7 +38,6 @@ sealed class Analyzer private (
 object Analyzer {
   def default: Analyzer =
     new Analyzer(
-      lowerCase = false,
-      stopWords = Set.empty,
+      lowerCase = false
     ) {}
 }
