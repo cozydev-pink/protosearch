@@ -109,6 +109,6 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
-    mb.iterator.toList
+    mb.toList.sortBy(idScore => (-idScore._2, idScore._1))
   }
 }
