@@ -25,9 +25,10 @@ import pink.cozydev.protosearch.internal.PositionalIter
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
+  private val defaultIdx: Index = index.indexes(index.defaultField)
+
   def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
-    // TODO unsafe
-    val defaultIdx: Index = index.indexes(index.defaultField)
+
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],
@@ -57,7 +58,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     accScore(defaultIdx, qs).map(combineMaps)
   }
 
-  def phraseScore(
+  private def phraseScore(
       idx: Index,
       docs: Set[Int],
       q: Query.Phrase,
