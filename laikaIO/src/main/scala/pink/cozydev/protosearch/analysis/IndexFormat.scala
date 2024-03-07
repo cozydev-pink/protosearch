@@ -26,8 +26,7 @@ import laika.api.builder.OperationConfig
 import laika.api.config.Config
 import laika.theme.Theme
 import java.io.OutputStream
-import pink.cozydev.protosearch.MultiIndex
-import pink.cozydev.protosearch.Field
+import pink.cozydev.protosearch.{Field, MultiIndex, SearchSchema}
 import laika.io.model.RenderedDocument
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
@@ -51,21 +50,20 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             output: BinaryOutput[F],
             config: OperationConfig,
         ): F[Unit] = {
-          val allDocs = result.allDocuments.toList
-
           val analyzer = Analyzer.default.withLowerCasing
-          val index = MultiIndex[RenderedDocument](
-            "body",
+          val searchSchema = SearchSchema[RenderedDocument](
             (Field("body", analyzer, true, true, true), _.content),
             (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
             (Field("path", analyzer, true, true, false), d => renderLink(d)),
-          )(allDocs)
+          )
+          val index: MultiIndex =
+            searchSchema.indexBldr(defaultField = "body")(result.allDocuments.toList)
+
           val indexBytes = MultiIndex.codec
             .encode(index)
             .map(_.bytes)
             .toEither
             .leftMap(err => new Throwable(err.message))
-
           val bytes: Stream[F, Byte] = fs2.Stream
             .fromEither(indexBytes)
             .flatMap(bv => Stream.chunk(Chunk.byteVector(bv)))
