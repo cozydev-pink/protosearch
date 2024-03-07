@@ -16,15 +16,17 @@
 
 package pink.cozydev.protosearch.fixtures
 
-import pink.cozydev.protosearch.analysis.TokenStream.tokenizeSpaceL
 import pink.cozydev.protosearch.FrequencyIndex
+import pink.cozydev.protosearch.analysis.Analyzer
 
 object CatIndex {
+  val analyzer = Analyzer.default
+
   val docs: List[List[String]] =
     List(
-      tokenizeSpaceL("the quick brown fox jumped over the lazy cat"),
-      tokenizeSpaceL("the very fast cat jumped across the room"),
-      tokenizeSpaceL("a lazy cat sleeps all day"),
+      analyzer.tokenize("the quick brown fox jumped over the lazy cat"),
+      analyzer.tokenize("the very fast cat jumped across the room"),
+      analyzer.tokenize("a lazy cat sleeps all day"),
     )
 
   lazy val index = FrequencyIndex(docs)

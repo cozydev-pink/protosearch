@@ -18,34 +18,28 @@ package pink.cozydev.protosearch.analysis
 
 // Hopefully temporary, this should probably live in textmogrify
 sealed class Analyzer private (
-    tokenizer: (String) => List[String],
     lowerCase: Boolean,
     stopWords: Set[String],
 ) {
 
   def copy(
-      tokenizer: (String => List[String]) = tokenizer,
       lowerCase: Boolean = lowerCase,
       stopWords: Set[String] = stopWords,
   ): Analyzer =
-    new Analyzer(tokenizer, lowerCase, stopWords)
+    new Analyzer(lowerCase, stopWords)
 
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
 
-  def withTokenizer(tk: (String) => List[String]): Analyzer =
-    copy(tokenizer = tk)
-
   def tokenize(s: String): List[String] =
     if (lowerCase)
-      tokenizer(s.toLowerCase())
+      s.toLowerCase().split("\\s+").toList
     else
-      tokenizer(s)
+      s.split("\\s+").toList
 }
 object Analyzer {
   def default: Analyzer =
     new Analyzer(
-      TokenStream.tokenizeSpaceL,
       lowerCase = false,
       stopWords = Set.empty,
     ) {}
