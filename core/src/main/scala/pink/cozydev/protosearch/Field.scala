@@ -32,3 +32,15 @@ case class Field(
     indexed: Boolean,
     positions: Boolean,
 )
+object Field {
+  import scodec.Codec
+  import scodec.codecs._
+
+  val codec: Codec[Field] = {
+    ("name" | utf8) ::
+      ("analyzer" | Analyzer.codec) ::
+      ("stored" | bool) ::
+      ("indexed" | bool) ::
+      ("positions" | bool)
+  }.as[Field]
+}

@@ -16,16 +16,10 @@
 
 package pink.cozydev.protosearch.analysis
 
-// Hopefully temporary, this should probably live in textmogrify
-sealed class Analyzer private (
+// TODO Replace with textmogrify Analyzer once ready
+final case class Analyzer(
     lowerCase: Boolean
 ) {
-
-  def copy(
-      lowerCase: Boolean = lowerCase
-  ): Analyzer =
-    new Analyzer(lowerCase)
-
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
 
@@ -34,10 +28,15 @@ sealed class Analyzer private (
       s.toLowerCase().split("\\s+").toList
     else
       s.split("\\s+").toList
+
 }
 object Analyzer {
+  import scodec.Codec
+  import scodec.codecs._
+
   def default: Analyzer =
-    new Analyzer(
-      lowerCase = false
-    ) {}
+    new Analyzer(lowerCase = false)
+
+  val codec: Codec[Analyzer] =
+    ("lowerCase" | bool).as[Analyzer]
 }

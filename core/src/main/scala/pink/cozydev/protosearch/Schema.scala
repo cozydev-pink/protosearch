@@ -17,27 +17,31 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
-import cats.data.NonEmptyList
 
-/**  For a type `A`, a SearchSchema describes the fields of the document representation
-  *  of `A`.
-  */
-class SearchSchema[A] private (
-    private val fields: NonEmptyList[(Field, A => String)]
+/* A Schema describes the fields of a document */
+final class Schema private (
+    private val fields: List[Field]
 ) {
   def queryAnalyzer(defaultField: String): QueryAnalyzer = {
-    val analyzers = fields.map { case (f, _) => (f.name, f.analyzer) }
+    val analyzers = fields.map(f => (f.name, f.analyzer))
     QueryAnalyzer(defaultField, analyzers.head, analyzers.tail: _*)
   }
-
-  def indexBldr(defaultField: String): List[A] => MultiIndex =
-    MultiIndex(defaultField, fields.head, fields.tail: _*)
-
 }
-object SearchSchema {
+object Schema {
+  import scodec.Codec
+  import scodec.codecs
+
   def apply[A](
-      head: (Field, A => String),
-      tail: (Field, A => String)*
-  ): SearchSchema[A] =
-    new SearchSchema[A](NonEmptyList(head, tail.toList))
+      head: Field,
+      tail: Field*
+  ): Schema =
+    new Schema(head :: tail.toList)
+
+  val codec: Codec[Schema] =
+    codecs
+      .listOfN(codecs.vint, Field.codec)
+      .xmap(
+        fs => new Schema(fs),
+        s => s.fields,
+      )
 }
