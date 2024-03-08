@@ -33,6 +33,12 @@ object Schema {
 
   def apply[A](
       head: Field,
+      tail: List[Field],
+  ): Schema =
+    new Schema(head :: tail)
+
+  def of[A](
+      head: Field,
       tail: Field*
   ): Schema =
     new Schema(head :: tail.toList)

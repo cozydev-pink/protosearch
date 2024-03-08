@@ -16,12 +16,12 @@
 
 package pink.cozydev.protosearch
 
-import scala.collection.mutable.ListBuffer
 import pink.cozydev.lucille.Query
 import cats.data.NonEmptyList
 
 case class MultiIndex(
     indexes: Map[String, Index],
+    schema: Schema,
     defaultField: String,
     defaultOR: Boolean = true,
     fields: Map[String, Array[String]],
@@ -40,6 +40,8 @@ case class MultiIndex(
     })
     docs.map(_ => lstb.result())
   }
+
+  val queryAnalyzer = schema.queryAnalyzer(defaultField)
 
   private val defaultIndex = indexes(defaultField)
   private val defaultBooleanQ =
@@ -65,54 +67,9 @@ case class MultiIndex(
 
 }
 object MultiIndex {
-  import scodec.{Codec, codecs}
-
-  private case class Bldr[A](
-      field: Field,
-      getter: A => String,
-      acc: ListBuffer[List[String]],
-  )
-
-  def apply[A](
-      defaultField: String,
-      head: (Field, A => String),
-      tail: (Field, A => String)*
-  ): List[A] => MultiIndex = {
-
-    val bldrs = (head :: tail.toList).map { case (field, getter) =>
-      Bldr(field, getter, ListBuffer.empty)
-    }
-
-    val storage = (head :: tail.toList).map(fg => fg._1.name -> ListBuffer.empty[String]).toMap
-
-    docs => {
-      docs.foreach { doc =>
-        bldrs.foreach { bldr =>
-          val value = bldr.getter(doc)
-          storage(bldr.field.name) += value
-          bldr.acc += (bldr.field.analyzer.tokenize(value))
-        }
-      }
-      // TODO let's delay defining the default field even further
-      // Also, let's make it optional, with no field meaning all fields?
-      new MultiIndex(
-        indexes = bldrs.map { bldr =>
-          val index =
-            if (bldr.field.positions)
-              PositionalIndex(bldr.acc.toList)
-            else
-              FrequencyIndex(bldr.acc.toList)
-          (bldr.field.name, index)
-        }.toMap,
-        defaultField = defaultField,
-        defaultOR = true,
-        fields = storage.map { case (k, v) => k -> v.toArray },
-      )
-    }
-  }
-
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
+  import scodec.{Codec, codecs}
   import scodec.codecs._
   import scodec.{Attempt, Err}
 
@@ -148,11 +105,11 @@ object MultiIndex {
         .xmap(_.toMap, _.toList)
 
     val multiIndex: Codec[MultiIndex] =
-      (indexes :: defaultField :: defaultOr :: fields)
-        .as[(Map[String, Index], String, Boolean, Map[String, Array[String]])]
+      (indexes :: Schema.codec :: defaultField :: defaultOr :: fields)
+        .as[(Map[String, Index], Schema, String, Boolean, Map[String, Array[String]])]
         .xmap(
-          { case (in, dF, dOr, fs) => MultiIndex.apply(in, dF, dOr, fs) },
-          mi => (mi.indexes, mi.defaultField, mi.defaultOR, mi.fields),
+          { case (in, sc, dF, dOr, fs) => MultiIndex.apply(in, sc, dF, dOr, fs) },
+          mi => (mi.indexes, mi.schema, mi.defaultField, mi.defaultOR, mi.fields),
         )
     multiIndex
   }

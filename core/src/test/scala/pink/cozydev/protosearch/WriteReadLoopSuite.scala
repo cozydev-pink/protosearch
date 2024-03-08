@@ -25,11 +25,12 @@ class WriteReadLoopSuite extends munit.FunSuite {
   test("Can write bytes, read bytes, and search") {
     val analyzer = Analyzer.default.withLowerCasing
 
-    val index = MultiIndex.apply[Book](
-      "title",
-      (Field("title", analyzer, true, true, true), _.title),
-      (Field("author", analyzer, true, true, false), _.author),
-    )(allBooks)
+    val index = IndexBuilder
+      .of[Book](
+        (Field("title", analyzer, true, true, true), _.title),
+        (Field("author", analyzer, true, true, false), _.author),
+      )
+      .fromList(allBooks)
 
     val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 

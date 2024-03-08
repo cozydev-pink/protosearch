@@ -26,7 +26,7 @@ import laika.api.builder.OperationConfig
 import laika.api.config.Config
 import laika.theme.Theme
 import java.io.OutputStream
-import pink.cozydev.protosearch.{Field, MultiIndex}
+import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
@@ -51,12 +51,13 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             config: OperationConfig,
         ): F[Unit] = {
           val analyzer = Analyzer.default.withLowerCasing
-          val index = MultiIndex[RenderedDocument](
-            "body",
-            (Field("body", analyzer, true, true, true), _.content),
-            (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
-            (Field("path", analyzer, true, true, false), d => renderLink(d)),
-          )(result.allDocuments.toList)
+          val index = IndexBuilder
+            .of[RenderedDocument](
+              (Field("body", analyzer, true, true, true), _.content),
+              (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
+              (Field("path", analyzer, true, true, false), d => renderLink(d)),
+            )
+            .fromList(result.allDocuments.toList)
 
           val indexBytes = MultiIndex.codec
             .encode(index)

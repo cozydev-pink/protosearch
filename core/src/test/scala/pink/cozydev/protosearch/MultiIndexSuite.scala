@@ -24,11 +24,12 @@ class MultiIndexSuite extends munit.FunSuite {
   import BookIndex._
 
   val analyzer = Analyzer.default.withLowerCasing
-  val index = MultiIndex.apply[Book](
-    "title",
-    (Field("title", analyzer, true, true, true), _.title),
-    (Field("author", analyzer, true, true, false), _.author),
-  )(allBooks)
+  val index = IndexBuilder
+    .of[Book](
+      (Field("title", analyzer, true, true, true), _.title),
+      (Field("author", analyzer, true, true, false), _.author),
+    )
+    .fromList(allBooks)
 
   val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
 
