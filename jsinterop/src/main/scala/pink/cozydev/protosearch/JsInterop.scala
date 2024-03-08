@@ -19,8 +19,6 @@ package pink.cozydev.protosearch
 import scala.scalajs.js.annotation._
 import scala.scalajs.js
 import org.scalajs.dom.Blob
-import pink.cozydev.protosearch.analysis.QueryAnalyzer
-import pink.cozydev.protosearch.analysis.Analyzer
 import scodec.bits.ByteVector
 
 @JSExportTopLevel("Hit")
@@ -35,10 +33,7 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
   import js.JSConverters._
 
   private val scorer = Scorer(mIndex)
-  private val qAnalyzer = QueryAnalyzer(
-    defaultField,
-    (defaultField, Analyzer.default.withLowerCasing),
-  )
+  private val qAnalyzer = mIndex.queryAnalyzer
 
   @JSExport
   def search(query: String): js.Array[Hit] = {
