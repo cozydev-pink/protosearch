@@ -66,7 +66,7 @@ class ScorerSuite extends munit.FunSuite {
 
   test("additional matching queries increases score") {
     val sc1 = score("Tale OR Two", Set(2)).map(_.head._2)
-    val sc2 = score("author:Suess Tale OR Two", Set(2)).map(_.head._2)
+    val sc2 = score("author:Seuss Tale OR Two", Set(2)).map(_.head._2)
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 

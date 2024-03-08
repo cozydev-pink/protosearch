@@ -65,12 +65,12 @@ class MultiIndexSuite extends munit.FunSuite {
   }
 
   test("AND with fieldQ") {
-    val books = search("two AND author:Suess")
+    val books = search("two AND author:Seuss")
     assertEquals(books, Right(List(fish)))
   }
 
   test("AND with multiple fieldQ") {
-    val books = search("title:two AND author:Suess")
+    val books = search("title:two AND author:Seuss")
     assertEquals(books, Right(List(fish)))
   }
 
@@ -95,17 +95,17 @@ class MultiIndexSuite extends munit.FunSuite {
   }
 
   test("field Group") {
-    val books = search("author:(potter suess)")
+    val books = search("author:(potter seuss)")
     assertEquals(books, Right(List(peter, mice, fish, eggs)))
   }
 
   test("field Group with NOT") {
-    val books = search("author:(potter suess) AND NOT eggs")
+    val books = search("author:(potter seuss) AND NOT eggs")
     assertEquals(books, Right(List(peter, mice, fish)))
   }
 
   test("nested Groups") {
-    val books = search("(eggs AND ham AND author:(potter SUESS))")
+    val books = search("(eggs AND ham AND author:(potter SEUSS))")
     assertEquals(books, Right(List(eggs)))
   }
 

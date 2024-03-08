@@ -12,8 +12,8 @@ case class Book(author: String, title: String)
 val books: List[Book] = List(
   Book("Beatrix Potter", "The Tale of Peter Rabbit"),
   Book("Beatrix Potter", "The Tale of Two Bad Mice"),
-  Book("Dr. Suess", "One Fish, Two Fish, Red Fish, Blue Fish"),
-  Book("Dr. Suess", "Green Eggs and Ham"),
+  Book("Dr. Seuss", "One Fish, Two Fish, Red Fish, Blue Fish"),
+  Book("Dr. Seuss", "Green Eggs and Ham"),
 )
 ```
 
@@ -127,7 +127,7 @@ The field query allows a user to specify the unique field a query should match.
 Field queries work with term queries:
 
 ```scala mdoc
-search("author:suess")
+search("author:seuss")
 ```
 
 ```scala mdoc

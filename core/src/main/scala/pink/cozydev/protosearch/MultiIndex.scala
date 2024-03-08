@@ -29,7 +29,7 @@ case class MultiIndex(
 
   /** Search the index with a query in Lucene syntax
     *
-    * @param q Query string in Lucene syntax e.g. `cat AND hat author:Suess`
+    * @param q Query string in Lucene syntax e.g. `cat AND hat author:Seuss`
     * @return An error or a list of matching document IDs
     */
   def search(q: String): Either[String, List[Int]] =
