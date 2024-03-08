@@ -27,6 +27,14 @@ case class MultiIndex(
     fields: Map[String, Array[String]],
 ) {
 
+  /** Search the index with a query in Lucene syntax
+    *
+    * @param q Query string in Lucene syntax e.g. `cat AND hat author:Suess`
+    * @return An error or a list of matching document IDs
+    */
+  def search(q: String): Either[String, List[Int]] =
+    schema.queryAnalyzer(defaultField).parse(q).flatMap(mq => search(mq.qs))
+
   def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
     val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
     docs.map(_.toList.sorted)
