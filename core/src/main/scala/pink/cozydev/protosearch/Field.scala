@@ -37,7 +37,7 @@ object Field {
   import scodec.codecs._
 
   val codec: Codec[Field] = {
-    ("name" | utf8) ::
+    ("name" | utf8_32) ::
       ("analyzer" | Analyzer.codec) ::
       ("stored" | bool) ::
       ("indexed" | bool) ::
