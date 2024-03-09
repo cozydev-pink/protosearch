@@ -22,10 +22,10 @@ import cats.data.NonEmptyList
 case class MultiIndex(
     indexes: Map[String, Index],
     schema: Schema,
-    defaultField: String,
-    defaultOR: Boolean = true,
     fields: Map[String, Array[String]],
 ) {
+
+  val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
 
   /** Search the index with a query in Lucene syntax
     *
@@ -33,7 +33,7 @@ case class MultiIndex(
     * @return An error or a list of matching document IDs
     */
   def search(q: String): Either[String, List[Int]] =
-    schema.queryAnalyzer(defaultField).parse(q).flatMap(mq => search(mq.qs))
+    queryAnalyzer.parse(q).flatMap(mq => search(mq.qs))
 
   def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
     val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
@@ -49,11 +49,9 @@ case class MultiIndex(
     docs.map(_ => lstb.result())
   }
 
-  val queryAnalyzer = schema.queryAnalyzer(defaultField)
-
-  private val defaultIndex = indexes(defaultField)
+  private val defaultIndex = indexes(schema.defaultField)
   private val defaultBooleanQ =
-    IndexSearcher(indexes(defaultField), defaultOR)
+    IndexSearcher(indexes(schema.defaultField), schema.defaultOR)
 
   private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
 
@@ -65,13 +63,13 @@ case class MultiIndex(
       case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
       case Query.Field(f, q) =>
         indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          IndexSearcher(index, defaultOR).search(q)
+          IndexSearcher(index, schema.defaultOR).search(q)
         }
       case _ => defaultBooleanQ.search(q)
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
+    if (schema.defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
 
 }
 object MultiIndex {
@@ -101,9 +99,6 @@ object MultiIndex {
         .listOfN(codecs.vint, (codecs.utf8_32 :: index).as[(String, Index)])
         .xmap(_.toMap, _.toList)
 
-    val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
-    val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
-
     val fieldStrings: Codec[Array[String]] =
       IndexCodecs.arrayOfN(codecs.vint, codecs.variableSizeBytes(codecs.vint, codecs.utf8))
 
@@ -113,11 +108,11 @@ object MultiIndex {
         .xmap(_.toMap, _.toList)
 
     val multiIndex: Codec[MultiIndex] =
-      (indexes :: Schema.codec :: defaultField :: defaultOr :: fields)
-        .as[(Map[String, Index], Schema, String, Boolean, Map[String, Array[String]])]
+      (indexes :: Schema.codec :: fields)
+        .as[(Map[String, Index], Schema, Map[String, Array[String]])]
         .xmap(
-          { case (in, sc, dF, dOr, fs) => MultiIndex.apply(in, sc, dF, dOr, fs) },
-          mi => (mi.indexes, mi.schema, mi.defaultField, mi.defaultOR, mi.fields),
+          { case (in, sc, fs) => MultiIndex.apply(in, sc, fs) },
+          mi => (mi.indexes, mi.schema, mi.fields),
         )
     multiIndex
   }

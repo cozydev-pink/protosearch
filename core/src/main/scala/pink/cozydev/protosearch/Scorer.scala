@@ -27,7 +27,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
   def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
     // TODO unsafe
-    val defaultIdx: Index = index.indexes(index.defaultField)
+    val defaultIdx: Index = index.indexes(index.schema.defaultField)
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],

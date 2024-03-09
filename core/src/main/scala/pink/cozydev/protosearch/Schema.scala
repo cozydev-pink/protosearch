@@ -20,8 +20,11 @@ import pink.cozydev.protosearch.analysis.QueryAnalyzer
 
 /* A Schema describes the fields of a document */
 final class Schema private (
-    private val fields: List[Field]
+    private val fields: List[Field],
+    val defaultField: String,
+    val defaultOR: Boolean = true,
 ) {
+
   def queryAnalyzer(defaultField: String): QueryAnalyzer = {
     val analyzers = fields.map(f => (f.name, f.analyzer))
     QueryAnalyzer(defaultField, analyzers.head, analyzers.tail: _*)
@@ -35,19 +38,23 @@ object Schema {
       head: Field,
       tail: List[Field],
   ): Schema =
-    new Schema(head :: tail)
+    new Schema(head :: tail, head.name)
 
   def of[A](
       head: Field,
       tail: Field*
   ): Schema =
-    new Schema(head :: tail.toList)
+    new Schema(head :: tail.toList, head.name)
+
+  private val fields: Codec[List[Field]] = codecs.listOfN(codecs.vint, Field.codec)
+  private val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
+  private val defaultOR: Codec[Boolean] = codecs.bool.withContext("defaultOR")
 
   val codec: Codec[Schema] =
-    codecs
-      .listOfN(codecs.vint, Field.codec)
+    (fields :: defaultField :: defaultOR)
+      .as[(List[Field], String, Boolean)]
       .xmap(
-        fs => new Schema(fs),
-        s => s.fields,
+        { case (fs, df, db) => new Schema(fs, df, db) },
+        s => (s.fields, s.defaultField, s.defaultOR),
       )
 }

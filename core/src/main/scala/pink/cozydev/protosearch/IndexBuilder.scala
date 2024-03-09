@@ -47,8 +47,6 @@ final case class IndexBuilder[A] private (
     new MultiIndex(
       indexes = indexes,
       schema = schema,
-      defaultField = defaultField,
-      defaultOR = true,
       fields = storage.map { case (k, v) => (k, v.toArray) },
     )
   }
