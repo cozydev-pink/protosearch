@@ -17,8 +17,7 @@
 package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
-import pink.cozydev.lucille.Query
-import pink.cozydev.lucille.MultiQuery
+import pink.cozydev.lucille.{MultiQuery, Query, TermQuery}
 import pink.cozydev.protosearch.internal.PositionalIter
 
 sealed abstract class IndexSearcher {
@@ -49,6 +48,7 @@ object IndexSearcher {
 
     def search(q: Query): Either[String, Set[Int]] =
       q match {
+        case MultiQuery(qs) => qs.traverse(search).map(defaultCombine)
         case Query.Or(qs) => qs.traverse(search).map(IndexSearcher.unionSets)
         case Query.And(qs) => qs.traverse(search).map(IndexSearcher.intersectSets)
         case Query.Not(q) => search(q).map(matches => allDocs -- matches)
@@ -58,7 +58,10 @@ object IndexSearcher {
             .get(f)
             .toRight(s"unsupported field $f")
             .flatMap(idx => new SingleIndexSearcher(idx, defaultOR).search(q))
-        case _ => new SingleIndexSearcher(defaultIndex, defaultOR).search(q)
+        case qt: TermQuery => new SingleIndexSearcher(defaultIndex, defaultOR).search(qt)
+        case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in query: $q")
+        case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in query: $q")
+        case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in query: $q")
       }
   }
 

@@ -35,6 +35,9 @@ case class MultiIndex(
   def search(q: String): Either[String, List[Int]] =
     queryAnalyzer.parse(q).flatMap(mq => search(mq.qs))
 
+  def searchHit(q: String): Either[String, List[Hit]] =
+    queryAnalyzer.parse(q).flatMap(searchHit)
+
   def searchHit(q: Query): Either[String, List[Hit]] = {
     val docs = indexSearcher.search(q).flatMap(ds => scorer.score(NonEmptyList.one(q), ds))
     val lstb = List.newBuilder[Hit]
