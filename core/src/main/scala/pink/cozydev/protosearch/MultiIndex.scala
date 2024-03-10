@@ -35,13 +35,11 @@ case class MultiIndex(
   def search(q: String): Either[String, List[Int]] =
     queryAnalyzer.parse(q).flatMap(mq => search(mq.qs))
 
-  def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
-    val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
-    docs.map(_.toList.sorted)
-  }
+  def search(q: NonEmptyList[Query]): Either[String, List[Int]] =
+    indexSearcher.search(q).map(_.toList.sorted)
 
   def searchMap(q: NonEmptyList[Query]): Either[String, List[(Int, Map[String, String])]] = {
-    val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
+    val docs = indexSearcher.search(q)
     val lstb = List.newBuilder[(Int, Map[String, String])]
     docs.map(_.foreach { d =>
       lstb += d -> fields.map { case (k, v) => (k, v(d)) }
@@ -49,27 +47,7 @@ case class MultiIndex(
     docs.map(_ => lstb.result())
   }
 
-  private val defaultIndex = indexes(schema.defaultField)
-  private val defaultBooleanQ =
-    IndexSearcher(indexes(schema.defaultField), schema.defaultOR)
-
-  private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
-
-  private def booleanModel(q: Query): Either[String, Set[Int]] =
-    q match {
-      case Query.Or(qs) => qs.traverse(booleanModel).map(IndexSearcher.unionSets)
-      case Query.And(qs) => qs.traverse(booleanModel).map(IndexSearcher.intersectSets)
-      case Query.Not(q) => booleanModel(q).map(matches => allDocs -- matches)
-      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
-      case Query.Field(f, q) =>
-        indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          IndexSearcher(index, schema.defaultOR).search(q)
-        }
-      case _ => defaultBooleanQ.search(q)
-    }
-
-  private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (schema.defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
+  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
 
 }
 object MultiIndex {
