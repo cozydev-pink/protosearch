@@ -29,7 +29,7 @@ class JsHit(
 ) extends js.Object
 
 @JSExportTopLevel("Querier")
-class Querier(val mIndex: MultiIndex, val defaultField: String) {
+class Querier(val mIndex: MultiIndex) {
   import js.JSConverters._
 
   @JSExport
@@ -50,12 +50,11 @@ object QuerierBuilder {
     MultiIndex.codec.decodeValue(bv.bits).require
   }
 
-  // TODO the default field is in the MultiIndex, just use that
   @JSExport
-  def load(bytes: Blob, defaultField: String): js.Promise[Querier] =
+  def load(bytes: Blob): js.Promise[Querier] =
     bytes.arrayBuffer().`then`[Querier] { buf =>
       val mIndex = decode(buf)
-      new Querier(mIndex, defaultField)
+      new Querier(mIndex)
     }
 
 }
