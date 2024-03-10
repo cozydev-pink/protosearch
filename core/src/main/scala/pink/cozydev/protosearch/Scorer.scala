@@ -25,9 +25,9 @@ import pink.cozydev.protosearch.internal.PositionalIter
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
+  private val defaultIdx: Index = index.indexes(index.schema.defaultField)
+
   def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
-    // TODO unsafe
-    val defaultIdx: Index = index.indexes(index.schema.defaultField)
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],
@@ -57,7 +57,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     accScore(defaultIdx, qs).map(combineMaps)
   }
 
-  def phraseScore(
+  private def phraseScore(
       idx: Index,
       docs: Set[Int],
       q: Query.Phrase,
@@ -108,6 +108,6 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
-    mb.iterator.toList
+    mb.toList.sortBy(idScore => (-idScore._2, idScore._1))
   }
 }

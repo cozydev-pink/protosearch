@@ -40,7 +40,6 @@ function render(hit) {
 async function searchIt(query) {
   const querier = await querierPromise
   return querier.search(query)
-    .sort((h1, h2) => h1.score < h2.score)
     .map(render)
     .join("\n")
 }

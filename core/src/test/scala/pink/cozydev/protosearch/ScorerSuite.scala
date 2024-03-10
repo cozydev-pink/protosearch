@@ -41,13 +41,7 @@ class ScorerSuite extends munit.FunSuite {
       .flatMap(q => scorer.score(q.qs, docs))
 
   def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
-    hits.fold(_ => Nil, ds => ds.sortBy { case (docId, score) => (-score, docId) }.map(_._1))
-
-  test("helper ordered returns list of Ints ordered by descending score") {
-    val hits: Either[String, List[(Int, Double)]] =
-      Right(List((2, 0.4), (3, 0.6), (1, 0.2)))
-    assertEquals(ordered(hits), List(3, 2, 1))
-  }
+    hits.fold(_ => Nil, ds => ds.map(_._1))
 
   test("doc with matching term is ordered first") {
     val hits = score("Bad", Set(1))
