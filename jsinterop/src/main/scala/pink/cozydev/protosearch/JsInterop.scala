@@ -32,9 +32,6 @@ class JsHit(
 class Querier(val mIndex: MultiIndex, val defaultField: String) {
   import js.JSConverters._
 
-  private val scorer = Scorer(mIndex)
-  private val qAnalyzer = mIndex.queryAnalyzer
-
   @JSExport
   def search(query: String): js.Array[JsHit] = {
     val hits = mIndex
