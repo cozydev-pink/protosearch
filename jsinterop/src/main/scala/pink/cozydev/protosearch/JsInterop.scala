@@ -36,8 +36,10 @@ class Querier(val mIndex: MultiIndex) {
   def search(query: String): js.Array[JsHit] = {
     val hits = mIndex
       .searchInteractive(query)
-      .toOption
-      .getOrElse(Nil)
+      .fold(
+        err => { println(err); Nil },
+        identity,
+      )
       .map(h => new JsHit(h.id, h.score, h.fields.toJSDictionary))
     hits.toJSArray
   }
