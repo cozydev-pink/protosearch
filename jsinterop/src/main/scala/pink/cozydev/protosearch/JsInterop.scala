@@ -22,7 +22,7 @@ import org.scalajs.dom.Blob
 import scodec.bits.ByteVector
 
 @JSExportTopLevel("Hit")
-class Hit(
+class JsHit(
     val id: Int,
     val score: Double,
     val fields: js.Dictionary[String],
@@ -36,24 +36,12 @@ class Querier(val mIndex: MultiIndex, val defaultField: String) {
   private val qAnalyzer = mIndex.queryAnalyzer
 
   @JSExport
-  def search(query: String): js.Array[Hit] = {
-    val hits = qAnalyzer
-      .parse(query)
-      .map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-      .flatMap { q =>
-        val idFields = mIndex.searchMap(q.qs)
-        val scored = idFields.flatMap(dfs => scorer.score(q.qs, dfs.map(_._1).toSet))
-        scored.flatMap(idScores =>
-          idFields.map { idField =>
-            val ifm = idField.toMap
-            idScores.map { case ((i, d)) => new Hit(i, d, ifm(i).toJSDictionary) }
-          }
-        )
-        // TODO stitch things back together
-        // and then move this somewhere else, this is ridiculous to be in jsInterop
-      }
+  def search(query: String): js.Array[JsHit] = {
+    val hits = mIndex
+      .searchInteractive(query)
       .toOption
       .getOrElse(Nil)
+      .map(h => new JsHit(h.id, h.score, h.fields.toJSDictionary))
     hits.toJSArray
   }
 }

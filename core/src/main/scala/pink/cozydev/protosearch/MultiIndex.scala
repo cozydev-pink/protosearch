@@ -35,20 +35,26 @@ case class MultiIndex(
   def search(q: String): Either[String, List[Int]] =
     queryAnalyzer.parse(q).flatMap(mq => search(mq.qs))
 
-  def search(q: NonEmptyList[Query]): Either[String, List[Int]] =
-    indexSearcher.search(q).map(_.toList.sorted)
-
-  def searchMap(q: NonEmptyList[Query]): Either[String, List[(Int, Map[String, String])]] = {
-    val docs = indexSearcher.search(q)
-    val lstb = List.newBuilder[(Int, Map[String, String])]
-    docs.map(_.foreach { d =>
-      lstb += d -> fields.map { case (k, v) => (k, v(d)) }
+  def searchHit(q: Query): Either[String, List[Hit]] = {
+    val docs = indexSearcher.search(q).flatMap(ds => scorer.score(NonEmptyList.one(q), ds))
+    val lstb = List.newBuilder[Hit]
+    docs.map(_.foreach { case (docId, score) =>
+      lstb += Hit(docId, score, fields.map { case (k, v) => (k, v(docId)) })
     })
     docs.map(_ => lstb.result())
   }
 
-  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
+  def searchInteractive(partialQuery: String): Either[String, List[Hit]] = {
+    val rewriteQ =
+      queryAnalyzer.parse(partialQuery).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
+    rewriteQ.flatMap(searchHit)
+  }
 
+  def search(q: NonEmptyList[Query]): Either[String, List[Int]] =
+    indexSearcher.search(q).map(_.toList.sorted)
+
+  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
+  private val scorer = Scorer(this, schema.defaultOR)
 }
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs

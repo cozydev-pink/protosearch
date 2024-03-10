@@ -40,13 +40,13 @@ class MultiIndexSuite extends munit.FunSuite {
     result.map(hits => hits.map(i => allBooks(i)))
   }
 
-  def searchMap(qs: String): Either[String, List[(Int, Map[String, String])]] = {
+  def searchHit(qs: String): Either[String, List[(Int, Map[String, String])]] = {
     val q = qAnalyzer.parse(qs).leftMap(_.toString())
-    q.flatMap(mq => index.searchMap(mq.qs))
+    q.flatMap(mq => index.searchHit(mq)).map(_.map(h => (h.id, h.fields)))
   }
 
-  test("Term searchMap") {
-    val books = searchMap("Bad")
+  test("Term searchHit fields") {
+    val books = searchHit("Bad")
     val miceMap = Map(
       "title" -> "The Tale of Two Bad Mice",
       "author" -> "Beatrix Potter",
