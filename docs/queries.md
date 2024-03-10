@@ -50,7 +50,7 @@ val qAnalyzer = index.queryAnalyzer
 
 def search(q: String): List[Book] =
   index.search(q)
-    .map(hits => hits.map(i => books(i)))
+    .map(hits => hits.map(h => books(h.id)))
     .fold(_ => Nil, identity)
 ```
 

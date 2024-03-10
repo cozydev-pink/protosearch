@@ -34,11 +34,11 @@ class MultiIndexSuite extends munit.FunSuite {
 
   def search(q: String): Either[String, List[Book]] = {
     val result = index.search(q)
-    result.map(hits => hits.map(i => allBooks(i)))
+    result.map(hits => hits.map(h => allBooks(h.id)))
   }
 
   def searchHit(q: String): Either[String, List[(Int, Map[String, String])]] =
-    index.searchHit(q).map(_.map(h => (h.id, h.fields)))
+    index.search(q).map(_.map(h => (h.id, h.fields)))
 
   test("Term searchHit fields") {
     val books = searchHit("Bad")
@@ -81,12 +81,12 @@ class MultiIndexSuite extends munit.FunSuite {
 
   test("implicit OR with field TermRange") {
     val books = search("two author:[a TO c]")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(List(mice, peter, fish)))
   }
 
   test("explicit OR with field TermRange") {
     val books = search("two OR author:[a TO c]")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(List(mice, peter, fish)))
   }
 
   test("field Group") {

@@ -27,18 +27,10 @@ case class MultiIndex(
 
   val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
 
-  /** Search the index with a query in Lucene syntax
-    *
-    * @param q Query string in Lucene syntax e.g. `cat AND hat author:Seuss`
-    * @return An error or a list of matching document IDs
-    */
-  def search(q: String): Either[String, List[Int]] =
-    queryAnalyzer.parse(q).flatMap(mq => search(mq.qs))
+  def search(q: String): Either[String, List[Hit]] =
+    queryAnalyzer.parse(q).flatMap(search)
 
-  def searchHit(q: String): Either[String, List[Hit]] =
-    queryAnalyzer.parse(q).flatMap(searchHit)
-
-  def searchHit(q: Query): Either[String, List[Hit]] = {
+  def search(q: Query): Either[String, List[Hit]] = {
     val docs = indexSearcher.search(q).flatMap(ds => scorer.score(NonEmptyList.one(q), ds))
     val lstb = List.newBuilder[Hit]
     docs.map(_.foreach { case (docId, score) =>
@@ -50,11 +42,8 @@ case class MultiIndex(
   def searchInteractive(partialQuery: String): Either[String, List[Hit]] = {
     val rewriteQ =
       queryAnalyzer.parse(partialQuery).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-    rewriteQ.flatMap(searchHit)
+    rewriteQ.flatMap(search)
   }
-
-  def search(q: NonEmptyList[Query]): Either[String, List[Int]] =
-    indexSearcher.search(q).map(_.toList.sorted)
 
   private val indexSearcher = IndexSearcher(this, schema.defaultOR)
   private val scorer = Scorer(this, schema.defaultOR)
