@@ -17,7 +17,6 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.lucille.Query
-import cats.data.NonEmptyList
 
 case class MultiIndex(
     indexes: Map[String, Index],
@@ -35,7 +34,7 @@ case class MultiIndex(
     * @return A list of `Hit`s or error
     */
   def search(q: Query): Either[String, List[Hit]] = {
-    val docs = indexSearcher.search(q).flatMap(ds => scorer.score(NonEmptyList.one(q), ds))
+    val docs = indexSearcher.search(q).flatMap(ds => scorer.score(q, ds))
     val lstb = List.newBuilder[Hit]
     docs.map(_.foreach { case (docId, score) =>
       lstb += Hit(docId, score, fields.map { case (k, v) => (k, v(docId)) })

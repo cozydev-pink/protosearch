@@ -38,7 +38,7 @@ class ScorerSuite extends munit.FunSuite {
   def score(q: String, docs: Set[Int]): Either[String, List[(Int, Double)]] =
     QueryParser
       .parse(q)
-      .flatMap(q => scorer.score(q.qs, docs))
+      .flatMap(q => scorer.score(q, docs))
 
   def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
