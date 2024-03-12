@@ -66,11 +66,10 @@ case class MultiIndex(
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
-  import scodec.{Codec, codecs}
+  import scodec.{Attempt, Codec, codecs, Err}
   import scodec.codecs._
-  import scodec.{Attempt, Err}
 
-  def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
+  private def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
     i match {
       case idx: PositionalIndex => Attempt.successful(Right(idx))
       case idx: FrequencyIndex => Attempt.successful(Left(idx))
