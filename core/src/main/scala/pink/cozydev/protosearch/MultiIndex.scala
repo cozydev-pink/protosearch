@@ -25,11 +25,15 @@ case class MultiIndex(
     fields: Map[String, Array[String]],
 ) {
 
+  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
+  private val scorer = Scorer(this, schema.defaultOR)
   val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
 
-  def search(q: String): Either[String, List[Hit]] =
-    queryAnalyzer.parse(q).flatMap(search)
-
+  /** Search the index with a `Query`. Results are sorted by descending score.
+    *
+    * @param q The `Query` to search
+    * @return A list of `Hit`s or error
+    */
   def search(q: Query): Either[String, List[Hit]] = {
     val docs = indexSearcher.search(q).flatMap(ds => scorer.score(NonEmptyList.one(q), ds))
     val lstb = List.newBuilder[Hit]
@@ -39,14 +43,25 @@ case class MultiIndex(
     docs.map(_ => lstb.result())
   }
 
+  /** Search the index with a Lucene syntax string. Results are sorted by descending score.
+    *
+    * @param q The query string to search
+    * @return A list of `Hit`s or error
+    */
+  def search(q: String): Either[String, List[Hit]] =
+    queryAnalyzer.parse(q).flatMap(search)
+
+  /** Search the index with a possibly incomplete query. Meant for use in a "search as your type"
+    * scenario. The last term, which is possibly incomplete, is rewritten to be a prefix.
+    *
+    * @param partialQuery The possibly incomplete lucene query string
+    * @return A list of `Hit`s or error
+    */
   def searchInteractive(partialQuery: String): Either[String, List[Hit]] = {
     val rewriteQ =
       queryAnalyzer.parse(partialQuery).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
     rewriteQ.flatMap(search)
   }
-
-  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
-  private val scorer = Scorer(this, schema.defaultOR)
 }
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs
