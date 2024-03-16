@@ -18,7 +18,12 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 
-/* A Schema describes the fields of a document */
+/** A Schema describes how the `Field`s of a document type will be used for search.
+  *
+  * @param fields The list of fields
+  * @param defaultField The default field to use when one is not specified in a query
+  * @param defaultOR Whether to use a default `OR` when combining queries
+  */
 final class Schema private (
     private val fields: List[Field],
     val defaultField: String,

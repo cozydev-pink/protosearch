@@ -16,6 +16,12 @@
 
 package pink.cozydev.protosearch
 
+/** A search result
+  *
+  * @param id Document ID
+  * @param score The score of this result given the query
+  * @param fields Stored fields of the result
+  */
 case class Hit(
     val id: Int,
     val score: Double,

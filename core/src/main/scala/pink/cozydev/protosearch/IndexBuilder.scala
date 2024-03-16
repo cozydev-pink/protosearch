@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import scala.collection.mutable.ListBuffer
 
+/** An intermediate helper for iterating over documents and building an Index */
 final case class IndexBuilder[A] private (
     fieldAndGetters: List[(Field, A => String)],
     defaultField: String,
@@ -52,6 +53,8 @@ final case class IndexBuilder[A] private (
   }
 }
 object IndexBuilder {
+
+  /** Construct a IndexBuilder of type `A` from a list of `Field`s and 'getter functions'. */
   def of[A](
       defaultField: (Field, A => String),
       fields: (Field, A => String)*
