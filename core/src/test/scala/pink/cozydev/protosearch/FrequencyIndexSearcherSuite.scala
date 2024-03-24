@@ -124,4 +124,13 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     )
   }
 
+  test("regex") {
+    val q = search("/a(c|l)/")
+    val results = Set(1, 2)
+    assertEquals(
+      q,
+      Right(results)
+    )
+  }
+
 }

@@ -78,17 +78,16 @@ case class IndexSearcher(index: Index, defaultOR: Boolean = true) {
         }
     }
 
-  private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] =
-    q match {
-      case Query.TermRegex(regexStr) =>
-        val regex = regexStr.r
-        val terms = index.termDict.termsForRange("", "\uFFFF")
-        val matches = terms
-          .flatMap(regex.findFirstMatchIn(_))
-          .map(m => index.termDict.termIndexWhere(m.source.toString))
-        Right(matches.toSet)
-      case _ => Left("Unsupport Regex error")
-    }
+  private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
+    val regex = q.str.r
+    val terms = index.termDict.termsForRange("", "\uFFFF")
+    Right(
+      terms
+        .flatMap(regex.findFirstMatchIn(_))
+        .flatMap(m => index.docsWithTerm(m.source.toString))
+        .toSet
+    )
+  }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
     if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)

@@ -123,4 +123,9 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(eggs)))
   }
 
+  test("regex") {
+    val books = search("/e(r|e)/")
+    assertEquals(books, Right(List(peter, eggs)))
+  }
+
 }
