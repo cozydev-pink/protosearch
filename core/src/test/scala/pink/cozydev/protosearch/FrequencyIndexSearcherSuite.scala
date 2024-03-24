@@ -125,8 +125,8 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
   }
 
   test("regex") {
-    val q = search("/a(c|l)/")
-    val results = Set(1, 2)
+    val q = search("/jump.*/ /cat/")
+    val results = Set(0, 1, 2)
     assertEquals(
       q,
       Right(results)
