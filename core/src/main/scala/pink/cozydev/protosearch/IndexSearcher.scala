@@ -47,7 +47,7 @@ case class IndexSearcher(index: Index, defaultOR: Boolean = true) {
       case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
       case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")
       case q: Query.Fuzzy => Left(s"Unsupported Fuzzy in BooleanRetrieval: $q")
-      case q: Query.TermRegex => Left(s"Unsupported Regex in BooleanRetrieval: $q")
+      case q: Query.TermRegex => regexSearch(q)
       case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
     }
 
@@ -76,6 +76,18 @@ case class IndexSearcher(index: Index, defaultOR: Boolean = true) {
             Right(index.docsForRange(l, r).toSet)
           case _ => Left("Unsupport TermRange error?")
         }
+    }
+
+  private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] =
+    q match {
+      case Query.TermRegex(regexStr) =>
+        val regex = regexStr.r
+        val terms = index.termDict.termsForRange("", "\uFFFF")
+        val matches = terms
+          .flatMap(regex.findFirstMatchIn(_))
+          .map(m => index.termDict.termIndexWhere(m.source.toString))
+        Right(matches.toSet)
+      case _ => Left("Unsupport Regex error")
     }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
