@@ -16,107 +16,59 @@
 
 package pink.cozydev.protosearch
 
-import scala.collection.mutable.ListBuffer
 import pink.cozydev.lucille.Query
-import cats.data.NonEmptyList
 
 case class MultiIndex(
     indexes: Map[String, Index],
-    defaultField: String,
-    defaultOR: Boolean = true,
+    schema: Schema,
     fields: Map[String, Array[String]],
 ) {
 
-  def search(q: NonEmptyList[Query]): Either[String, List[Int]] = {
-    val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
-    docs.map(_.toList.sorted)
-  }
+  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
+  private val scorer = Scorer(this, schema.defaultOR)
+  val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
 
-  def searchMap(q: NonEmptyList[Query]): Either[String, List[(Int, Map[String, String])]] = {
-    val docs = q.traverse(q => booleanModel(q)).map(defaultCombine)
-    val lstb = List.newBuilder[(Int, Map[String, String])]
-    docs.map(_.foreach { d =>
-      lstb += d -> fields.map { case (k, v) => (k, v(d)) }
+  /** Search the index with a `Query`. Results are sorted by descending score.
+    *
+    * @param q The `Query` to search
+    * @return A list of `Hit`s or error
+    */
+  def search(q: Query): Either[String, List[Hit]] = {
+    val docs = indexSearcher.search(q).flatMap(ds => scorer.score(q, ds))
+    val lstb = List.newBuilder[Hit]
+    docs.map(_.foreach { case (docId, score) =>
+      lstb += Hit(docId, score, fields.map { case (k, v) => (k, v(docId)) })
     })
     docs.map(_ => lstb.result())
   }
 
-  private val defaultIndex = indexes(defaultField)
-  private val defaultBooleanQ =
-    IndexSearcher(indexes(defaultField), defaultOR)
+  /** Search the index with a Lucene syntax string. Results are sorted by descending score.
+    *
+    * @param q The query string to search
+    * @return A list of `Hit`s or error
+    */
+  def search(q: String): Either[String, List[Hit]] =
+    queryAnalyzer.parse(q).flatMap(search)
 
-  private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
-
-  private def booleanModel(q: Query): Either[String, Set[Int]] =
-    q match {
-      case Query.Or(qs) => qs.traverse(booleanModel).map(IndexSearcher.unionSets)
-      case Query.And(qs) => qs.traverse(booleanModel).map(IndexSearcher.intersectSets)
-      case Query.Not(q) => booleanModel(q).map(matches => allDocs -- matches)
-      case Query.Group(qs) => qs.traverse(booleanModel).map(defaultCombine)
-      case Query.Field(f, q) =>
-        indexes.get(f).toRight(s"unsupported field $f").flatMap { index =>
-          IndexSearcher(index, defaultOR).search(q)
-        }
-      case _ => defaultBooleanQ.search(q)
-    }
-
-  private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
-
+  /** Search the index with a possibly incomplete query. Meant for use in a "search as your type"
+    * scenario. The last term, which is possibly incomplete, is rewritten to be a prefix.
+    *
+    * @param partialQuery The possibly incomplete lucene query string
+    * @return A list of `Hit`s or error
+    */
+  def searchInteractive(partialQuery: String): Either[String, List[Hit]] = {
+    val rewriteQ =
+      queryAnalyzer.parse(partialQuery).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
+    rewriteQ.flatMap(search)
+  }
 }
 object MultiIndex {
-  import scodec.{Codec, codecs}
-
-  private case class Bldr[A](
-      field: Field,
-      getter: A => String,
-      acc: ListBuffer[List[String]],
-  )
-
-  def apply[A](
-      defaultField: String,
-      head: (Field, A => String),
-      tail: (Field, A => String)*
-  ): List[A] => MultiIndex = {
-
-    val bldrs = (head :: tail.toList).map { case (field, getter) =>
-      Bldr(field, getter, ListBuffer.empty)
-    }
-
-    val storage = (head :: tail.toList).map(fg => fg._1.name -> ListBuffer.empty[String]).toMap
-
-    docs => {
-      docs.foreach { doc =>
-        bldrs.foreach { bldr =>
-          val value = bldr.getter(doc)
-          storage(bldr.field.name) += value
-          bldr.acc += (bldr.field.analyzer.tokenize(value))
-        }
-      }
-      // TODO let's delay defining the default field even further
-      // Also, let's make it optional, with no field meaning all fields?
-      new MultiIndex(
-        indexes = bldrs.map { bldr =>
-          val index =
-            if (bldr.field.positions)
-              PositionalIndex(bldr.acc.toList)
-            else
-              FrequencyIndex(bldr.acc.toList)
-          (bldr.field.name, index)
-        }.toMap,
-        defaultField = defaultField,
-        defaultOR = true,
-        fields = storage.map { case (k, v) => k -> v.toArray },
-      )
-    }
-  }
-
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
+  import scodec.{Attempt, Codec, codecs, Err}
   import scodec.codecs._
-  import scodec.{Attempt, Err}
 
-  def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
+  private def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
     i match {
       case idx: PositionalIndex => Attempt.successful(Right(idx))
       case idx: FrequencyIndex => Attempt.successful(Left(idx))
@@ -136,9 +88,6 @@ object MultiIndex {
         .listOfN(codecs.vint, (codecs.utf8_32 :: index).as[(String, Index)])
         .xmap(_.toMap, _.toList)
 
-    val defaultField: Codec[String] = codecs.utf8_32.withContext("defaultField")
-    val defaultOr: Codec[Boolean] = codecs.bool.withContext("defaultOr")
-
     val fieldStrings: Codec[Array[String]] =
       IndexCodecs.arrayOfN(codecs.vint, codecs.variableSizeBytes(codecs.vint, codecs.utf8))
 
@@ -148,11 +97,11 @@ object MultiIndex {
         .xmap(_.toMap, _.toList)
 
     val multiIndex: Codec[MultiIndex] =
-      (indexes :: defaultField :: defaultOr :: fields)
-        .as[(Map[String, Index], String, Boolean, Map[String, Array[String]])]
+      (indexes :: Schema.codec :: fields)
+        .as[(Map[String, Index], Schema, Map[String, Array[String]])]
         .xmap(
-          { case (in, dF, dOr, fs) => MultiIndex.apply(in, dF, dOr, fs) },
-          mi => (mi.indexes, mi.defaultField, mi.defaultOR, mi.fields),
+          { case (in, sc, fs) => MultiIndex.apply(in, sc, fs) },
+          mi => (mi.indexes, mi.schema, mi.fields),
         )
     multiIndex
   }

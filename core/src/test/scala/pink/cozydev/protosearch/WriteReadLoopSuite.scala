@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import pink.cozydev.protosearch.analysis.Analyzer
 import fixtures.BookIndex
 
 class WriteReadLoopSuite extends munit.FunSuite {
@@ -25,21 +25,18 @@ class WriteReadLoopSuite extends munit.FunSuite {
   test("Can write bytes, read bytes, and search") {
     val analyzer = Analyzer.default.withLowerCasing
 
-    val index = MultiIndex.apply[Book](
-      "title",
-      (Field("title", analyzer, true, true, true), _.title),
-      (Field("author", analyzer, true, true, false), _.author),
-    )(allBooks)
+    val index = IndexBuilder
+      .of[Book](
+        (Field("title", analyzer, true, true, true), _.title),
+        (Field("author", analyzer, true, true, false), _.author),
+      )
+      .fromList(allBooks)
 
     val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 
-    val qAnalyzer = QueryAnalyzer("title", ("title", analyzer), ("author", analyzer))
-
     def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
-      val q = qAnalyzer.parse(qs)
-      val result = q.flatMap(mq => index.search(mq.qs))
-      // TODO vector index access is unsafe
-      result.map(hits => hits.map(i => allBooks(i)))
+      val result = index.search(qs)
+      result.map(hits => hits.map(h => allBooks(h.id)))
     }
 
     val indexRead = indexBytes
@@ -49,7 +46,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
       .map(_.toString)
 
     val results = indexRead.map(index =>
-      search(index)("Two AND author:suess") match {
+      search(index)("Two AND author:seuss") match {
         case Left(_) => List.empty[Book]
         case Right(hits) => hits
       }

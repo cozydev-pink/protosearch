@@ -12,28 +12,33 @@ case class Book(author: String, title: String)
 val books: List[Book] = List(
   Book("Beatrix Potter", "The Tale of Peter Rabbit"),
   Book("Beatrix Potter", "The Tale of Two Bad Mice"),
-  Book("Dr. Suess", "One Fish, Two Fish, Red Fish, Blue Fish"),
-  Book("Dr. Suess", "Green Eggs and Ham"),
+  Book("Dr. Seuss", "One Fish, Two Fish, Red Fish, Blue Fish"),
+  Book("Dr. Seuss", "Green Eggs and Ham"),
 )
 ```
 
 In order to index our domain type `Book`, we'll need a few things:
 - An `Analyzer` to convert strings of text into tokens.
-- A `SearchSchema` to convert from our `Book` type into multiple fields of text.
+- `Field`s to tell the index what kind of data we want to store
+- A way to get the values for each of the fields for a given `Book`
 
-And then to create the index itself with a default field:
+We'll pass all these things to an `IndexBuilder`:
 
 ```scala mdoc:silent
-import pink.cozydev.protosearch.{Field, SearchSchema}
+import pink.cozydev.protosearch.{Field, IndexBuilder}
 import pink.cozydev.protosearch.analysis.Analyzer
 
 val analyzer = Analyzer.default.withLowerCasing
-val searchSchema = SearchSchema[Book](
-  (Field("author", analyzer, stored=true, indexed=true, positions=false), _.author),
+val indexBldr = IndexBuilder.of[Book](
   (Field("title", analyzer, stored=true, indexed=true, positions=true), _.title),
+  (Field("author", analyzer, stored=true, indexed=true, positions=false), _.author),
 )
+```
 
-val index = searchSchema.indexBldr("title")(books)
+And then we can finally index our `books` using the builder:
+
+```scala mdoc:silent
+val index = indexBldr.fromList(books)
 ```
 
 Finally we'll then need a `search` function to test out.
@@ -41,12 +46,11 @@ We use a `queryAnalyzer` with the same default field here to make sure our queri
 
 
 ```scala mdoc:silent
-val qAnalyzer = searchSchema.queryAnalyzer("title")
+val qAnalyzer = index.queryAnalyzer
 
 def search(q: String): List[Book] =
-  qAnalyzer.parse(q)
-    .flatMap(mq => index.search(mq.qs))
-    .map(hits => hits.map(i => books(i)))
+  index.search(q)
+    .map(hits => hits.map(h => books(h.id)))
     .fold(_ => Nil, identity)
 ```
 
@@ -123,7 +127,7 @@ The field query allows a user to specify the unique field a query should match.
 Field queries work with term queries:
 
 ```scala mdoc
-search("author:suess")
+search("author:seuss")
 ```
 
 ```scala mdoc

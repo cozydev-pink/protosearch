@@ -24,6 +24,7 @@ import pink.cozydev.protosearch.analysis.Analyzer
   * @param analyzer The analyzer to apply to the field at indexing time
   * @param stored Whether the raw field value should be stored in the index
   * @param indexed Whether the field value should be indexed for fast querying
+  * @param positions Whether the positions should be indexed for fast phrase querying
   */
 case class Field(
     name: String,
@@ -32,3 +33,15 @@ case class Field(
     indexed: Boolean,
     positions: Boolean,
 )
+object Field {
+  import scodec.Codec
+  import scodec.codecs._
+
+  val codec: Codec[Field] = {
+    ("name" | utf8_32) ::
+      ("analyzer" | Analyzer.codec) ::
+      ("stored" | bool) ::
+      ("indexed" | bool) ::
+      ("positions" | bool)
+  }.as[Field]
+}

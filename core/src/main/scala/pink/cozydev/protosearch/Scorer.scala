@@ -25,10 +25,9 @@ import pink.cozydev.protosearch.internal.PositionalIter
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
-  private val defaultIdx: Index = index.indexes(index.defaultField)
+  private val defaultIdx: Index = index.indexes(index.schema.defaultField)
 
-  def score(qs: NonEmptyList[Query], docs: Set[Int]): Either[String, List[(Int, Double)]] = {
-
+  def score(qs: Query, docs: Set[Int]): Either[String, List[(Int, Double)]] = {
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],
@@ -55,7 +54,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case q: Query.TermRegex => Left(s"Unsupported Regex in Scorer: $q")
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in Scorer: $q")
       }
-    accScore(defaultIdx, qs).map(combineMaps)
+    accScore(defaultIdx, NonEmptyList.one(qs)).map(combineMaps)
   }
 
   private def phraseScore(

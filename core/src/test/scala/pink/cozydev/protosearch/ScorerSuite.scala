@@ -25,11 +25,12 @@ class ScorerSuite extends munit.FunSuite {
 
   val analyzer = Analyzer.default
 
-  val index = MultiIndex.apply[Book](
-    "title",
-    (Field("title", analyzer, true, true, true), _.title),
-    (Field("author", analyzer, true, true, false), _.author),
-  )(allBooks)
+  val index = IndexBuilder
+    .of[Book](
+      (Field("title", analyzer, true, true, true), _.title),
+      (Field("author", analyzer, true, true, false), _.author),
+    )
+    .fromList(allBooks)
 
   val allDocs: Set[Int] = Range(0, allBooks.size).toSet
 
@@ -37,7 +38,7 @@ class ScorerSuite extends munit.FunSuite {
   def score(q: String, docs: Set[Int]): Either[String, List[(Int, Double)]] =
     QueryParser
       .parse(q)
-      .flatMap(q => scorer.score(q.qs, docs))
+      .flatMap(q => scorer.score(q, docs))
 
   def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
@@ -59,7 +60,7 @@ class ScorerSuite extends munit.FunSuite {
 
   test("additional matching queries increases score") {
     val sc1 = score("Tale OR Two", Set(2)).map(_.head._2)
-    val sc2 = score("author:Suess Tale OR Two", Set(2)).map(_.head._2)
+    val sc2 = score("author:Seuss Tale OR Two", Set(2)).map(_.head._2)
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 
