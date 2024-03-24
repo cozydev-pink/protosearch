@@ -33,7 +33,7 @@ object Tasks {
 
   val protosearchGenerateIndex: Initialize[Task[Set[File]]] = task {
     val targetDir = FilePath.parse(protosearchIndexTarget.value)
-    val outFile = targetDir / "search" / "searchIndex.dat"
+    val outFile = targetDir / "search" / "searchIndex.idx"
 
     val renderIndex = laika.sbt.Settings.parser.value.use { parser =>
       val tree = Resource.eval(parser.fromInput(laikaInputs.value.delegate).parse)
