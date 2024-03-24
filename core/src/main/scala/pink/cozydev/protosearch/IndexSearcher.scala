@@ -131,10 +131,8 @@ object IndexSearcher {
       }
 
     private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
-
       try {
         val regex = q.str.r
-
         val terms = index.termDict.termsForRange("", "\uFFFF")
         Right(
           terms
@@ -143,11 +141,8 @@ object IndexSearcher {
             .toSet
         )
       } catch {
-        case _: PatternSyntaxException =>
-          Left(s"Invalid regex query $q provided")
+        case _: PatternSyntaxException => Left(s"Invalid regex query $q")
       }
-
-
     }
   }
 

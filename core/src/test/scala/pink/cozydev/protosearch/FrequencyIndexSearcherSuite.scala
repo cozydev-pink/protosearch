@@ -135,7 +135,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("regex fail") {
     val q = search("/[/")
-    val err = "Invalid regex query TermRegex([) provided"
+    val err = "Invalid regex query TermRegex([)"
     assertEquals(
       q,
       Left(err)
