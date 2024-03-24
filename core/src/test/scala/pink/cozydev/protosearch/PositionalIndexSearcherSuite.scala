@@ -197,4 +197,13 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
       Right(results)
     )
   }
+
+  test("regex fail") {
+    val q = search("/[a/")
+    val err = "Invalid regex query TermRegex([a) provided"
+    assertEquals(
+      q,
+      Left(err)
+    )
+  }
 }

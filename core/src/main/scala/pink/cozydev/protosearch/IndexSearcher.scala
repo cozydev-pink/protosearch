@@ -20,6 +20,8 @@ import cats.data.NonEmptyList
 import pink.cozydev.lucille.{MultiQuery, Query, TermQuery}
 import pink.cozydev.protosearch.internal.PositionalIter
 
+import java.util.regex.PatternSyntaxException
+
 sealed abstract class IndexSearcher {
   def search(q: Query): Either[String, Set[Int]]
 
@@ -77,16 +79,6 @@ object IndexSearcher {
     def search(q: NonEmptyList[Query]): Either[String, Set[Int]] =
       q.traverse(q => search(q)).map(defaultCombine)
 
-  private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
-    val regex = q.str.r
-    val terms = index.termDict.termsForRange("", "\uFFFF")
-    Right(
-      terms
-        .flatMap(regex.findFirstMatchIn(_))
-        .flatMap(m => index.docsWithTerm(m.source.toString))
-        .toSet
-    )
-  }
 
   private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
     if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
@@ -107,7 +99,7 @@ object IndexSearcher {
         case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
         case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy in BooleanRetrieval: $q")
-        case q: Query.TermRegex => Left(s"Unsupported Regex in BooleanRetrieval: $q")
+        case q: Query.TermRegex => regexSearch(q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
       }
 
@@ -137,6 +129,26 @@ object IndexSearcher {
             case _ => Left("Unsupport TermRange error?")
           }
       }
+
+    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
+
+      try {
+        val regex = q.str.r
+
+        val terms = index.termDict.termsForRange("", "\uFFFF")
+        Right(
+          terms
+            .flatMap(regex.findFirstMatchIn(_))
+            .flatMap(m => index.docsWithTerm(m.source.toString))
+            .toSet
+        )
+      } catch {
+        case _: PatternSyntaxException =>
+          Left(s"Invalid regex query $q provided")
+      }
+
+
+    }
   }
 
   def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =

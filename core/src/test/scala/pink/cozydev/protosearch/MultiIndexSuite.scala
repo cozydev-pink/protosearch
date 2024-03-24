@@ -124,4 +124,14 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(peter, eggs)))
   }
 
+  // TODO: Add to Scorer.scala
+  test("regex fail") {
+    val q = search("/[a/")
+    val err = "Invalid regex query TermRegex([) provided"
+    assertEquals(
+      q,
+      Left(err)
+    )
+  }
+
 }
