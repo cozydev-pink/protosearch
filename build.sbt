@@ -40,7 +40,7 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
 
 val catsEffectV = "3.5.4"
 val catsV = "2.10.0"
-val fs2V = "3.9.4"
+val fs2V = "3.10.1"
 val laikaV = "1.0.1"
 val lucilleV = "0.0.1"
 val munitCatsEffectV = "2.0.0-M4"
@@ -72,8 +72,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % catsV,
       "org.typelevel" %%% "cats-effect" % catsEffectV,
-      "co.fs2" %%% "fs2-core" % fs2V,
-      "co.fs2" %%% "fs2-io" % fs2V,
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,

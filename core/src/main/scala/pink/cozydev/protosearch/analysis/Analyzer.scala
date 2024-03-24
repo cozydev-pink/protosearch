@@ -16,37 +16,27 @@
 
 package pink.cozydev.protosearch.analysis
 
-// Hopefully temporary, this should probably live in textmogrify
-sealed class Analyzer private (
-    tokenizer: (String) => List[String],
-    lowerCase: Boolean,
-    stopWords: Set[String],
+// TODO Replace with textmogrify Analyzer once ready
+final case class Analyzer(
+    lowerCase: Boolean
 ) {
-
-  def copy(
-      tokenizer: (String => List[String]) = tokenizer,
-      lowerCase: Boolean = lowerCase,
-      stopWords: Set[String] = stopWords,
-  ): Analyzer =
-    new Analyzer(tokenizer, lowerCase, stopWords)
-
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
 
-  def withTokenizer(tk: (String) => List[String]): Analyzer =
-    copy(tokenizer = tk)
-
   def tokenize(s: String): List[String] =
     if (lowerCase)
-      tokenizer(s.toLowerCase())
+      s.toLowerCase().split("\\s+").toList
     else
-      tokenizer(s)
+      s.split("\\s+").toList
+
 }
 object Analyzer {
+  import scodec.Codec
+  import scodec.codecs._
+
   def default: Analyzer =
-    new Analyzer(
-      TokenStream.tokenizeSpaceL,
-      lowerCase = false,
-      stopWords = Set.empty,
-    ) {}
+    new Analyzer(lowerCase = false)
+
+  val codec: Codec[Analyzer] =
+    ("lowerCase" | bool).as[Analyzer]
 }

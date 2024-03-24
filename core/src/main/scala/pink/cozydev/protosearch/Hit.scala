@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch.analysis
+package pink.cozydev.protosearch
 
-import fs2.{Chunk, Pure, Stream}
-
-// Temporary, this should live in textmogrify
-object TokenStream {
-  private def splitSpace(s: String): Chunk[String] =
-    Chunk.array(s.split(" "))
-
-  def tokenizeSpace(s: String): Stream[Pure, String] =
-    Stream.chunk(splitSpace(s))
-
-  def tokenizeSpaceL(s: String): List[String] =
-    s.split("\\s+").toList
-}
+/** A search result
+  *
+  * @param id Document ID
+  * @param score The score of this result given the query
+  * @param fields Stored fields of the result
+  */
+case class Hit(
+    val id: Int,
+    val score: Double,
+    val fields: Map[String, String],
+)

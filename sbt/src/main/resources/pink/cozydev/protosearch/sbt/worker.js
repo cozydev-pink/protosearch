@@ -1,9 +1,9 @@
 importScripts("./protosearch.js")
 
 async function getQuerier() {
-  let querier = fetch("./searchIndex.dat")
+  let querier = fetch("./searchIndex.idx")
     .then(res => res.blob())
-    .then(blob => QuerierBuilder.load(blob, "body"))
+    .then(blob => QuerierBuilder.load(blob))
     .catch((error) => console.error("getQuerier error: ", error));
   return await querier
 }
