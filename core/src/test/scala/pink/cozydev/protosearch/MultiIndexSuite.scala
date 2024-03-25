@@ -129,7 +129,7 @@ class MultiIndexSuite extends munit.FunSuite {
     val err = "Invalid regex query TermRegex([a)"
     assertEquals(
       q,
-      Left(err)
+      Left(err),
     )
   }
 

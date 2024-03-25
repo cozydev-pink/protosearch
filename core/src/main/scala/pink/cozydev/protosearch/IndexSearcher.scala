@@ -79,9 +79,8 @@ object IndexSearcher {
     def search(q: NonEmptyList[Query]): Either[String, Set[Int]] =
       q.traverse(q => search(q)).map(defaultCombine)
 
-
-  private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-    if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
+    private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
+      if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
     def search(q: Query): Either[String, Set[Int]] =
       q match {
         case Query.Term(q) => Right(index.docsWithTerm(q).toSet)
@@ -130,20 +129,18 @@ object IndexSearcher {
           }
       }
 
-    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
+    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] =
       try {
         val regex = q.str.r
-        val terms = index.termDict.termsForRange("", "\uFFFF")
+        val terms = index.termDict.termsForRegex(regex)
         Right(
           terms
-            .flatMap(regex.findFirstMatchIn(_))
-            .flatMap(m => index.docsWithTerm(m.source.toString))
+            .flatMap(m => index.docsWithTerm(m))
             .toSet
         )
       } catch {
         case _: PatternSyntaxException => Left(s"Invalid regex query $q")
       }
-    }
   }
 
   def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =

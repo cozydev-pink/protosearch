@@ -194,7 +194,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val results = Set(0, 1)
     assertEquals(
       q,
-      Right(results)
+      Right(results),
     )
   }
 
@@ -203,7 +203,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val err = "Invalid regex query TermRegex([a)"
     assertEquals(
       q,
-      Left(err)
+      Left(err),
     )
   }
 }

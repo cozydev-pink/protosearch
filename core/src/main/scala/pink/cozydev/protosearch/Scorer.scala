@@ -25,7 +25,6 @@ import pink.cozydev.lucille.MultiQuery
 import pink.cozydev.protosearch.internal.PositionalIter
 
 import java.util.regex.PatternSyntaxException
-import scala.util.matching.Regex
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -114,16 +113,9 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
     try {
       val regex = q.str.r
-      NonEmptyList.fromList(idx.termDict.termsForRange("", "\uFFFF")) match {
+      NonEmptyList.fromList(idx.termDict.termsForRegex(regex)) match {
         case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-        case Some(terms) =>
-          val scores = terms
-            .collect { case term if regex.findFirstMatchIn(term).isDefined => term }
-            .map(t => idx.scoreTFIDF(docs, t).toMap)
-          NonEmptyList.fromList(scores) match {
-            case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-            case Some(s) => Right(s)
-          }
+        case Some(terms) => Right(terms.map(idx.scoreTFIDF(docs, _).toMap))
       }
     } catch {
       case _: PatternSyntaxException => Left(s"Invalid regex query $q")

@@ -129,7 +129,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(0, 1, 2)
     assertEquals(
       q,
-      Right(results)
+      Right(results),
     )
   }
 
@@ -138,7 +138,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val err = "Invalid regex query TermRegex([)"
     assertEquals(
       q,
-      Left(err)
+      Left(err),
     )
   }
 
