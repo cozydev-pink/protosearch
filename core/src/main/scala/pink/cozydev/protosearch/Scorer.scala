@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import pink.cozydev.lucille.Query
 
-import scala.collection.mutable.HashMap as MMap
+import scala.collection.mutable.HashMap
 import pink.cozydev.lucille.MultiQuery
 import pink.cozydev.protosearch.internal.PositionalIter
 
@@ -107,9 +107,9 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     }
 
   private def regexScore(
-    idx: Index,
-    docs: Set[Int],
-    q: Query.TermRegex,
+      idx: Index,
+      docs: Set[Int],
+      q: Query.TermRegex,
   ): Either[String, NonEmptyList[Map[Int, Double]]] =
     try {
       val regex = q.str.r
@@ -122,7 +122,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     }
 
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
-    val mb = MMap.empty ++ ms.head
+    val mb = HashMap.empty ++ ms.head
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
