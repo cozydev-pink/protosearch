@@ -79,8 +79,6 @@ object IndexSearcher {
     def search(q: NonEmptyList[Query]): Either[String, Set[Int]] =
       q.traverse(q => search(q)).map(defaultCombine)
 
-    private def defaultCombine(sets: NonEmptyList[Set[Int]]): Set[Int] =
-      if (defaultOR) IndexSearcher.unionSets(sets) else IndexSearcher.intersectSets(sets)
     def search(q: Query): Either[String, Set[Int]] =
       q match {
         case Query.Term(q) => Right(index.docsWithTerm(q).toSet)
