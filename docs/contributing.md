@@ -37,7 +37,7 @@ Here are some common tasks and their sbt commands:
 
 Protosearch cross compiles to multiple platforms, so commands that run for each platform, like `test` can take a while.
 It's often nice to focus on a single platform at first, and then test the others.
-For example, to run the tests in core for just Scala.js run `coreJS/test`.
+For example, to run the tests in the core project for just Scala.js run `coreJS/test`.
 
 
 ## Running The Project
