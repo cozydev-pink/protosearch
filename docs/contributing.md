@@ -32,7 +32,7 @@ Here are some common tasks and their sbt commands:
 | --------------   | -------------------- |
 | prepare for CI   | `prePR`              |
 | format code      | `scalafmtAll`        |
-| run tests        | `coreJVM/test`       |
+| run JVM tests    | `rootJVM/test`       |
 | preview the site | `docs/tlSitePreview` |
 
 Protosearch cross compiles to multiple platforms, so commands that run for each platform, like `test` can take a while.
