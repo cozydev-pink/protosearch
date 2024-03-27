@@ -127,18 +127,20 @@ object IndexSearcher {
           }
       }
 
-    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] =
-      try {
-        val regex = q.str.r
-        val terms = index.termDict.termsForRegex(regex)
-        Right(
-          terms
-            .flatMap(m => index.docsWithTerm(m))
-            .toSet
-        )
-      } catch {
-        case _: PatternSyntaxException => Left(s"Invalid regex query $q")
-      }
+    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
+      val regex =
+        try
+          q.str.r
+        catch {
+          case _: PatternSyntaxException => return Left(s"Invalid regex query $q")
+        }
+      val terms = index.termDict.termsForRegex(regex)
+      Right(
+        terms
+          .flatMap(m => index.docsWithTerm(m))
+          .toSet
+      )
+    }
   }
 
   def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =

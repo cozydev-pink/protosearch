@@ -110,16 +110,19 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       idx: Index,
       docs: Set[Int],
       q: Query.TermRegex,
-  ): Either[String, NonEmptyList[Map[Int, Double]]] =
-    try {
-      val regex = q.str.r
-      NonEmptyList.fromList(idx.termDict.termsForRegex(regex)) match {
-        case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
-        case Some(terms) => Right(terms.map(idx.scoreTFIDF(docs, _).toMap))
+  ): Either[String, NonEmptyList[Map[Int, Double]]] = {
+    val regex =
+      try
+        q.str.r
+      catch {
+        case _: PatternSyntaxException => return Left(s"Invalid regex query $q")
       }
-    } catch {
-      case _: PatternSyntaxException => Left(s"Invalid regex query $q")
+
+    NonEmptyList.fromList(idx.termDict.termsForRegex(regex)) match {
+      case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+      case Some(terms) => Right(terms.map(idx.scoreTFIDF(docs, _).toMap))
     }
+  }
 
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
     val mb = HashMap.empty ++ ms.head
