@@ -17,11 +17,14 @@
 package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import pink.cozydev.lucille.Query
-import scala.collection.mutable.{HashMap => MMap}
+
+import scala.collection.mutable.HashMap
 import pink.cozydev.lucille.MultiQuery
 import pink.cozydev.protosearch.internal.PositionalIter
+
+import java.util.regex.PatternSyntaxException
 
 case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
@@ -51,7 +54,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.Proximity => Left(s"Unsupported Proximity encountered in Scorer: $q")
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy encountered in Scorer: $q")
-        case q: Query.TermRegex => Left(s"Unsupported Regex in Scorer: $q")
+        case q: Query.TermRegex => regexScore(idx, docs, q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in Scorer: $q")
       }
     accScore(defaultIdx, NonEmptyList.one(qs)).map(combineMaps)
@@ -103,8 +106,26 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       case _ => Left(s"Unsupported TermRange error: $q")
     }
 
+  private def regexScore(
+      idx: Index,
+      docs: Set[Int],
+      q: Query.TermRegex,
+  ): Either[String, NonEmptyList[Map[Int, Double]]] = {
+    val regex =
+      try
+        q.str.r
+      catch {
+        case _: PatternSyntaxException => return Left(s"Invalid regex query $q")
+      }
+
+    NonEmptyList.fromList(idx.termDict.termsForRegex(regex)) match {
+      case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+      case Some(terms) => Right(terms.map(idx.scoreTFIDF(docs, _).toMap))
+    }
+  }
+
   private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
-    val mb = MMap.empty ++ ms.head
+    val mb = HashMap.empty ++ ms.head
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )

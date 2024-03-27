@@ -139,3 +139,12 @@ Additionally, field queries can take more complex boolean queries if specified i
 ```scala mdoc
 search("author:([b TO e] AND NOT dr*)")
 ```
+
+## Regex Query
+
+Regex queries allow for greater query flexibility by utilizing powerful regular expressions.
+
+```scala mdoc
+search("/jump.*")
+```
+

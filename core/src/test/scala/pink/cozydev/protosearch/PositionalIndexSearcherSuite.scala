@@ -188,4 +188,22 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val q = search("\"fakeword\"")
     assertEquals(q, Right(Set.empty[Int]))
   }
+
+  test("regex") {
+    val q = search("/f(o|a)/")
+    val results = Set(0, 1)
+    assertEquals(
+      q,
+      Right(results),
+    )
+  }
+
+  test("regex fail") {
+    val q = search("/[a/")
+    val err = "Invalid regex query TermRegex([a)"
+    assertEquals(
+      q,
+      Left(err),
+    )
+  }
 }
