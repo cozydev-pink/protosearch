@@ -97,6 +97,12 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
+    Compile / packageBin / mappings += {
+      val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
+      val inDir = baseDirectory.value / "src" / "main" / "resources"
+      val dir = "pink/cozydev/protosearch/sbt"
+      jsArtifactInterop -> s"$dir/protosearch.js"
+    },
   )
 
 lazy val jsInterop = crossProject(JSPlatform)
