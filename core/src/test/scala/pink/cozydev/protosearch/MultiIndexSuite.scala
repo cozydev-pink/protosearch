@@ -119,4 +119,18 @@ class MultiIndexSuite extends munit.FunSuite {
     assertEquals(books, Right(List(eggs)))
   }
 
+  test("regex") {
+    val books = search("/e(r|e)/")
+    assertEquals(books, Right(List(peter, eggs)))
+  }
+
+  test("regex fail") {
+    val q = search("/[a/")
+    val err = "Invalid regex query TermRegex([a)"
+    assertEquals(
+      q,
+      Left(err),
+    )
+  }
+
 }

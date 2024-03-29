@@ -20,6 +20,8 @@ import cats.data.NonEmptyList
 import pink.cozydev.lucille.{MultiQuery, Query, TermQuery}
 import pink.cozydev.protosearch.internal.PositionalIter
 
+import java.util.regex.PatternSyntaxException
+
 sealed abstract class IndexSearcher {
   def search(q: Query): Either[String, Set[Int]]
 
@@ -94,7 +96,7 @@ object IndexSearcher {
         case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
         case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy in BooleanRetrieval: $q")
-        case q: Query.TermRegex => Left(s"Unsupported Regex in BooleanRetrieval: $q")
+        case q: Query.TermRegex => regexSearch(q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
       }
 
@@ -124,6 +126,21 @@ object IndexSearcher {
             case _ => Left("Unsupport TermRange error?")
           }
       }
+
+    private def regexSearch(q: Query.TermRegex): Either[String, Set[Int]] = {
+      val regex =
+        try
+          q.str.r
+        catch {
+          case _: PatternSyntaxException => return Left(s"Invalid regex query $q")
+        }
+      val terms = index.termDict.termsForRegex(regex)
+      Right(
+        terms
+          .flatMap(m => index.docsWithTerm(m))
+          .toSet
+      )
+    }
   }
 
   def intersectSets(sets: NonEmptyList[Set[Int]]): Set[Int] =

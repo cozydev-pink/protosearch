@@ -124,4 +124,22 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     )
   }
 
+  test("regex") {
+    val q = search("/jump.*/ /cat/")
+    val results = Set(0, 1, 2)
+    assertEquals(
+      q,
+      Right(results),
+    )
+  }
+
+  test("regex fail") {
+    val q = search("/[/")
+    val err = "Invalid regex query TermRegex([)"
+    assertEquals(
+      q,
+      Left(err),
+    )
+  }
+
 }
