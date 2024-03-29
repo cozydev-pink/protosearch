@@ -148,8 +148,12 @@
         For example, to run the tests in the core project for just Scala.js run <code>coreJS/test</code>.</p>
         
         <h2 id="running-the-project" class="section"><a class="anchor-link left" href="#running-the-project"><i class="icofont-laika link">&#xef71;</i></a>Running The Project</h2>
-        <p>Currently the best way to run a modified version of protosearch is to publish the sbt plugin locally.
-        We can do that in 3 steps:</p>
+        <p>Currently the best way to run a modified version of protosearch is to publish the sbt plugin locally.</p>
+        <div class="callout info">
+          <i class="icofont-laika info">&#xef4e;</i>
+          <p>Note that the protosearch sbt plugin only works on projects using <a href="https://typelevel.org/sbt-typelevel/">sbt-typelevel</a></p>
+        </div>
+        <p>There are 3 steps to this process:</p>
         <ol class="arabic">
           <li>Publish locally with <code>++2.12.19 publishLocal</code></li>
           <li>Add <code>protosearch-sbt</code> coords to <code>plugins.sbt</code></li>
@@ -163,11 +167,17 @@
         We can use that to add our locally published version of the <code>protosearch-sbt</code> plugin to another project&#39;s build.
         Let&#39;s add it to <a href="https://http4s.org/">http4s</a>.</p>
         <p>Clone http4s, <code>git clone https://github.com/http4s/http4s.git</code>, and add the following to its <code>project/plugins.sbt</code> file:</p>
-        <pre><code>addSbtPlugin(&quot;pink.cozydev&quot; % &quot;protosearch-sbt&quot; % &quot;0.0-083dc6f-SNAPSHOT&quot;)</code></pre>
-        <p>Now we can run <code>tlSite</code> for the http4s docs to build an index using our locally published version of protosearch:</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span>sbt site/tlSite</span></code></pre>
+        <pre><code>resolvers += &quot;SonaType Snapshots&quot;.at(&quot;https://s01.oss.sonatype.org/content/repositories/snapshots/&quot;)
+addSbtPlugin(&quot;pink.cozydev&quot; % &quot;protosearch-sbt&quot; % &quot;0.0-083dc6f-SNAPSHOT&quot;)</code></pre>
+        <p>The <code>resolvers += ...</code> line is temporarily needed while protosearch is leveraging Laika snapshots.</p>
+        <p>For step 3, start an sbt session by running <code>sbt</code> in your terminal.
+        Now we can run <code>tlSite</code> for the http4s docs to build an index using our locally published version of protosearch:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSite</span></code></pre>
+        <p>Note that sometimes the documentation project is called <code>docs</code> and so the command would be <code>docs/tlSite</code>.</p>
         <p>The above will produce <code>search.html</code> and <code>searchIndex.idx</code> files in the <code>site/target/docs/site/search/</code> directory.
-        Starting a local web server and browsing to <code>search.html</code> should load the search.</p>
+        We can use the preview server to run a local web server for the documentation site.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSitePreview</span></code></pre>
+        <p>Now, in your local browser, load up <a href="http://localhost:4242/search/search.html">localhost:4242/search/search.html</a> to see the search UI!</p>
 
         
 <hr class="footer-rule"/>
