@@ -67,17 +67,28 @@ Let's add it to [http4s].
 Clone http4s, `git clone https://github.com/http4s/http4s.git`, and add the following to its `project/plugins.sbt` file:
 
 ```
+resolvers += "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
 ```
 
+The `resolvers += ...` line is temporarily needed as protosearch is leveraging Laika snapshots.
+Start and sbt session by running `sbt` in your terminal.
 Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
 
 ```sh
-sbt site/tlSite
+site/tlSite
 ```
 
+Note that sometimes the documentation project is called `docs` and so the command would be `docs/tlSite`.
+
 The above will produce `search.html` and `searchIndex.idx` files in the `site/target/docs/site/search/` directory.
-Starting a local web server and browsing to `search.html` should load the search.
+We can use the preview server to run a local web server for the documentation site.
+
+```sh
+site/tlSitePreview
+```
+
+Now, in your local browser, load up [localhost:4242/search/search.html](http://localhost:4242/search/search.html) to see the search UI!
 
 
 [good first issues]: https://github.com/cozydev-pink/protosearch/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
