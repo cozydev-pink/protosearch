@@ -30,10 +30,13 @@ Here are some common tasks and their sbt commands:
 
 | Task             | sbt command          |
 | --------------   | -------------------- |
-| prepare for CI   | `prePR`              |
+| prepare for PR   | `prePR`              |
 | format code      | `scalafmtAll`        |
 | run JVM tests    | `rootJVM/test`       |
 | preview the site | `docs/tlSitePreview` |
+
+The `prePR` command will run formatting and various linting checks similar to what happens when you open a pull request.
+It does not run tests though, so be sure to do that as well.
 
 Protosearch cross compiles to multiple platforms, so commands that run for each platform, like `test` can take a while.
 It's often nice to focus on a single platform at first, and then test the others.
