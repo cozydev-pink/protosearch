@@ -17,9 +17,9 @@
 package pink.cozydev.protosearch.sbt
 
 import sbt.*
-import laika.sbt.LaikaPlugin
 import laika.sbt.LaikaPlugin.autoImport._
-import laika.helium.Helium
+import org.typelevel.sbt.TypelevelSitePlugin
+import org.typelevel.sbt.TypelevelSitePlugin.autoImport._
 
 import pink.cozydev.protosearch.ui.SearchUI
 import pink.cozydev.protosearch.analysis.IndexRendererConfig
@@ -28,10 +28,10 @@ object ProtosearchPlugin extends AutoPlugin {
 
   override val trigger = allRequirements
 
-  override def requires = plugins.JvmPlugin && LaikaPlugin
+  override def requires = plugins.JvmPlugin && TypelevelSitePlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    laikaTheme := Helium.defaults.extendWith(SearchUI).build,
+    laikaTheme := tlSiteHelium.value.extendWith(SearchUI).build,
     laikaRenderers += IndexRendererConfig(includeInSite = true),
   )
 }
