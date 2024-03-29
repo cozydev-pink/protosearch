@@ -95,6 +95,7 @@
     <li class="level1 nav-leaf"><a href="#boolean-queries">Boolean Queries</a></li>
     <li class="level1 nav-leaf"><a href="#group-query">Group Query</a></li>
     <li class="level1 nav-leaf"><a href="#field-query">Field Query</a></li>
+    <li class="level1 nav-leaf"><a href="#regex-query">Regex Query</a></li>
   </ul>
 
   <p class="footer"></p>
@@ -220,6 +221,11 @@
 //   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Peter Rabbit&quot;),
 //   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Two Bad Mice&quot;)
 // )</span></code></pre>
+        
+        <h2 id="regex-query" class="section"><a class="anchor-link left" href="#regex-query"><i class="icofont-laika link">&#xef71;</i></a>Regex Query</h2>
+        <p>Regex queries allow for greater query flexibility by utilizing powerful regular expressions.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;/jump.*&quot;</span><span>)
+</span><span class="comment">// res11: List[Book] = List()</span></code></pre>
 
         
 <hr class="footer-rule"/>
