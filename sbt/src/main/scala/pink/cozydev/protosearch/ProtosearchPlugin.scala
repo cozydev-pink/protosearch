@@ -17,10 +17,12 @@
 package pink.cozydev.protosearch.sbt
 
 import sbt.*
-import sbt.Keys.*
-import laika.ast.Path
 import laika.sbt.LaikaPlugin
 import laika.sbt.LaikaPlugin.autoImport._
+import laika.helium.Helium
+
+import pink.cozydev.protosearch.ui.SearchUI
+import pink.cozydev.protosearch.analysis.IndexRendererConfig
 
 object ProtosearchPlugin extends AutoPlugin {
 
@@ -28,36 +30,8 @@ object ProtosearchPlugin extends AutoPlugin {
 
   override def requires = plugins.JvmPlugin && LaikaPlugin
 
-  object autoImport {
-    val protosearchGenerateIndex = taskKey[Set[File]]("Generate Protosearch Index file")
-    val protosearchProcessFiles =
-      taskKey[Unit]("Process files with Protosearch, don't create final index.")
-    val protosearchIndexTarget = settingKey[String]("The target directory for index files")
-  }
-
-  import autoImport._
-
-  val path = "pink/cozydev/protosearch/sbt"
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    protosearchIndexTarget := ((Laika / target).value / "site").toString(),
-    protosearchGenerateIndex := Tasks.protosearchGenerateIndex.triggeredBy(laikaSite).value,
-    protosearchProcessFiles := Tasks.protosearchProcessFiles.value,
-    laikaInputs := laikaInputs.value.delegate
-      .addClassLoaderResource(
-        s"$path/protosearch.js",
-        Path.Root / "search" / "protosearch.js",
-      )
-      .addClassLoaderResource(
-        s"$path/search.js",
-        Path.Root / "search" / "search.js",
-      )
-      .addClassLoaderResource(
-        s"$path/worker.js",
-        Path.Root / "search" / "worker.js",
-      )
-      .addClassLoaderResource(
-        s"$path/search.html",
-        Path.Root / "search" / "search.html",
-      ),
+    laikaTheme := laikaTheme.value.extendWith(SearchUI),
+    laikaRenderers += IndexRendererConfig(includeInSite = true)
   )
 }
