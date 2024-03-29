@@ -1,0 +1,86 @@
+# Contributing
+
+This guide is for people who would like to be involved in building Protosearch.
+
+
+## Welcome!
+
+Firstly, welcome and thanks for your interest in Protosearch!
+
+
+## Getting Started
+
+We hope to maintain a list of [good first issues] to serve as starting points for new contributors.
+Occasionally this list might run empty, in which case, feel free to open a new issue asking for suggestions on where to get started.
+
+If you see an issue that interests you, and no one is currently assigned to it, please comment on the issue stating your interest.
+
+
+## Building The Project
+
+First you'll need to get the code, likely by cloning the repo locally:
+
+```sh
+git clone https://github.com/cozydev-pink/protosearch.git
+```
+
+Protosearch uses [sbt] and [sbt-typelevel] to manage its build.
+
+Here are some common tasks and their sbt commands:
+
+| Task             | sbt command          |
+| --------------   | -------------------- |
+| prepare for PR   | `prePR`              |
+| format code      | `scalafmtAll`        |
+| run JVM tests    | `rootJVM/test`       |
+| preview the site | `docs/tlSitePreview` |
+
+The `prePR` command will run formatting and various linting checks similar to what happens when you open a pull request.
+It does not run tests though, so be sure to do that as well.
+
+Protosearch cross compiles to multiple platforms, so commands that run for each platform, like `test` can take a while.
+It's often nice to focus on a single platform at first, and then test the others.
+For example, to run the tests in the core project for just Scala.js run `coreJS/test`.
+
+
+## Running The Project
+
+Currently the best way to run a modified version of protosearch is to publish the sbt plugin locally.
+We can do that in 3 steps:
+
+1. Publish locally with `++2.12.19 publishLocal`
+2. Add `protosearch-sbt` coords to `plugins.sbt`
+3. Run `tlSite`
+
+In step 1 we publish all modules for Scala 2.12 which is what all sbt plugins use.
+In step 2 we grab the version for our locally published protosearch from the log output of step 1.
+You'll likely see something like the following:
+
+```
+delivering :: pink.cozydev#protosearch-sbt;0.0-083dc6f-SNAPSHOT :: 0.0-083dc6f-SNAPSHOT ...
+```
+
+It's that `0.0-083dc6f-SNAPSHOT` bit that we want (Note that the version you see will be different).
+We can use that to add our locally published version of the `protosearch-sbt` plugin to another project's build.
+Let's add it to [http4s].
+
+Clone http4s, `git clone https://github.com/http4s/http4s.git`, and add the following to its `project/plugins.sbt` file:
+
+```
+addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
+```
+
+Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
+
+```sh
+sbt site/tlSite
+```
+
+The above will produce `search.html` and `searchIndex.idx` files in the `site/target/docs/site/search/` directory.
+Starting a local web server and browsing to `search.html` should load the search.
+
+
+[good first issues]: https://github.com/cozydev-pink/protosearch/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+[sbt]: https://www.scala-sbt.org/download/
+[sbt-typelevel]: https://typelevel.org/sbt-typelevel/
+[http4s]: https://http4s.org/
