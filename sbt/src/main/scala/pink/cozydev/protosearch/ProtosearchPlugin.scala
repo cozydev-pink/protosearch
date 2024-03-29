@@ -31,7 +31,7 @@ object ProtosearchPlugin extends AutoPlugin {
   override def requires = plugins.JvmPlugin && LaikaPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    laikaTheme := laikaTheme.value.extendWith(SearchUI),
-    laikaRenderers += IndexRendererConfig(includeInSite = true)
+    laikaTheme := Helium.defaults.extendWith(SearchUI).build,
+    laikaRenderers += IndexRendererConfig(includeInSite = true),
   )
 }
