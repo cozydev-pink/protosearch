@@ -46,7 +46,12 @@ For example, to run the tests in the core project for just Scala.js run `coreJS/
 ## Running The Project
 
 Currently the best way to run a modified version of protosearch is to publish the sbt plugin locally.
-We can do that in 3 steps:
+
+@:callout(info)
+Note that the protosearch sbt plugin only works on projects using [sbt-typelevel]
+@:@
+
+There are 3 steps to this process:
 
 1. Publish locally with `++2.12.19 publishLocal`
 2. Add `protosearch-sbt` coords to `plugins.sbt`
@@ -72,7 +77,8 @@ addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
 ```
 
 The `resolvers += ...` line is temporarily needed as protosearch is leveraging Laika snapshots.
-Start and sbt session by running `sbt` in your terminal.
+
+For step 3, start an sbt session by running `sbt` in your terminal.
 Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
 
 ```sh
