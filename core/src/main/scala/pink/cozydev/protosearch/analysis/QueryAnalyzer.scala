@@ -64,6 +64,7 @@ case class QueryAnalyzer(
       case q: Query.Fuzzy => Right(q)
       case q: Query.TermRegex => Right(q)
       case q: Query.MinimumMatch => Right(q)
+      case q: Query.Boost => Right(q)
     }
 
   private def analyzeQ(query: Query): Either[String, Query] =
@@ -104,6 +105,7 @@ case class QueryAnalyzer(
       case q: Query.Fuzzy => Right(q)
       case q: Query.TermRegex => Right(q)
       case q: Query.MinimumMatch => Right(q)
+      case q: Query.Boost => Right(q)
     }
 
   def parse(queryString: String): Either[String, MultiQuery] = {
