@@ -64,6 +64,7 @@ object IndexSearcher {
         case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in query: $q")
         case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in query: $q")
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in query: $q")
+        case q: Query.Boost => Left(s"Unsupported Boost in query: $q")
       }
   }
 
@@ -98,6 +99,7 @@ object IndexSearcher {
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy in BooleanRetrieval: $q")
         case q: Query.TermRegex => regexSearch(q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
+        case q: Query.Boost => Left(s"Unsupported Boost in BooleanRetrieval: $q")
       }
 
     private def phraseSearch(index: Index, q: Query.Phrase): Either[String, Set[Int]] =

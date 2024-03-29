@@ -41,8 +41,8 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
 val catsEffectV = "3.5.4"
 val catsV = "2.10.0"
 val fs2V = "3.10.2"
-val laikaV = "1.0.1"
-val lucilleV = "0.0.1"
+val laikaV = "1.0.1-13-b6ca99f-SNAPSHOT"
+val lucilleV = "0.0.2"
 val munitCatsEffectV = "2.0.0-M4"
 val munitV = "1.0.0-M11"
 val scalajsDomV = "2.8.0"
@@ -126,6 +126,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.6.7"),
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val inDir = baseDirectory.value / "src" / "main" / "resources"

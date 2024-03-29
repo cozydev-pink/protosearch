@@ -56,6 +56,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy encountered in Scorer: $q")
         case q: Query.TermRegex => regexScore(idx, docs, q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in Scorer: $q")
+        case q: Query.Boost => Left(s"Unsupported Boost in Scorer: $q")
       }
     accScore(defaultIdx, NonEmptyList.one(qs)).map(combineMaps)
   }
