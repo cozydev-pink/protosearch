@@ -72,11 +72,8 @@ Let's add it to [http4s].
 Clone http4s, `git clone https://github.com/http4s/http4s.git`, and add the following to its `project/plugins.sbt` file:
 
 ```
-resolvers += "SonaType Snapshots".at("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
 ```
-
-The `resolvers += ...` line is temporarily needed while protosearch is leveraging Laika snapshots.
 
 For step 3, start an sbt session by running `sbt` in your terminal.
 Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
