@@ -97,7 +97,6 @@ addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
 site/tlSite
 ```
 Note that sometimes the documentation project is called `docs` and so the command would be `docs/tlSite`.
-    
 The above will produce `search.html` and `searchIndex.idx` files in the `site/target/docs/site/search/` directory.
 
 3.3. We can use the preview server to run a local web server for the documentation site.
