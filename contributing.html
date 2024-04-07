@@ -95,7 +95,10 @@
     <li class="level1 nav-leaf"><a href="#welcome">Welcome!</a></li>
     <li class="level1 nav-leaf"><a href="#getting-started">Getting Started</a></li>
     <li class="level1 nav-leaf"><a href="#building-the-project">Building The Project</a></li>
-    <li class="level1 nav-leaf"><a href="#running-the-project">Running The Project</a></li>
+    <li class="level1 nav-node"><a href="#running-the-project">Running The Project</a></li>
+    <li class="level2 nav-leaf"><a href="#_1-publish-locally">1. Publish locally</a></li>
+    <li class="level2 nav-leaf"><a href="#_2-add-protosearch-sbt-coords-to-plugins-sbt">2. Add <code>protosearch-sbt</code> coords to <code>plugins.sbt</code></a></li>
+    <li class="level2 nav-leaf"><a href="#_3-run-tlsite">3. Run <code>tlSite</code></a></li>
   </ul>
 
   <p class="footer"></p>
@@ -159,26 +162,31 @@
           <p>Note that the protosearch sbt plugin only works on projects using <a href="https://typelevel.org/sbt-typelevel/">sbt-typelevel</a></p>
         </div>
         <p>There are 3 steps to this process:</p>
-        <ol class="arabic">
-          <li>Publish locally with <code>++2.12.19 publishLocal</code></li>
-          <li>Add <code>protosearch-sbt</code> coords to <code>plugins.sbt</code></li>
-          <li>Run <code>tlSite</code></li>
-        </ol>
-        <p>In step 1 we publish all modules for Scala 2.12 which is what all sbt plugins use.
-        In step 2 we grab the version for our locally published protosearch from the log output of step 1.
-        You&#39;ll likely see something like the following:</p>
+        <p>Make sure you have started sbt server. If not, enter <code>sbt</code> in terminal</p>
+        
+        <h3 id="_1-publish-locally" class="section"><a class="anchor-link left" href="#_1-publish-locally"><i class="icofont-laika link">&#xef71;</i></a>1. Publish locally</h3>
+        <p>1.1. We publish all modules for Scala 2.12 which is what all sbt plugins use.</p>
+        <p>Using command:</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span>++</span><span class="number-literal">2.12.19</span><span> publishLocal</span></code></pre>
+        <p>1.2. Grab the version for our locally published protosearch from the log output.</p>
+        <p>You&#39;ll likely see something like the following:</p>
         <pre><code>delivering :: pink.cozydev#protosearch-sbt;0.0-083dc6f-SNAPSHOT :: 0.0-083dc6f-SNAPSHOT ...</code></pre>
-        <p>It&#39;s that <code>0.0-083dc6f-SNAPSHOT</code> bit that we want (Note that the version you see will be different).
-        We can use that to add our locally published version of the <code>protosearch-sbt</code> plugin to another project&#39;s build.
-        Let&#39;s add it to <a href="https://http4s.org/">http4s</a>.</p>
-        <p>Clone http4s, <code>git clone https://github.com/http4s/http4s.git</code>, and add the following to its <code>project/plugins.sbt</code> file:</p>
+        <p>It&#39;s that <code>0.0-083dc6f-SNAPSHOT</code> bit that we want (Note that the version you see will be different).</p>
+        <p>We can use that to add our locally published version of the <code>protosearch-sbt</code> plugin to another project&#39;s build.</p>
+        
+        <h3 id="_2-add-protosearch-sbt-coords-to-plugins-sbt" class="section"><a class="anchor-link left" href="#_2-add-protosearch-sbt-coords-to-plugins-sbt"><i class="icofont-laika link">&#xef71;</i></a>2. Add <code>protosearch-sbt</code> coords to <code>plugins.sbt</code></h3>
+        <p>Let&#39;s add it to <a href="https://http4s.org/">http4s</a>.</p>
+        <p>2.1. Clone http4s, <code>git clone https://github.com/http4s/http4s.git</code></p>
+        <p>2.2. Add the following to its <code>project/plugins.sbt</code> file that we got from <strong>step 1</strong>:</p>
         <pre><code>addSbtPlugin(&quot;pink.cozydev&quot; % &quot;protosearch-sbt&quot; % &quot;0.0-083dc6f-SNAPSHOT&quot;)</code></pre>
-        <p>For step 3, start an sbt session by running <code>sbt</code> in your terminal.
-        Now we can run <code>tlSite</code> for the http4s docs to build an index using our locally published version of protosearch:</p>
+        
+        <h3 id="_3-run-tlsite" class="section"><a class="anchor-link left" href="#_3-run-tlsite"><i class="icofont-laika link">&#xef71;</i></a>3. Run <code>tlSite</code></h3>
+        <p>3.1. Start an sbt session in <code>http4s</code> by running <code>sbt</code> in your terminal.</p>
+        <p>3.2. Now we can run <code>tlSite</code> for the http4s docs to build an index using our locally published version of protosearch:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSite</span></code></pre>
-        <p>Note that sometimes the documentation project is called <code>docs</code> and so the command would be <code>docs/tlSite</code>.</p>
-        <p>The above will produce <code>search.html</code> and <code>searchIndex.idx</code> files in the <code>site/target/docs/site/search/</code> directory.
-        We can use the preview server to run a local web server for the documentation site.</p>
+        <p>Note that sometimes the documentation project is called <code>docs</code> and so the command would be <code>docs/tlSite</code>.
+        The above will produce <code>search.html</code> and <code>searchIndex.idx</code> files in the <code>site/target/docs/site/search/</code> directory.</p>
+        <p>3.3. We can use the preview server to run a local web server for the documentation site.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span>site/tlSitePreview</span></code></pre>
         <p>Now, in your local browser, load up <a href="http://localhost:4242/search/search.html">localhost:4242/search/search.html</a> to see the search UI!</p>
 
