@@ -57,31 +57,31 @@ Make sure you have started sbt server. If not, enter `sbt` in terminal
 
 ### 1. Publish locally
    
-1.1. We publish all modules for Scala 2.12 which is what all sbt plugins use.
+&nbsp; 1.1. We publish all modules for Scala 2.12 which is what all sbt plugins use.
    Using command:
    
 ```sh
 ++2.12.19 publishLocal
 ```
 
-1.2. Grab the version for our locally published protosearch from the log output.
+&nbsp; 1.2. Grab the version for our locally published protosearch from the log output.
  
-You'll likely see something like the following:
+&nbsp; You'll likely see something like the following:
 
 ```
 delivering :: pink.cozydev#protosearch-sbt;0.0-083dc6f-SNAPSHOT :: 0.0-083dc6f-SNAPSHOT ...
 ```
-It's that `0.0-083dc6f-SNAPSHOT` bit that we want (Note that the version you see will be different).
+&nbsp; It's that `0.0-083dc6f-SNAPSHOT` bit that we want (Note that the version you see will be different).
     
-We can use that to add our locally published version of the `protosearch-sbt` plugin to another project's build.
+&nbsp; We can use that to add our locally published version of the `protosearch-sbt` plugin to another project's build.
 
 ### 2. Add `protosearch-sbt` coords to `plugins.sbt`
 
-Let's add it to [http4s].
+&nbsp; Let's add it to [http4s].
     
-2.1. Clone http4s, `git clone https://github.com/http4s/http4s.git`
+&nbsp; 2.1. Clone http4s, `git clone https://github.com/http4s/http4s.git`
    
-2.2. Add the following to its `project/plugins.sbt` file that we got from **step 1**:
+&nbsp; 2.2. Add the following to its `project/plugins.sbt` file that we got from **step 1**:
     
 ```
 addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
@@ -89,19 +89,19 @@ addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
    
 ### 3. Run `tlSite`
 
-3.1. Start an sbt session in `http4s` by running `sbt` in your terminal.
+&nbsp; 3.1. Start an sbt session in `http4s` by running `sbt` in your terminal.
 
-3.2. Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
+&nbsp; 3.2. Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
     
 ```sh
 site/tlSite
 ```
     
-Note that sometimes the documentation project is called `docs` and so the command would be `docs/tlSite`.
+&nbsp; Note that sometimes the documentation project is called `docs` and so the command would be `docs/tlSite`.
     
-The above will produce `search.html` and `searchIndex.idx` files in the `site/target/docs/site/search/` directory.
+&nbsp; The above will produce `search.html` and `searchIndex.idx` files in the `site/target/docs/site/search/` directory.
 
-3.3. We can use the preview server to run a local web server for the documentation site.
+&nbsp; 3.3. We can use the preview server to run a local web server for the documentation site.
 
 ```sh
 site/tlSitePreview
