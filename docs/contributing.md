@@ -58,7 +58,8 @@ Make sure you have started sbt server. If not, enter `sbt` in terminal
 ### 1. Publish locally
    
 1.1. We publish all modules for Scala 2.12 which is what all sbt plugins use.
-   Using command:
+
+Using command:
    
 ```sh
 ++2.12.19 publishLocal
