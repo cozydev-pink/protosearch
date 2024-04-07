@@ -162,7 +162,7 @@ lazy val docs = project
               "Related Projects",
               TextLink.external("https://lucene.apache.org/", "lucene"),
               TextLink.external("https://github.com/cozydev-pink/lucille", "lucille"),
-              TextLink.external("https://github.com/valencik/textmogrify", "textmogrify"),
+              TextLink.external("https://github.com/cozydev-pink/textmogrify", "textmogrify"),
             )
           )
         )
