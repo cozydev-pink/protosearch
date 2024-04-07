@@ -89,7 +89,7 @@ Make sure you have started sbt server. If not, enter `sbt` in terminal
    
 4. **Run `tlSite`**
 
-    3.1. Start an sbt session inside `http4s` by running `sbt` in your terminal.
+    3.1. Start an sbt session in `http4s` by running `sbt` in your terminal.
 
     3.2. Now we can run `tlSite` for the http4s docs to build an index using our locally published version of protosearch:
     
