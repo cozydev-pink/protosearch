@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="Typelevel Laika + Helium Theme" />
-  <title>Protosearch</title>
+  <title>Features</title>
   
   <meta name="author" content="Andrew Valencik"/>
   
@@ -22,9 +22,9 @@
   
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Fira+Mono:500">
   
-  <link rel="stylesheet" type="text/css" href="helium/site/icofont.min.css" />
-    <link rel="stylesheet" type="text/css" href="helium/site/laika-helium.css" />
-  <script src="helium/site/laika-helium.js"></script>
+  <link rel="stylesheet" type="text/css" href="../helium/site/icofont.min.css" />
+    <link rel="stylesheet" type="text/css" href="../helium/site/laika-helium.css" />
+  <script src="../helium/site/laika-helium.js"></script>
   
   
   <script> /* for avoiding page load transitions */ </script>
@@ -42,7 +42,7 @@
     
   </div>
 
-  <a class="icon-link glyph-link" href="#"><i class="icofont-laika home" title="Home">&#xef47;</i></a>
+  <a class="icon-link glyph-link" href="../"><i class="icofont-laika home" title="Home">&#xef47;</i></a>
 
   <div class="row links">
     
@@ -69,14 +69,14 @@
   </div>
 
   <ul class="nav-list">
-    <li class="level1 nav-leaf"><a href="contributing.html">Contributing</a></li>
-    <li class="level1 active nav-leaf"><a href="#">Protosearch</a></li>
+    <li class="level1 nav-leaf"><a href="../contributing.html">Contributing</a></li>
+    <li class="level1 nav-leaf"><a href="../">Protosearch</a></li>
     <li class="level1 nav-header">About Protosearch</li>
-    <li class="level2 nav-leaf"><a href="01-about-protosearch/01-features.html">Features</a></li>
-    <li class="level2 nav-leaf"><a href="01-about-protosearch/02-design-goals.html">Design Goals</a></li>
+    <li class="level2 active nav-leaf"><a href="#">Features</a></li>
+    <li class="level2 nav-leaf"><a href="02-design-goals.html">Design Goals</a></li>
     <li class="level1 nav-header">Tutorial</li>
-    <li class="level2 nav-leaf"><a href="02-tutorial/01-indexing.html">Indexing Tutorial</a></li>
-    <li class="level2 nav-leaf"><a href="02-tutorial/02-querying.html">Querying</a></li>
+    <li class="level2 nav-leaf"><a href="../02-tutorial/01-indexing.html">Indexing Tutorial</a></li>
+    <li class="level2 nav-leaf"><a href="../02-tutorial/02-querying.html">Querying</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://lucene.apache.org/">lucene</a></li>
     <li class="level2 nav-leaf"><a href="https://github.com/cozydev-pink/lucille">lucille</a></li>
@@ -89,7 +89,7 @@
 
       
 <nav id="page-nav">
-  <p class="header"><a href="#">Protosearch</a></p>
+  <p class="header"><a href="#">Features</a></p>
 
   <ul class="nav-list">
   </ul>
@@ -100,11 +100,14 @@
 
       <main class="content">
 
-        <h1 id="protosearch" class="title">Protosearch</h1>
-        <p>Protosearch is a prototype search library under active development (hence the &quot;proto&quot;).
-        We&#39;re currently focussing on end to end functionality, and not yet worrying too much about API stability or performance throughout.</p>
-        <p>Learn more about Protosearch by reading about our <a href="01-about-protosearch/01-features.html#features">Features</a> or <a href="01-about-protosearch/02-design-goals.html#design-goals">Design Goals</a>.
-        Additionally you can follow the <a href="02-tutorial/01-indexing.html#indexing-tutorial">Indexing Tutorial</a> to get up and running.</p>
+        <h1 id="features" class="title">Features</h1>
+        <p>Protosearch is a prototype search library aimed at providing advanced querying features and supporting multiple platforms (JVM, JS, Native).</p>
+        <p>It supports full-text search features like keyword search, phrase search, multiple fields, boolean queries, and regular expressions.</p>
+        <p>It currently targets static index scenarios such as:</p>
+        <ul>
+          <li>Powering site documentation search</li>
+          <li>In memory search over immutable collections</li>
+        </ul>
 
         
 <hr class="footer-rule"/>
