@@ -55,7 +55,7 @@ There are 3 steps to this process:
 
 Make sure you have started sbt server. If not, enter `sbt` in terminal
 
-1. **Publish locally**
+### 1. Publish locally
    
    1.1. We publish all modules for Scala 2.12 which is what all sbt plugins use.
    Using command:
@@ -75,7 +75,7 @@ Make sure you have started sbt server. If not, enter `sbt` in terminal
     
    We can use that to add our locally published version of the `protosearch-sbt` plugin to another project's build.
 
-3. **Add `protosearch-sbt` coords to `plugins.sbt`**
+### 2. Add `protosearch-sbt` coords to `plugins.sbt`
 
    Let's add it to [http4s].
     
@@ -87,7 +87,7 @@ Make sure you have started sbt server. If not, enter `sbt` in terminal
    addSbtPlugin("pink.cozydev" % "protosearch-sbt" % "0.0-083dc6f-SNAPSHOT")
    ```
    
-4. **Run `tlSite`**
+### 3. Run `tlSite`
 
     3.1. Start an sbt session in `http4s` by running `sbt` in your terminal.
 
