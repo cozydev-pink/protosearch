@@ -156,6 +156,8 @@ lazy val docs = project
           homeLink = IconLink.internal(Root / "index.md", HeliumIcon.home)
         )
         .site
+        .pageNavigation(keepOnSmallScreens = true)
+        .site
         .mainNavigation(appendLinks =
           Seq(
             ThemeNavigationSection(
