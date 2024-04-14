@@ -20,6 +20,7 @@ import cats.effect.{Async, Resource}
 import laika.ast.Path
 import laika.io.model.InputTree
 import laika.theme.{Theme, ThemeBuilder, ThemeProvider}
+import laika.helium.Helium
 
 object SearchUI extends ThemeProvider {
 
@@ -44,7 +45,15 @@ object SearchUI extends ThemeProvider {
         s"$path/search.html",
         Path.Root / "search" / "search.html",
       )
+      .addClassLoaderResource(
+        s"$path/topNav.template.html",
+        Path.Root / "helium" / "templates" / "topNav.template.html",
+      )
 
     ThemeBuilder[F]("protosearch UI").addInputs(inputs).build
+  }
+
+  def transmuteHelium(helium: Helium): Helium = {
+    helium.site.internalCSS(Path.Root / )
   }
 }
