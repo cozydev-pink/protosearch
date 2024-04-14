@@ -1,0 +1,23 @@
+<header id="top-bar" class="${helium.site.topNavigation.style}">
+
+  <div class="row">
+    <a id="nav-icon">
+      @:icon(navigationMenu)
+    </a>
+
+    ${helium.site.topNavigation.versionMenu}
+  </div>
+
+  ${?helium.site.topNavigation.home}
+
+  <div class="row">
+    <input id="top-bar-search" class="input" type="text" placeholder="Search">
+  </div>
+
+  <div class="row links">
+    @:for(helium.site.topNavigation.links)
+    ${_}
+    @:@
+  </div>
+
+</header>
