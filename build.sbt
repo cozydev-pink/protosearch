@@ -39,7 +39,7 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
 }
 
 val catsEffectV = "3.5.4"
-val catsV = "2.10.0"
+val catsV = "2.12.0"
 val fs2V = "3.10.2"
 val laikaV = "1.1.0"
 val lucilleV = "0.0.2"
