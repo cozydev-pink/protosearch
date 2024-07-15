@@ -46,7 +46,7 @@ val lucilleV = "0.0.2"
 val munitCatsEffectV = "2.0.0-M5"
 val munitV = "1.0.0"
 val scalajsDomV = "2.8.0"
-def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.0"
 
 lazy val root =
   tlCrossRootProject
