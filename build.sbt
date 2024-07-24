@@ -47,6 +47,7 @@ val munitCatsEffectV = "2.0.0-M5"
 val munitV = "1.0.0-RC1"
 val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
+val scalametaV = "4.9.7"
 
 lazy val root =
   tlCrossRootProject
@@ -63,7 +64,9 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("core"))
   .settings(
-    name := "protosearch",
+    name := "core",
+    scalaJSUseMainModuleInitializer := true,
+ Compile / mainClass := Some("ParserTest"),
     Compile / run / fork := true,
     // forward stdin to forked process
     Compile / run / connectInput := true,
@@ -76,7 +79,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-    ),
+      "org.scalameta" %%% "scalameta" % scalametaV,
+       ),
   )
 
 lazy val laikaIO = crossProject(JVMPlatform)
@@ -96,6 +100,8 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.typelevel" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+      "org.scalameta" %%% "scalameta" % scalametaV,
+    
     ),
     Compile / packageBin / mappings += {
       val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
@@ -112,7 +118,8 @@ lazy val jsInterop = crossProject(JSPlatform)
   .settings(
     name := "protosearch-jsinterop",
     libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom" % scalajsDomV
+      "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
+      "org.scalameta" %%% "scalameta" % scalametaV,
     ),
   )
 
