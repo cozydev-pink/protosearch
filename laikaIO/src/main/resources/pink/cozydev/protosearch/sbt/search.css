@@ -1,6 +1,9 @@
 #top-bar-search {
   background-color: var(--syntax-base1);
-  border-radius: 0.375rem;
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  height: 24px;
 }
 
 /* Modal CSS setup from https://www.w3schools.com/howto/howto_css_modals.asp */

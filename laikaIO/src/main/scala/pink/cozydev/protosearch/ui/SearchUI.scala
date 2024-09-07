@@ -42,11 +42,11 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "worker.js",
       )
       .addClassLoaderResource(
-        s"$path/search.js",
+        s"$path/searchBar.js",
         Path.Root / "search" / "searchBar.js",
       )
       .addClassLoaderResource(
-        s"$path/worker.js",
+        s"$path/searchBarWorker.js",
         Path.Root / "search" / "searchBarWorker.js",
       )
       .addClassLoaderResource(
