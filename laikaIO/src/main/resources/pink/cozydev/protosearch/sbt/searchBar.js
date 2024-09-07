@@ -1,13 +1,17 @@
 async function main() {
-  //var app = document.getElementById("app")
-  const searchBar = document.getElementById("top-bar-search")
   const modal = document.getElementById("top-bar-search-modal");
+  const modalSearch = document.getElementById("search-modal-input");
   const modalBody = document.getElementById("search-modal-content-body");
 
-  // Get the <span> element that closes the modal
-  var span = document.getElementsByClassName("search-close")[0];
+  const searchController = document.getElementById("top-bar-search")
+  searchController.onclick = function() {
+    modal.style.display = "block"
+    modalSearch.focus()
+  }
+
   // When the user clicks on <span> (x), close the modal
-  span.onclick = function() {
+  const modalClose = document.getElementsByClassName("search-close")[0];
+  modalClose.onclick = function() {
     modal.style.display = "none";
   }
   // When the user clicks anywhere outside of the modal, close it
@@ -17,17 +21,18 @@ async function main() {
     }
   }
 
+  // Setup the search worker, it returns inner html to the modal
   const worker = new Worker("/search/searchBarWorker.js")
   worker.onmessage = function(e) {
-    modal.style.display = "block"
     modalBody.innerHTML = e.data
   }
-
-  searchBar.addEventListener('input', function () {
+  // Send inputs to the search worker
+  modalSearch.addEventListener('input', function () {
     worker.postMessage(this.value)
   })
 }
 
+// Only run once page has finished loading
 window.onload = function() {
   main()
 }

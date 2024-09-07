@@ -21,6 +21,17 @@
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
+#search-modal-input {
+  background-color: var(--syntax-base1);
+  border-radius: 5px;
+  border-style: solid;
+  border-width: 1px;
+  height: 28px;
+  width: 80%;
+  margin: 10px 25px 10px 25px;
+  padding-left: 10px;
+}
+
 /* Modal Content/Box */
 .search-modal-content {
   background-color: var(--bg-color);
