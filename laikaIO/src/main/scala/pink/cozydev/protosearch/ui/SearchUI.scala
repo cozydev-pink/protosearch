@@ -42,6 +42,14 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "worker.js",
       )
       .addClassLoaderResource(
+        s"$path/search.js",
+        Path.Root / "search" / "searchBar.js",
+      )
+      .addClassLoaderResource(
+        s"$path/worker.js",
+        Path.Root / "search" / "searchBarWorker.js",
+      )
+      .addClassLoaderResource(
         s"$path/search.html",
         Path.Root / "search" / "search.html",
       )
@@ -60,5 +68,12 @@ object SearchUI extends ThemeProvider {
   // Make a Helium => Helium function
   // so we can leverage: .extendWith(Helium => Helium)
   def searchNavBar(helium: Helium): Helium =
-    helium.site.internalCSS(Path.Root / "search" / "search.css")
+    helium.site
+      .internalCSS(Path.Root / "search" / "search.css")
+      .site
+      .internalJS(Path.Root / "search" / "protosearch.js")
+      .site
+      .internalJS(Path.Root / "search" / "searchBar.js")
+      .site
+      .internalJS(Path.Root / "search" / "searchBarWorker.js")
 }
