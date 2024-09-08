@@ -36,11 +36,11 @@
 /* Modal Content/Box */
 .search-modal-content {
   background-color: var(--bg-color);
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
+  margin: 1px auto; /* at the top and centered */
+  padding: 0px 20px 40px;
   width: 80%; /* Could be more or less, depending on screen size */
   border: 1px solid var(--primary-medium);
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 .search-modal-content span {
