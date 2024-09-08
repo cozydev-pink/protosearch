@@ -1,3 +1,7 @@
+.search-row {
+  margin-left: auto; /* Pin top search bar to right, near links */
+}
+
 #top-bar-search {
   background-color: var(--component-area-bg);
   border: 1px solid var(--primary-medium);
