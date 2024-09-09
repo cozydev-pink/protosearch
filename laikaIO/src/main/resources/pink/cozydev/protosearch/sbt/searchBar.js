@@ -22,7 +22,7 @@ async function main() {
   }
 
   // Setup the search worker, it returns inner html to the modal
-  const worker = new Worker("/search/searchBarWorker.js")
+  const worker = new Worker(new URL("searchBarWorker.js", baseUrl))
   worker.onmessage = function(e) {
     modalBody.innerHTML = e.data
   }
@@ -33,6 +33,7 @@ async function main() {
 }
 
 // Only run once page has finished loading
+const baseUrl = document.currentScript.src
 window.onload = function() {
   main()
 }
