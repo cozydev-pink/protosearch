@@ -1,0 +1,30 @@
+<header id="top-bar" class="${helium.site.topNavigation.style}">
+
+  <div class="row">
+    <a id="nav-icon">
+      @:icon(navigationMenu)
+    </a>
+
+    ${helium.site.topNavigation.versionMenu}
+  </div>
+
+  ${?helium.site.topNavigation.home}
+
+  <div class="row search-row">
+    <input id="search-top-bar" class="input" type="text" placeholder="Search">
+  </div>
+  <div id="search-modal" class="search-modal">
+    <div class="search-modal-content">
+      <span class="search-close">&times;</span>
+      <input id="search-modal-input" class="input" type="text">
+      <div id="search-modal-content-body"></div>
+    </div>
+  </div>
+
+  <div class="row links">
+    @:for(helium.site.topNavigation.links)
+    ${_}
+    @:@
+  </div>
+
+</header>

@@ -20,6 +20,7 @@ import cats.effect.{Async, Resource}
 import laika.ast.Path
 import laika.io.model.InputTree
 import laika.theme.{Theme, ThemeBuilder, ThemeProvider}
+import laika.helium.Helium
 
 object SearchUI extends ThemeProvider {
 
@@ -41,10 +42,38 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "worker.js",
       )
       .addClassLoaderResource(
+        s"$path/searchBar.js",
+        Path.Root / "search" / "searchBar.js",
+      )
+      .addClassLoaderResource(
+        s"$path/searchBarWorker.js",
+        Path.Root / "search" / "searchBarWorker.js",
+      )
+      .addClassLoaderResource(
         s"$path/search.html",
         Path.Root / "search" / "search.html",
+      )
+      .addClassLoaderResource(
+        s"$path/search.css",
+        Path.Root / "search" / "search.css",
+      )
+      .addClassLoaderResource(
+        s"$path/topNav.template.html",
+        Path.Root / "helium" / "templates" / "topNav.template.html",
       )
 
     ThemeBuilder[F]("protosearch UI").addInputs(inputs).build
   }
+
+  // Make a Helium => Helium function
+  // so we can leverage: .extendWith(Helium => Helium)
+  def searchNavBar(helium: Helium): Helium =
+    helium.site
+      .internalCSS(Path.Root / "search" / "search.css")
+      .site
+      .internalJS(Path.Root / "search" / "protosearch.js")
+      .site
+      .internalJS(Path.Root / "search" / "searchBar.js")
+      .site
+      .internalJS(Path.Root / "search" / "searchBarWorker.js")
 }
