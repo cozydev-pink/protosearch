@@ -10,7 +10,7 @@ function render(hit) {
   <div class="card">
     <div class="level-left">
       <p class="title">
-        <a href="${link}" target="_blank">
+        <a href="${link}">
           <span>${title}</span>
         </a>
       </p>
