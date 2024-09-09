@@ -1,12 +1,12 @@
 async function main() {
-  const modal = document.getElementById("top-bar-search-modal");
-  const modalSearch = document.getElementById("search-modal-input");
+  const modal = document.getElementById("search-modal");
+  const modalInput = document.getElementById("search-modal-input");
   const modalBody = document.getElementById("search-modal-content-body");
 
-  const searchController = document.getElementById("top-bar-search")
-  searchController.onclick = function() {
+  const searchTopBar = document.getElementById("search-top-bar")
+  searchTopBar.onclick = function() {
     modal.style.display = "block"
-    modalSearch.focus()
+    modalInput.focus()
   }
 
   // When the user clicks on <span> (x), close the modal
@@ -27,7 +27,7 @@ async function main() {
     modalBody.innerHTML = e.data
   }
   // Send inputs to the search worker
-  modalSearch.addEventListener('input', function () {
+  modalInput.addEventListener('input', function () {
     worker.postMessage(this.value)
   })
 }
