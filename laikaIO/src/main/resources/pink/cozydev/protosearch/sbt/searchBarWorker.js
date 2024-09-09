@@ -9,34 +9,9 @@ async function getQuerier() {
 }
 const querierPromise = getQuerier()
 
-function render(hit) {
-  const path = hit.fields.path
-  const link = "../" + hit.fields.path.replace(".txt", ".html")
-  const title = hit.fields.title
-  const preview = hit.fields.body.slice(0, 150) + "..."
-  return (
-`
-<ol>
-  <div class="card">
-    <div class="level-left">
-      <p class="title">
-        <a href="${link}" target="_blank">
-          <span>${title}</span>
-        </a>
-      </p>
-    </div>
-    <p class="subtitle">${preview}</p>
-  </div>
-</ol>
-`
-  )
-}
-
 async function searchIt(query) {
   const querier = await querierPromise
   return querier.search(query)
-    .map(render)
-    .join("\n")
 }
 
 onmessage = async function(e) {
