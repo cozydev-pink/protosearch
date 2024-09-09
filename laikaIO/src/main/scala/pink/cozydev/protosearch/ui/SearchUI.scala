@@ -74,6 +74,4 @@ object SearchUI extends ThemeProvider {
       .internalJS(Path.Root / "search" / "protosearch.js")
       .site
       .internalJS(Path.Root / "search" / "searchBar.js")
-      .site
-      .internalJS(Path.Root / "search" / "searchBarWorker.js")
 }
