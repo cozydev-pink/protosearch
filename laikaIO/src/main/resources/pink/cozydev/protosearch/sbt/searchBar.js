@@ -55,6 +55,20 @@ async function main() {
   modalInput.addEventListener('input', function () {
     worker.postMessage(this.value)
   })
+
+  // Add keyboard shortcut to open search modal with `/`
+  window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) { return; }
+    if (event.code == "Slash" && modal.style.display != "block") {
+      event.preventDefault()
+      modal.style.display = "block"
+      modalInput.focus()
+    }
+    if (event.code == "Escape" && modal.style.display == "block") {
+      event.preventDefault()
+      modal.style.display = "none"
+    }
+  })
 }
 
 // Only run once page has finished loading
