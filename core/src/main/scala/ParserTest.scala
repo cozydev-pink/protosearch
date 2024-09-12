@@ -4,16 +4,28 @@ import scala.meta.contrib.DocToken._
 import scala.meta.tokens.Token.Comment
 import pink.cozydev.protosearch.{Field, IndexBuilder}
 import pink.cozydev.protosearch.analysis.Analyzer
+import scala.util.matching.Regex
 
 
-case class Book(author: String, title: String)
+//case class Book(author: String, title: String)
 
-case class ScaladocInfo(description: String, params: List[String], tparams: List[String])
+case class ScaladocInfo( 
+  name: String,
+  params: List[String],
+  tparams: List[String],
+  description: String,
+  annotations: List[String],
+  hyperlinks: List[String],
+  optionalParams: List[String],
+  implicitParams: List[String],
+  originalDefn: Defn.Def)
 
 object Scalaparser {
 
-  def parseAndExtractInfo(source: String): Map[String, ScaladocInfo] = {
+  def parseAndExtractInfo(source: String): List[ScaladocInfo] = {
     val parsed: Source = source.parse[Source].get
+
+    val urlRegex: Regex = """https?://[^\s]+""".r
 
     // Extract comments and their positions
     val comments = parsed.tokens.collect {
@@ -21,35 +33,71 @@ object Scalaparser {
         (comment.pos.start, ScaladocParser.parseScaladoc(comment).getOrElse(Nil))
     }.toMap
 
-    // Traverse the AST to find functions and their associated comments
     val functions = parsed.collect {
-      case defn @ Defn.Def(_, name, _, _, _, _) =>
-        // Debugging: Print the position of the function
-        // println(s"Function: ${name.value} at position ${defn.pos.start}")
-
-        // Find the closest preceding comment
-        val commentTokens = comments
-          .filter { case (start, _) => start < defn.pos.start }
-          .toSeq
-          .sortBy(_._1)
-          .lastOption
-          .map(_._2)
-          .getOrElse(Nil)
-
-        val description = commentTokens.collect {
-          case DocToken(Description, _, body) => body.getOrElse("")
+      case defn @ Defn.Def(mods, name, tparams, paramss, _, _) =>
+      val (commentTokens, rawComment): (List[DocToken], String) = comments
+      .filter { case (start, _) => start < defn.pos.start }
+      .toList // convert to List, as maxBy works on Iterable
+      .sortBy(_._1) // sort by the start position
+      .reverse.headOption // get the last one, which will be the max
+      .map { case (_, tokens) =>
+        val raw = tokens.collect {
+          case DocToken(_, _, Some(body)) => body
         }.mkString(" ")
+        (tokens, raw)
+      }
+      .getOrElse((Nil, ""))
 
-        val params = commentTokens.collect {
-          case DocToken(Param, Some(name), desc) => s"@$name: ${desc.getOrElse("")}"
-        }
+      val description = commentTokens.collect {
+        case DocToken(Description, _, Some(body)) => body
+      }.mkString(" ")
 
-        val tparams = commentTokens.collect {
-          case DocToken(TypeParam, Some(name), desc) => s"@tparam $name: ${desc.getOrElse("")}"
-        }
+      val paramsComm  = commentTokens.collect {
+        case DocToken(Param, Some(name), Some(desc)) => s"$name: $desc"
+      }
 
-        name.value -> ScaladocInfo(description, params, tparams)
-    }.toMap
+      val params = paramss.flatten.map { param =>
+        s"${paramsComm.find(_.startsWith(""+param.name.value)).getOrElse(param.name.value)}: ${param.decltpe.map(_.toString).getOrElse("Unknown Type")} " 
+      }
+
+      val typeParamsComm= commentTokens.collect {
+        case DocToken(TypeParam, Some(name), Some(desc)) => s"@tparam $name: $desc"
+      }
+
+      val typeParams = tparams.zipWithIndex.map { case (tparam, index)    =>
+        val value = typeParamsComm.lift(index).getOrElse(tparam.name.value)
+        s"${value.replace("@tparam", "")}"
+      }
+      
+      val annotations = defn.mods.collect {
+        case mod: Mod.Annot => mod.toString
+      }
+
+      val hyperlinks = urlRegex.findAllMatchIn(rawComment).map(_.matched).toList
+
+      val optionalParams = paramss.flatten.collect {
+        case param: Term.Param if param.default.isDefined => param.name.value
+      }
+
+      val implicitParams = paramss.collect {
+        case params if params.exists(_.mods.exists(_.is[Mod.Implicit])) =>
+          params.collect {
+            case param: Term.Param => param.name.value
+          }
+      }.flatten
+
+      ScaladocInfo(
+        name.value,
+        params,
+        typeParams,
+        description , 
+        annotations,
+        hyperlinks , 
+        optionalParams,
+        implicitParams,
+        originalDefn = defn
+      )
+    }
 
     functions
   }
@@ -86,8 +134,7 @@ object ParserTest extends App {
       def subtract[T](c: Int, d: Int): Int = c - d
     }
   """
-
-  val scaladocInfoList = Scalaparser.parseAndExtractInfo(source)
+  //  val scaladocInfoList = Scalaparser.parseAndExtractInfo(source)
 
   // scaladocInfoList.foreach { case (name, info) =>
   //   println(s"Function: $name")
@@ -96,19 +143,36 @@ object ParserTest extends App {
   //   println(s"  Type Params: ${info.tparams.mkString(", ")}")
   // }
 
+  val scaladocInfoList = Scalaparser.parseAndExtractInfo(source)
+
+  scaladocInfoList.foreach { info =>
+    println(s"Function: ${info.name}")
+    println(s"  Description: ${info.description}")
+    println(s"  Params: ${info.params.mkString(", ")}")
+    println(s"  Type Params: ${info.tparams.mkString(", ")}")
+    println(s"  Annotations: ${info.annotations.mkString(", ")}")
+    println(s"  Hyperlinks: ${info.hyperlinks.mkString(", ")}")
+    println(s"  Optional Params: ${info.optionalParams.mkString(", ")}")
+    println(s"  Implicit Params: ${info.implicitParams.mkString(", ")}")
+  }
+
   val analyzer = Analyzer.default.withLowerCasing
-  val indexBldr = IndexBuilder.of[(String,ScaladocInfo)](
-    (Field("functionName", analyzer, stored=true, indexed=true, positions=true), _._1),
-    (Field("description", analyzer, stored=true, indexed=true, positions=true), _._2.description),
-      (Field("params", analyzer, stored=true, indexed=true, positions=true), _._2.params.mkString(", ")),
-      (Field("tparams", analyzer, stored=true, indexed=true, positions=true), _._2.tparams.mkString(", "))
+  val indexBldr = IndexBuilder.of[ScaladocInfo](
+    (Field("functionName", analyzer, stored=true, indexed=true, positions=true),_.name),
+    (Field("description", analyzer, stored=true, indexed=true, positions=true), _.description),
+    (Field("params", analyzer, stored=true, indexed=true, positions=true), _.params.mkString(", ")),
+    (Field("tparams", analyzer, stored=true, indexed=true, positions=true), _.tparams.mkString(", ")),
+    (Field("Annotations", analyzer, stored=true, indexed=true, positions=true), _.annotations.mkString(", ")),
+    (Field("Hyperlinks", analyzer, stored=true, indexed=true, positions=true), _.hyperlinks.mkString(", ")),
+    (Field("Optional Params", analyzer, stored=true, indexed=true, positions=true), _.optionalParams.mkString(", ")),
+    (Field("Implicit Params", analyzer, stored=true, indexed=true, positions=true), _.implicitParams.mkString(", "))
   )
 
-  val index = indexBldr.fromList(scaladocInfoList.toList)
+  val index = indexBldr.fromList(scaladocInfoList)
 
   val qAnalyzer = index.queryAnalyzer
 
-  def search(q: String): List[(String, ScaladocInfo)] = {
+  def search(q: String): List[ScaladocInfo] = {
     val searchResults = index.search(q)
     searchResults.fold(_ => Nil, hits => hits.map(h => scaladocInfoList.toList(h.id)))
   }
@@ -117,11 +181,19 @@ object ParserTest extends App {
     queries.foreach { query =>
       val results = search(query)
       println(s"Search results for query '$query':")
-      results.foreach { case (name, info) =>
-        println(s"Function Name: $name")
+      results.foreach { info =>
+        // println(s"Function Name: $name")
+        // println(s"  Description: ${info.description}")
+        // println(s"  Params: ${info.params.mkString(", ")}")
+        // println(s"  Type Params: ${info.tparams.mkString(", ")}")
+         println(s"Function: ${info.name}")
         println(s"  Description: ${info.description}")
         println(s"  Params: ${info.params.mkString(", ")}")
         println(s"  Type Params: ${info.tparams.mkString(", ")}")
+        println(s"  Annotations: ${info.annotations.mkString(", ")}")
+        println(s"  Hyperlinks: ${info.hyperlinks.mkString(", ")}")
+        println(s"  Optional Params: ${info.optionalParams.mkString(", ")}")
+        println(s"  Implicit Params: ${info.implicitParams.mkString(", ")}")
       }
     }
 
