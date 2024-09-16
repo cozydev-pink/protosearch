@@ -138,12 +138,6 @@ lazy val docs = project
   .enablePlugins(TypelevelSitePlugin)
   .dependsOn(core.jvm, jsInterop.js)
   .settings(
-    tlSiteGenerate := List(
-      WorkflowStep.Sbt(
-        List(s"++ 3 ${thisProject.value.id}/${tlSite.key.toString}"),
-        name = Some("Generate site"),
-      )
-    ),
     tlSiteHelium ~= {
       import laika.helium.config._
       import laika.ast.Path.Root

@@ -292,7 +292,7 @@ jobs:
         run: sbt +update
 
       - name: Generate site
-        run: sbt '++ 3 docs/tlSite'
+        run: sbt docs/tlSite
 
       - name: Publish site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
