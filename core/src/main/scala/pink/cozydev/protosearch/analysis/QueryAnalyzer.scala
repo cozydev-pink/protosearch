@@ -39,7 +39,7 @@ case class QueryAnalyzer(
           case Some(ts) =>
             ts match {
               case NonEmptyList(head, Nil) => Right(Query.Term(head))
-              case terms => Right(Query.Group(terms.map(Query.Term.apply)))
+              case termNel => Right(Query.Group(termNel.map(Query.Term.apply)))
             }
         }
       case q: Query.Prefix => Right(q)
