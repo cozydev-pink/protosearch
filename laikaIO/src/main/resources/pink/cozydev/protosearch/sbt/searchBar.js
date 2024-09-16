@@ -10,7 +10,7 @@ function render(hit) {
   <div class="card">
     <div class="level-left">
       <p class="title">
-        <a href="${link}" target="_blank">
+        <a href="${link}">
           <span>${title}</span>
         </a>
       </p>
@@ -54,6 +54,20 @@ async function main() {
   // Send inputs to the search worker
   modalInput.addEventListener('input', function () {
     worker.postMessage(this.value)
+  })
+
+  // Add keyboard shortcut to open search modal with `/`
+  window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) { return; }
+    if (event.code == "Slash" && modal.style.display != "block") {
+      event.preventDefault()
+      modal.style.display = "block"
+      modalInput.focus()
+    }
+    if (event.code == "Escape" && modal.style.display == "block") {
+      event.preventDefault()
+      modal.style.display = "none"
+    }
   })
 }
 
