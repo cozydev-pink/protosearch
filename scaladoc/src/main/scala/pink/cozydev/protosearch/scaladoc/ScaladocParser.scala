@@ -1,0 +1,130 @@
+import scala.meta._
+import scala.meta.contrib._
+import scala.meta.contrib.DocToken._
+import scala.meta.tokens.Token.Comment
+import pink.cozydev.protosearch.{Field, IndexBuilder}
+import pink.cozydev.protosearch.analysis.Analyzer
+import scala.util.matching.Regex
+
+
+case class ScaladocInfo(
+  name: String,
+  description: String,
+  annotations: List[String],
+  hyperlinks: List[String],
+  params  : List[String],
+  returnType: String,
+  startLine: Int,
+  endLine: Int
+)
+
+object ScaladocParser {
+
+  def parseAndExtractInfo(source: String): List[ScaladocInfo] = {
+    val parsed: Source = source.parse[Source].get
+
+    val urlRegex: Regex = """https?://[^\s]+""".r
+
+    // Extract comments and their positions
+    val comments = parsed.tokens.collect {
+      case comment: Comment if comment.syntax.startsWith("/**") =>
+        (comment.pos.start, ScaladocParser.parseScaladoc(comment).getOrElse(Nil))
+    }.toMap
+
+    val functions = parsed.collect {
+      case defn @ Defn.Def(mods, name, tparams, paramss, retType, _) =>
+      val (commentTokens, rawComment): (List[DocToken], String) = comments
+      .filter { case (start, _) => start < defn.pos.start }
+      .toList
+      .sortBy(_._1)
+      .reverse.headOption
+      .map { case (_, tokens) =>
+        val raw = tokens.collect {
+          case DocToken(_, _, Some(body)) => body
+        }.mkString(" ")
+        (tokens, raw)
+      }
+      .getOrElse((Nil, ""))
+        
+      val startLine = defn.pos.startLine;      
+      val endLine = defn.pos.endLine;  
+
+      val description = commentTokens.collect {
+        case DocToken(Description, _, Some(body)) => body
+      }.mkString(" ")
+
+      val paramsComm  = commentTokens.collect {
+        case DocToken(Param, Some(name), Some(desc)) => s"$name: $desc"
+      }
+      val params = paramss.flatten.collect {
+        case param: Term.Param if param.default.isEmpty && !param.mods.exists(_.is[Mod.Implicit]) =>
+     
+        val commentDescription: String = paramsComm.find(_.startsWith("" + param.name.value))
+          .getOrElse(param.name.value)
+        val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
+
+        s"$commentDescription: $declaredType"
+      }
+
+
+      val typeParamsComm= commentTokens.collect {
+        case DocToken(TypeParam, Some(name), Some(desc)) => s"@tparam $name: $desc"
+      }
+
+      val typeParams = tparams.zipWithIndex.map { case (tparam, index)    =>
+        val value = typeParamsComm.lift(index).getOrElse(tparam.name.value)
+        s"${value.replace("@tparam", "")}"
+      }
+      
+      val annotations = defn.mods.collect {
+        case mod: Mod.Annot => mod.toString
+      }
+
+      val hyperlinks = urlRegex.findAllMatchIn(rawComment).map(_.matched).toList
+
+      val optionalParams = paramss.flatten.collect {
+        case param: Term.Param if param.default.isDefined =>  
+        val commentDescription: String = paramsComm.find(_.startsWith("" + param.name.value))
+        .getOrElse(param.name.value)
+    
+        val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
+
+       s"$commentDescription: $declaredType"
+
+      }
+
+      val implicitParams = paramss.collect {
+        case params if params.exists(_.mods.exists(_.is[Mod.Implicit])) =>
+          params.collect {
+            case param: Term.Param =>
+             val commentDescription: String = paramsComm.find(_.startsWith("" + param.name.value))
+            .getOrElse(param.name.value)
+        
+            val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
+
+          s"$commentDescription: $declaredType"
+        }
+      }.flatten
+     
+      val allParams =params ++ optionalParams ++ typeParams ++ implicitParams 
+
+      val returnType = retType match {
+        case Some(tpe) => tpe.syntax
+        case None => "Unit"
+      }
+
+      ScaladocInfo(
+        name.value,
+        description , 
+        annotations,
+        hyperlinks ,
+        allParams,
+        returnType,
+        startLine,
+        endLine
+      )
+    }
+
+    functions
+  }
+}

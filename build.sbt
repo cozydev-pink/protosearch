@@ -111,6 +111,23 @@ lazy val laikaIO = crossProject(JVMPlatform)
     },
   )
 
+lazy val scaladoc = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("scaladoc"))
+  .dependsOn(core)
+  .settings(
+    name := "protosearch-scaladoc",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %%% "cats-core" % catsV,
+      "org.typelevel" %%% "cats-effect" % catsEffectV,
+      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
+      "pink.cozydev" %%% "lucille" % lucilleV,
+      "org.scalameta" %%% "munit" % munitV % Test,
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+      "org.scalameta" %%% "scalameta" % scalametaV,
+    ),
+  )
+
 lazy val jsInterop = crossProject(JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("jsinterop"))
