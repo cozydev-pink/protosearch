@@ -121,7 +121,7 @@
   </span><span class="type-name">Book</span><span>(</span><span class="string-literal">&quot;Dr. Seuss&quot;</span><span>, </span><span class="string-literal">&quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;</span><span>),
   </span><span class="type-name">Book</span><span>(</span><span class="string-literal">&quot;Dr. Seuss&quot;</span><span>, </span><span class="string-literal">&quot;Green Eggs and Ham&quot;</span><span>))
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">analyzer</span><span> = </span><span class="type-name">Analyzer</span><span>.</span><span class="identifier">default</span><span>.</span><span class="identifier">withLowerCasing</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">analyzer</span><span> = </span><span class="type-name">Analyzer</span><span>.</span><span class="keyword">default</span><span>.</span><span class="identifier">withLowerCasing</span><span>
 </span><span class="keyword">val</span><span> </span><span class="identifier">index</span><span> = </span><span class="type-name">IndexBuilder</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">Book</span><span>](
   (</span><span class="type-name">Field</span><span>(</span><span class="string-literal">&quot;title&quot;</span><span>, </span><span class="identifier">analyzer</span><span>, </span><span class="identifier">stored</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">indexed</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">positions</span><span>=</span><span class="boolean-literal">true</span><span>), </span><span class="identifier">_</span><span>.</span><span class="identifier">title</span><span>),
   (</span><span class="type-name">Field</span><span>(</span><span class="string-literal">&quot;author&quot;</span><span>, </span><span class="identifier">analyzer</span><span>, </span><span class="identifier">stored</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">indexed</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">positions</span><span>=</span><span class="boolean-literal">false</span><span>), </span><span class="identifier">_</span><span>.</span><span class="identifier">author</span><span>),
@@ -142,53 +142,49 @@
         Only documents that contain the term will match.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;fish&quot;</span><span>)
 </span><span class="comment">// res0: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
 // )</span></code></pre>
         
         <h3 id="prefix-query" class="section"><a class="anchor-link left" href="#prefix-query"><i class="icofont-laika link">&#xef71;</i></a>Prefix Query</h3>
         <p>A prefix query specifies all terms with a given prefix, and then matches all documents containing those terms.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;egg*&quot;</span><span>)
-</span><span class="comment">// res1: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;Green Eggs and Ham&quot;)
-// )</span></code></pre>
+</span><span class="comment">// res1: List[Book] = List(Book(&quot;Dr. Seuss&quot;, &quot;Green Eggs and Ham&quot;))</span></code></pre>
         
         <h3 id="range-query" class="section"><a class="anchor-link left" href="#range-query"><i class="icofont-laika link">&#xef71;</i></a>Range Query</h3>
         <p>A range query similarly specifies a range of terms, and then matches all documents containing those terms.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;[fi TO gz]&quot;</span><span>) </span><span class="comment">// matching &#39;fish&#39; and &#39;green&#39;
 // res2: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;Green Eggs and Ham&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
+//   Book(&quot;Dr. Seuss&quot;, &quot;Green Eggs and Ham&quot;)
 // )</span></code></pre>
         
         <h3 id="phrase-query" class="section"><a class="anchor-link left" href="#phrase-query"><i class="icofont-laika link">&#xef71;</i></a>Phrase Query</h3>
         <p>A phrase query is made up of one or more terms surrounded by double quotes, and matches documents containing those terms in exactly that order.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;</span><span class="escape-sequence">\&quot;</span><span class="string-literal">red fish, blue fish</span><span class="escape-sequence">\&quot;</span><span class="string-literal">&quot;</span><span>)
 </span><span class="comment">// res3: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
 // )</span></code></pre>
         
         <h2 id="boolean-queries" class="section"><a class="anchor-link left" href="#boolean-queries"><i class="icofont-laika link">&#xef71;</i></a>Boolean Queries</h2>
         <p>Boolean queries allow us combine multiple queries together with boolean logic, using the <code>OR</code>, <code>AND</code>, and <code>NOT</code> combinators.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;fish OR ham&quot;</span><span>)
 </span><span class="comment">// res4: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;Green Eggs and Ham&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
+//   Book(&quot;Dr. Seuss&quot;, &quot;Green Eggs and Ham&quot;)
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;red AND blue&quot;</span><span>)
 </span><span class="comment">// res5: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;)
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;tale AND NOT mice&quot;</span><span>)
-</span><span class="comment">// res6: List[Book] = List(
-//   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Peter Rabbit&quot;)
-// )</span></code></pre>
+</span><span class="comment">// res6: List[Book] = List(Book(&quot;Beatrix Potter&quot;, &quot;The Tale of Peter Rabbit&quot;))</span></code></pre>
         
         <h2 id="group-query" class="section"><a class="anchor-link left" href="#group-query"><i class="icofont-laika link">&#xef71;</i></a>Group Query</h2>
         <p>As queries get more complex, it can be helpful to group together parts with parenthesis.</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;(red OR blue OR green) AND (fish OR mice OR ham)&quot;</span><span>)
 </span><span class="comment">// res7: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;Green Eggs and Ham&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
+//   Book(&quot;Dr. Seuss&quot;, &quot;Green Eggs and Ham&quot;)
 // )</span></code></pre>
         
         <h2 id="field-query" class="section"><a class="anchor-link left" href="#field-query"><i class="icofont-laika link">&#xef71;</i></a>Field Query</h2>
@@ -196,19 +192,19 @@
         Field queries work with term queries:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;author:seuss&quot;</span><span>)
 </span><span class="comment">// res8: List[Book] = List(
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
-//   Book(author = &quot;Dr. Seuss&quot;, title = &quot;Green Eggs and Ham&quot;)
+//   Book(&quot;Dr. Seuss&quot;, &quot;One Fish, Two Fish, Red Fish, Blue Fish&quot;),
+//   Book(&quot;Dr. Seuss&quot;, &quot;Green Eggs and Ham&quot;)
 // )</span></code></pre>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;author:beatri*&quot;</span><span>)
 </span><span class="comment">// res9: List[Book] = List(
-//   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Peter Rabbit&quot;),
-//   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Two Bad Mice&quot;)
+//   Book(&quot;Beatrix Potter&quot;, &quot;The Tale of Peter Rabbit&quot;),
+//   Book(&quot;Beatrix Potter&quot;, &quot;The Tale of Two Bad Mice&quot;)
 // )</span></code></pre>
         <p>Additionally, field queries can take more complex boolean queries if specified in a group:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="identifier">search</span><span>(</span><span class="string-literal">&quot;author:([b TO e] AND NOT dr*)&quot;</span><span>)
 </span><span class="comment">// res10: List[Book] = List(
-//   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Peter Rabbit&quot;),
-//   Book(author = &quot;Beatrix Potter&quot;, title = &quot;The Tale of Two Bad Mice&quot;)
+//   Book(&quot;Beatrix Potter&quot;, &quot;The Tale of Peter Rabbit&quot;),
+//   Book(&quot;Beatrix Potter&quot;, &quot;The Tale of Two Bad Mice&quot;)
 // )</span></code></pre>
         
         <h2 id="regex-query" class="section"><a class="anchor-link left" href="#regex-query"><i class="icofont-laika link">&#xef71;</i></a>Regex Query</h2>
