@@ -54,7 +54,8 @@ lazy val root =
     .aggregate(
       core,
       laikaIO,
-      jsInterop,scaladoc
+      jsInterop,
+      scaladoc
     )
     .configureRoot { root =>
       root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
@@ -97,7 +98,6 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.typelevel" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-      "org.scalameta" %%% "scalameta" % scalametaV,
     
     ),
     Compile / packageBin / mappings += {
@@ -128,7 +128,6 @@ lazy val jsInterop = crossProject(JSPlatform)
     name := "protosearch-jsinterop",
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % scalajsDomV,
-      "org.scalameta" %%% "scalameta" % scalametaV,
     ),
   )
 
