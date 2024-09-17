@@ -64,9 +64,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("core"))
   .settings(
-    name := "core",
-    scalaJSUseMainModuleInitializer := true,
- Compile / mainClass := Some("ParserTest"),
+    name := "protosearch",
     Compile / run / fork := true,
     // forward stdin to forked process
     Compile / run / connectInput := true,
@@ -79,8 +77,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-      "org.scalameta" %%% "scalameta" % scalametaV,
-       ),
+    ),
   )
 
 lazy val laikaIO = crossProject(JVMPlatform)
