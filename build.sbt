@@ -54,7 +54,7 @@ lazy val root =
     .aggregate(
       core,
       laikaIO,
-      jsInterop,
+      jsInterop,scaladoc
     )
     .configureRoot { root =>
       root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
@@ -118,12 +118,7 @@ lazy val scaladoc = crossProject(JVMPlatform)
   .settings(
     name := "protosearch-scaladoc",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % catsV,
-      "org.typelevel" %%% "cats-effect" % catsEffectV,
-      "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
-      "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,
-      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
       "org.scalameta" %%% "scalameta" % scalametaV,
     ),
   )

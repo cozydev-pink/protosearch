@@ -1,3 +1,5 @@
+package pink.cozydev.protosearch.scaladoc
+
 import scala.meta._
 import scala.meta.contrib._
 import scala.meta.contrib.DocToken._
@@ -18,7 +20,7 @@ case class ScaladocInfo(
   endLine: Int
 )
 
-object ScaladocParser {
+object ParseScaladoc {
 
   def parseAndExtractInfo(source: String): List[ScaladocInfo] = {
     val parsed: Source = source.parse[Source].get
