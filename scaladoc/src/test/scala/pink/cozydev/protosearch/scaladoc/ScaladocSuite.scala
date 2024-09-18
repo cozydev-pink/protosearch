@@ -54,7 +54,7 @@ class ScaladocSuite extends FunSuite {
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
       List(),
-      List("a: The first parameter: Int", "b: The second parameter: Int", " T: The type parameter"),
+      List("T: The type parameter","a: The first parameter: Int", "b: The second parameter: Int"),
       "Int",
       17,
       18
@@ -91,7 +91,7 @@ class ScaladocSuite extends FunSuite {
       "This function subtracts two integers.",
       List(),
       List(),
-      List("c: The first parameter to subtract: Int"," T: The type parameters","d: The second parameter to subtract: Int"),
+      List("T: The type parameters","c: The first parameter to subtract: Int","d: The second parameter to subtract: Int"),
       "Int",
       34,
       34

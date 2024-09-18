@@ -1,9 +1,5 @@
 package pink.cozydev.protosearch.scaladoc
 
-import scala.meta._
-import scala.meta.contrib._
-import scala.meta.contrib.DocToken._
-import scala.meta.tokens.Token.Comment
 import pink.cozydev.protosearch.{Field, IndexBuilder}
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.protosearch.MultiIndex
@@ -25,9 +21,7 @@ object ScaladocIndexer{
     )
 
     val index = indexBldr.fromList(scaladocInfoList)
-
-    val qAnalyzer = index.queryAnalyzer
-
+    
     index
   }
 }
