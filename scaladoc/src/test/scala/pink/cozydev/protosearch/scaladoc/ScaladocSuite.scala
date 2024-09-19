@@ -45,58 +45,159 @@ class ScaladocSuite extends FunSuite {
         */
     }
     """
+  val parseTestSum = """
+  object Main {
+    /**
+      * This function sums two integers.
+      * @param a The first parameter
+      * @param b The second parameter
+      * @tparam T The type parameter
+      */
+    @deprecated("Use add instead", "1.0")
+    def sum[T](a: Int, b: Int=1): Int = a + b
+  }
+  """
+  val parseTestfromList = """
+  package pink.cozydev.protosearch
+
+import scala.collection.mutable.ListBuffer
+
+/** An intermediate helper for iterating over documents and building an Index */
+final case class IndexBuilder[A] private (
+    fieldAndGetters: List[(Field, A => String)],
+    defaultField: String,
+) {
+  val schema = Schema(fieldAndGetters.head._1, fieldAndGetters.tail.map(_._1))
+
+  def fromList(docs: List[A]): MultiIndex = {
+    val fields = fieldAndGetters.map(_._1)
+    val buffers: Map[String, ListBuffer[List[String]]] =
+      fields.map(k => (k.name, ListBuffer.empty[List[String]])).toMap
+    val storage: Map[String, ListBuffer[String]] =
+      fields.map(k => (k.name, ListBuffer.empty[String])).toMap
+
+    docs.foreach { doc =>
+      fieldAndGetters.foreach { case (field, getter) =>
+        val fieldValue = getter(doc)
+        storage(field.name) += fieldValue
+        buffers(field.name) += field.analyzer.tokenize(fieldValue)
+      }
+    }
+    val indexes = fields.map { f =>
+      val idx =
+        if (f.positions) PositionalIndex(buffers(f.name).toList)
+        else FrequencyIndex(buffers(f.name).toList)
+      (f.name, idx)
+    }.toMap
+    new MultiIndex(
+      indexes = indexes,
+      schema = schema,
+      fields = storage.map { case (k, v) => (k, v.toArray) },
+    )
+  }
+}
+  
+  """
+
   test("Searcher should return correct info for query sum") {
-    val result = ScaladocSearcher.searchScaladoc(source,List("sum"))
+    val result = ScaladocSearcher.searchScaladoc(source, List("sum"))
 
-     val actual = result.head
+    val actual = result.head
 
-     val expected = ScaladocInfo("sum",
+    val expected = ScaladocInfo(
+      "sum",
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
       List(),
-      List("T: The type parameter","a: The first parameter: Int", "b: The second parameter: Int"),
+      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int"),
       "Int",
       17,
-      18
-     )
+      18,
+    )
 
-    assertEquals(actual,expected)
+    assertEquals(actual, expected)
   }
 
   test("Searcher should return correct info for query greet") {
-    val result = ScaladocSearcher.searchScaladoc(source,List("greet"))
+    val result = ScaladocSearcher.searchScaladoc(source, List("greet"))
 
-     val actual = result.head
+    val actual = result.head
 
-     val expected = ScaladocInfo("greet",
+    val expected = ScaladocInfo(
+      "greet",
       "This function greets the user.",
       List("@throws(classOf[IllegalArgumentException])"),
       List(),
       List("name: The name parameter: String"),
       "Unit",
       24,
-      25
-     )
+      25,
+    )
 
-    assertEquals(actual,expected)
+    assertEquals(actual, expected)
   }
 
   test("Searcher should return correct info for query subtraction") {
-    
-    val result = ScaladocSearcher.searchScaladoc(source,List("subtraction"))
 
-     val actual = result.head
+    val result = ScaladocSearcher.searchScaladoc(source, List("subtraction"))
 
-     val expected = ScaladocInfo("subtraction",
+    val actual = result.head
+
+    val expected = ScaladocInfo(
+      "subtraction",
       "This function subtracts two integers.",
       List(),
       List(),
-      List("T: The type parameters","c: The first parameter to subtract: Int","d: The second parameter to subtract: Int"),
+      List(
+        "T: The type parameters",
+        "c: The first parameter to subtract: Int",
+        "d: The second parameter to subtract: Int",
+      ),
       "Int",
       34,
-      34
-     )
+      34,
+    )
 
-    assertEquals(actual,expected)
+    assertEquals(actual, expected)
+  }
+
+  test("Parser should parse given code of sum correctly") {
+
+    val result = ParseScaladoc.parseAndExtractInfo(parseTestSum)
+
+    val actual = result.head
+
+    val expected = ScaladocInfo(
+      "sum",
+      "This function sums two integers.",
+      List("""@deprecated("Use add instead", "1.0")"""),
+      List(),
+      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int"),
+      "Int",
+      8,
+      9,
+    )
+
+    assertEquals(actual, expected)
+  }
+
+  test("Parser should parse given code of fromList correctly") {
+
+    val result = ParseScaladoc.parseAndExtractInfo(parseTestfromList)
+
+    val actual = result.head
+
+    val expected = ScaladocInfo(
+      "fromList",
+      "An intermediate helper for iterating over documents and building an Index",
+      List(),
+      List(),
+      List("docs: List[A]"),
+      "MultiIndex",
+      12,
+      37,
+    )
+
+    assertEquals(actual, expected)
   }
 }

@@ -108,6 +108,7 @@ lazy val laikaIO = crossProject(JVMPlatform)
   )
 
 lazy val scaladoc = crossProject(JVMPlatform)
+  .crossType(CrossType.Pure)
   .in(file("scaladoc"))
   .dependsOn(core)
   .settings(
