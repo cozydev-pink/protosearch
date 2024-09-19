@@ -19,7 +19,15 @@ package pink.cozydev.protosearch.sbt
 import sbt.*
 import sbt.Keys.*
 import sbt.nio.file.FileTreeView
-import java.nio.file.Path
+import fs2.{Stream, Chunk}
+import fs2.io.file.{Files, Path}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import cats.syntax.all._
+import java.nio.file.{Path => JPath}
+
+import pink.cozydev.protosearch.scaladoc.{ParseScaladoc, ScaladocIndexer}
+import pink.cozydev.protosearch.MultiIndex
 
 object ProtosearchScaladocPlugin extends AutoPlugin {
 
@@ -27,15 +35,40 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
     taskKey[Seq[File]]("List all Scala files")
 
   private def findScalaSourceFiles: Def.Initialize[Task[Seq[File]]] = Def.task {
+    val logger = streams.value.log
     val sourceGlobs = (Compile / sourceDirectories).value.map(f => f.toGlob / "**" / "*.scala")
-    val scalaSourceFiles: Seq[Path] = sourceGlobs
-      .map(g =>
-        FileTreeView.default.list(g).collect {
-          case (path, attributes) if attributes.isRegularFile => path
-        }
-      )
-      .flatten
-    println(s"sourceFiles: ${scalaSourceFiles}")
+    val scalaSourceFiles: Seq[JPath] = sourceGlobs.flatMap(g =>
+      FileTreeView.default.list(g).collect {
+        case (path, attributes) if attributes.isRegularFile => path
+      }
+    )
+
+    val scaladocInfos = Stream
+      .emits(scalaSourceFiles)
+      .flatMap { path =>
+        val p = Path.fromNioPath(path)
+        val content = Files[IO].readAll(p).through(fs2.text.utf8.decode)
+        content.map(ParseScaladoc.parseAndExtractInfo)
+      }
+      .flatMap(Stream.emits)
+
+    val buildIndex = scaladocInfos.compile.toList.map(ScaladocIndexer.createScaladocIndex)
+
+    val writer = Files[IO].writeAll(Path("./scaladoc-index.idx"))
+    val writeIndex = buildIndex.flatMap { index =>
+      val numDocs = index.indexes.head._2.numDocs
+      val log = IO(logger.info(s"Created index with ${numDocs} docs"))
+      val indexBytes = MultiIndex.codec
+        .encode(index)
+        .map(_.bytes)
+        .toEither
+        .leftMap(err => new Throwable(err.message))
+      val bytes: Stream[IO, Byte] =
+        Stream.fromEither[IO](indexBytes).flatMap(bv => Stream.chunk(Chunk.byteVector(bv)))
+      log *> bytes.through(writer).compile.drain
+    }
+
+    writeIndex.unsafeRunSync()
     scalaSourceFiles.map(_.toFile())
   }
   override val trigger = allRequirements
