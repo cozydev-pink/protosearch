@@ -55,10 +55,9 @@ lazy val root =
       core,
       laikaIO,
       jsInterop,
-      scaladoc,
     )
     .configureRoot { root =>
-      root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
+      root.aggregate(plugin, scaladoc) // don't include the plugin in rootJVM, only in root
     }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
