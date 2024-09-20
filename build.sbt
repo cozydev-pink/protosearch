@@ -107,10 +107,9 @@ lazy val laikaIO = crossProject(JVMPlatform)
     },
   )
 
-lazy val scaladoc = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val scaladoc = project
   .in(file("scaladoc"))
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(
     name := "protosearch-scaladoc",
     crossScalaVersions := Seq(Scala212),
