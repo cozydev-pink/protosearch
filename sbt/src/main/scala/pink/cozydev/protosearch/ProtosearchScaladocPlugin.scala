@@ -31,10 +31,10 @@ import pink.cozydev.protosearch.MultiIndex
 
 object ProtosearchScaladocPlugin extends AutoPlugin {
 
-  lazy val myScalaSourceFiles: TaskKey[Seq[File]] =
-    taskKey[Seq[File]]("List all Scala files")
+  lazy val createScaladocIndex: TaskKey[File] =
+    taskKey[File]("Create a Search Index based on Scaladocs within the project")
 
-  private def findScalaSourceFiles: Def.Initialize[Task[Seq[File]]] = Def.task {
+  private def buildScaladocIndex: Def.Initialize[Task[File]] = Def.task {
     val logger = streams.value.log
     val sourceGlobs = (Compile / sourceDirectories).value.map(f => f.toGlob / "**" / "*.scala")
     val scalaSourceFiles: Seq[JPath] = sourceGlobs.flatMap(g =>
@@ -54,10 +54,13 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
 
     val buildIndex = scaladocInfos.compile.toList.map(ScaladocIndexer.createScaladocIndex)
 
-    val writer = Files[IO].writeAll(Path("./scaladoc-index.idx"))
+    val projName = name.value
+    val targetDir = target.value
+    val outputFile = targetDir / s"$projName.idx"
+    val writer = Files[IO].writeAll(Path.fromNioPath(outputFile.toPath()))
     val writeIndex = buildIndex.flatMap { index =>
       val numDocs = index.indexes.head._2.numDocs
-      val log = IO(logger.info(s"Created index with ${numDocs} docs"))
+      val log = IO(logger.info(s"Created index with ${numDocs} docs at $outputFile"))
       val indexBytes = MultiIndex.codec
         .encode(index)
         .map(_.bytes)
@@ -69,13 +72,13 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
     }
 
     writeIndex.unsafeRunSync()
-    scalaSourceFiles.map(_.toFile())
+    outputFile
   }
   override val trigger = allRequirements
 
   override def requires = plugins.JvmPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    myScalaSourceFiles := findScalaSourceFiles.value
+    createScaladocIndex := buildScaladocIndex.value
   )
 }
