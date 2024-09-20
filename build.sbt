@@ -55,10 +55,9 @@ lazy val root =
       core,
       laikaIO,
       jsInterop,
-      scaladoc,
     )
     .configureRoot { root =>
-      root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
+      root.aggregate(plugin, scaladoc) // don't include the plugin in rootJVM, only in root
     }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -107,10 +106,9 @@ lazy val laikaIO = crossProject(JVMPlatform)
     },
   )
 
-lazy val scaladoc = crossProject(JVMPlatform)
-  .crossType(CrossType.Pure)
+lazy val scaladoc = project
   .in(file("scaladoc"))
-  .dependsOn(core)
+  .dependsOn(core.jvm)
   .settings(
     name := "protosearch-scaladoc",
     crossScalaVersions := Seq(Scala212),
