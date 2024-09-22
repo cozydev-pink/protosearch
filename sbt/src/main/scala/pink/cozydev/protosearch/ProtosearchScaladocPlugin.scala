@@ -47,8 +47,8 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
       .emits(scalaSourceFiles)
       .flatMap { path =>
         val p = Path.fromNioPath(path)
-        val content = Files[IO].readAll(p).through(fs2.text.utf8.decode)
-        content.map(ParseScaladoc.parseAndExtractInfo)
+        val getContent = Files[IO].readAll(p).through(fs2.text.utf8.decode).compile.string
+        Stream.eval(getContent).map(ParseScaladoc.parseAndExtractInfo)
       }
       .flatMap(Stream.emits)
 
