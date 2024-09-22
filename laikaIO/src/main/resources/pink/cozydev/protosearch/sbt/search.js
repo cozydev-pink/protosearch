@@ -1,4 +1,4 @@
-function render(hit) {
+function renderDoc(hit) {
   const path = hit.fields.path
   const link = "../" + hit.fields.path.replace(".txt", ".html")
   const title = hit.fields.title
@@ -25,18 +25,41 @@ function render(hit) {
 `
   )
 }
+function renderScaladoc(hit) {
+  const title = hit.fields.functionName
+  const description = hit.fields.description
+  return (
+`
+<ol>
+  <div class="card">
+    <div class="card-content">
+      <div class="level-left">
+        <p class="title is-capitalized is-flex-wrap-wrap">
+          <span>${title}</span>
+        </p>
+      </div>
+      <p class="subtitle">${description}</p>
+    </div>
+  </div>
+</ol>
+`
+  )
+}
 
 async function main() {
   var app = document.getElementById("app")
   var searchBar = document.getElementById("search_input")
   const urlParams = new URLSearchParams(location.search)
+
+  const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
+
   const maybeIndex = urlParams.get("index")
   const workerJS = maybeIndex ? `worker.js?index=${maybeIndex}` : "worker.js"
 
   const worker = new Worker(workerJS)
   worker.onmessage = function(e) {
     console.log(e.data)
-    const markup = e.data.map(render).join("\n")
+    const markup = e.data.map(renderFunction).join("\n")
     app.innerHTML = markup
   }
 
