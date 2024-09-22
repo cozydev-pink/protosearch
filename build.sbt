@@ -11,9 +11,6 @@ ThisBuild / developers := List(
   tlGitHubDev("samspills", "Sam Pillsworth"),
 )
 
-// publish to s01.oss.sonatype.org (set to true to publish to oss.sonatype.org instead)
-ThisBuild / tlSonatypeUseLegacyHost := false
-
 // publish website from this branch
 ThisBuild / tlSitePublishBranch := Some("main")
 
@@ -24,8 +21,8 @@ ThisBuild / resolvers +=
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
-val Scala212 = "2.12.19"
-val Scala213 = "2.13.12"
+val Scala212 = "2.12.20"
+val Scala213 = "2.13.14"
 val Scala3 = "3.3.3"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
@@ -39,14 +36,14 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
 }
 
 val catsEffectV = "3.5.4"
-val catsV = "2.10.0"
-val fs2V = "3.10.2"
-val laikaV = "1.1.0"
+val catsV = "2.12.0"
+val fs2V = "3.11.0"
+val laikaV = "1.2.0"
 val lucilleV = "0.0.2"
-val munitCatsEffectV = "2.0.0-M5"
-val munitV = "1.0.0-RC1"
+val munitCatsEffectV = "2.0.0"
+val munitV = "1.0.2"
 val scalajsDomV = "2.8.0"
-def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.2.2"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.1"
 val scalametaV = "4.9.7"
 
 lazy val root =
@@ -139,7 +136,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.0"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.3"),
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val inDir = baseDirectory.value / "src" / "main" / "resources"
@@ -154,12 +151,6 @@ lazy val docs = project
   .enablePlugins(TypelevelSitePlugin)
   .dependsOn(core.jvm, jsInterop.js)
   .settings(
-    tlSiteGenerate := List(
-      WorkflowStep.Sbt(
-        List(s"++ 3 ${thisProject.value.id}/${tlSite.key.toString}"),
-        name = Some("Generate site"),
-      )
-    ),
     tlSiteHelium ~= {
       import laika.helium.config._
       import laika.ast.Path.Root
