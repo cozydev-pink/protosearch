@@ -129,7 +129,7 @@ lazy val jsInterop = crossProject(JSPlatform)
 lazy val plugin =
   project
     .in(file("sbt"))
-    .dependsOn(core.jvm, laikaIO.jvm)
+    .dependsOn(core.jvm, laikaIO.jvm, scaladoc)
     .enablePlugins(SbtPlugin)
     .settings(
       name := "protosearch-sbt",
