@@ -28,6 +28,8 @@ function renderDoc(hit) {
 function renderScaladoc(hit) {
   const title = hit.fields.functionName
   const description = hit.fields.description
+  const returnType = hit.fields.returnType
+  const params = hit.fields.params
   return (
 `
 <ol>
@@ -39,6 +41,8 @@ function renderScaladoc(hit) {
         </p>
       </div>
       <p class="subtitle">${description}</p>
+      <p class="subtitle">Parameters: ${params}</p>
+      <p class="subtitle">Return type: ${returnType}</p>
     </div>
   </div>
 </ol>

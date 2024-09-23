@@ -9,20 +9,27 @@
 
 <body>
   <section class="section">
-    <h1 class="title">Demo: JS Interop</h1>
-    <p class="subtitle">
-      Search from Javascript!
-    </p>
+    <div class="container">
+      <h1 class="title has-text-centered">Demo: JS Interop</h1>
+      <p class="subtitle has-text-centered">
+        Search from Javascript!
+      </p>
+      
+      <div class="field has-addons has-addons-centered">
+        <div class="control is-expanded">
+          <input id="search_input" class="input is-primary" type="text" placeholder="Type your query...">
+        </div>
+      </div>
+    </div>
   </section>
 
-  <div class="container is-widescreen">
-    <section class="section">
-      <input id="search_input" class="input is-primary" type="text" placeholder="search">
-    </section>
-    <section class="section">
-       <div id="app"></div>
-    </section>
-  </div>
+  <section class="section">
+    <div class="container is-widescreen">
+      <div id="app" class="box">
+
+      </div>
+    </div>
+  </section>
 
   <script type="text/javascript" src="search.js"></script>
 </body>

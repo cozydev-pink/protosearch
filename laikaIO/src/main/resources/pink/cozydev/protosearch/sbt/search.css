@@ -11,6 +11,20 @@
   padding-left: 10px;
 }
 
+.field.has-addons-centered {
+  justify-content: center;
+}
+
+#search_input {
+  width: 100%;
+}
+
+#app {
+  min-height: 200px;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
 /* Modal CSS setup from https://www.w3schools.com/howto/howto_css_modals.asp */
 /* The Modal (background) */
 .search-modal {
