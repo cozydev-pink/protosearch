@@ -62,7 +62,6 @@ async function main() {
 
   const worker = new Worker(workerJS)
   worker.onmessage = function(e) {
-    console.log(e.data)
     const markup = e.data.map(renderFunction).join("\n")
     app.innerHTML = markup
   }

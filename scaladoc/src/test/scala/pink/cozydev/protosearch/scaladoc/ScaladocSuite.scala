@@ -115,8 +115,23 @@ final case class IndexBuilder[A] private (
   
   """
 
+  def searchScaladoc(source: String, queries: List[String]): List[ScaladocInfo] = {
+    val scaladocInfoList = ParseScaladoc.parseAndExtractInfo(source)
+    val index = ScaladocIndexer.indexBldr.fromList(scaladocInfoList)
+    def search(q: String): List[ScaladocInfo] = {
+      val searchResults = index.search(q)
+      searchResults.fold(_ => Nil, hits => hits.map(h => scaladocInfoList.toList(h.id)))
+    }
+
+    val results: List[ScaladocInfo] = queries.flatMap { query =>
+      search(query)
+    }
+
+    results
+  }
+
   test("Searcher should return correct info for query sum") {
-    val result = ScaladocSearcher.searchScaladoc(source, List("sum"))
+    val result = searchScaladoc(source, List("sum"))
 
     val actual = result.head
 
@@ -124,8 +139,7 @@ final case class IndexBuilder[A] private (
       "sum",
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
-      List(),
-      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int"),
+      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int (Optional)"),
       "Int",
       17,
       18,
@@ -135,7 +149,7 @@ final case class IndexBuilder[A] private (
   }
 
   test("Searcher should return correct info for query greet") {
-    val result = ScaladocSearcher.searchScaladoc(source, List("greet"))
+    val result = searchScaladoc(source, List("greet"))
 
     val actual = result.head
 
@@ -143,8 +157,7 @@ final case class IndexBuilder[A] private (
       "greet",
       "This function greets the user.",
       List("@throws(classOf[IllegalArgumentException])"),
-      List(),
-      List("name: The name parameter: String"),
+      List("name: The name parameter: String (Optional)"),
       "Unit",
       24,
       25,
@@ -155,7 +168,7 @@ final case class IndexBuilder[A] private (
 
   test("Searcher should return correct info for query subtraction") {
 
-    val result = ScaladocSearcher.searchScaladoc(source, List("subtraction"))
+    val result = searchScaladoc(source, List("subtraction"))
 
     val actual = result.head
 
@@ -163,11 +176,10 @@ final case class IndexBuilder[A] private (
       "subtraction",
       "This function subtracts two integers.",
       List(),
-      List(),
       List(
         "T: The type parameters",
-        "c: The first parameter to subtract: Int",
-        "d: The second parameter to subtract: Int",
+        "c: The first parameter to subtract: Int (Optional)",
+        "d: The second parameter to subtract: Int (Implicit)",
       ),
       "Int",
       34,
@@ -187,8 +199,7 @@ final case class IndexBuilder[A] private (
       "sum",
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
-      List(),
-      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int"),
+      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int (Optional)"),
       "Int",
       8,
       9,
@@ -206,7 +217,6 @@ final case class IndexBuilder[A] private (
     val expected = ScaladocInfo(
       "fromList",
       "An intermediate helper for iterating over documents and building an Index",
-      List(),
       List(),
       List("docs: List[A]"),
       "MultiIndex",

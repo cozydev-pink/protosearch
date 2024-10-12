@@ -26,7 +26,6 @@ case class ScaladocInfo(
     name: String,
     description: String,
     annotations: List[String],
-    hyperlinks: List[String],
     params: List[String],
     returnType: String,
     startLine: Int,
@@ -51,8 +50,7 @@ object ParseScaladoc {
         val (commentTokens, rawComment): (List[DocToken], String) = comments
           .filter { case (start, _) => start < defn.pos.start }
           .toList
-          .sortBy(_._1)
-          .reverse
+          .sortBy(-_._1)
           .headOption
           .map { case (_, tokens) =>
             val raw = tokens
@@ -119,37 +117,30 @@ object ParseScaladoc {
           mod.toString
         }
 
-        val hyperlinks = urlRegex.findAllMatchIn(rawComment).map(_.matched).toList
-
-        val optionalParams = paramss.flatMap { case Member.ParamClauseGroup(_, params) =>
+        val allParams = paramss.flatMap { case Member.ParamClauseGroup(_, params) =>
           params.flatMap { case clause: Member.ParamClause =>
-            clause.values.collect {
-              case param: Term.Param if param.default.isDefined =>
-                val commentDescription: String = paramsComm
-                  .find(_.startsWith(param.name.value))
-                  .getOrElse(param.name.value)
-                val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
+            clause.values.collect { case param: Term.Param =>
+              val commentDescription: String = paramsComm
+                .find(_.startsWith(param.name.value))
+                .getOrElse(param.name.value)
+              val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
 
+              val isOptional = param.default.isDefined
+
+              val isImplicit = param.mods.exists(_.is[Mod.Implicit])
+
+              if (isOptional) {
+                s"$commentDescription: $declaredType (Optional)"
+              } else if (isImplicit) {
+                s"$commentDescription: $declaredType (Implicit)"
+              } else {
                 s"$commentDescription: $declaredType"
+              }
             }
           }
         }
 
-        val implicitParams = paramss.flatMap { case Member.ParamClauseGroup(_, params) =>
-          params.flatMap { case clause: Member.ParamClause =>
-            clause.values.collect {
-              case param: Term.Param if param.mods.exists(_.is[Mod.Implicit]) =>
-                val commentDescription: String = paramsComm
-                  .find(_.startsWith(param.name.value))
-                  .getOrElse(param.name.value)
-                val declaredType: String = param.decltpe.map(_.toString).getOrElse("Unknown Type")
-
-                s"$commentDescription: $declaredType"
-            }
-          }
-        }
-
-        val allParams = typeParams ++ params ++ optionalParams ++ implicitParams
+        val combinedParams = typeParams ++ allParams
 
         val returnType = retType match {
           case Some(tpe) => tpe.syntax
@@ -160,8 +151,7 @@ object ParseScaladoc {
           name.value,
           description,
           annotations,
-          hyperlinks,
-          allParams,
+          combinedParams,
           returnType,
           startLine,
           endLine,
