@@ -18,11 +18,10 @@ package pink.cozydev.protosearch.scaladoc
 
 import pink.cozydev.protosearch.{Field, IndexBuilder}
 import pink.cozydev.protosearch.analysis.Analyzer
-import pink.cozydev.protosearch.MultiIndex
 
 object ScaladocIndexer {
   val analyzer = Analyzer.default.withLowerCasing
-  val indexBldr = IndexBuilder.of[ScaladocInfo](
+  val indexBuilder = IndexBuilder.of[ScaladocInfo](
     (Field("functionName", analyzer, stored = true, indexed = true, positions = true), _.name),
     (
       Field("description", analyzer, stored = true, indexed = true, positions = true),

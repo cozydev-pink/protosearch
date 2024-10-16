@@ -52,7 +52,7 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
       }
       .flatMap(Stream.emits)
 
-    val buildIndex = scaladocInfos.compile.toList.map(ScaladocIndexer.indexBldr.fromList)
+    val buildIndex = scaladocInfos.compile.toList.map(ScaladocIndexer.indexBuilder.fromList)
 
     val projName = name.value
     val targetDir = target.value

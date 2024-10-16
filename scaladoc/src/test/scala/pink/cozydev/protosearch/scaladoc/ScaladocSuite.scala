@@ -117,7 +117,7 @@ final case class IndexBuilder[A] private (
 
   def searchScaladoc(source: String, queries: List[String]): List[ScaladocInfo] = {
     val scaladocInfoList = ParseScaladoc.parseAndExtractInfo(source)
-    val index = ScaladocIndexer.indexBldr.fromList(scaladocInfoList)
+    val index = ScaladocIndexer.indexBuilder.fromList(scaladocInfoList)
     def search(q: String): List[ScaladocInfo] = {
       val searchResults = index.search(q)
       searchResults.fold(_ => Nil, hits => hits.map(h => scaladocInfoList.toList(h.id)))
@@ -139,7 +139,11 @@ final case class IndexBuilder[A] private (
       "sum",
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
-      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int (Optional)"),
+      List(
+        "T: The type parameter",
+        "a: The first parameter: Int",
+        "b: The second parameter: Int (Optional)",
+      ),
       "Int",
       17,
       18,
@@ -199,7 +203,11 @@ final case class IndexBuilder[A] private (
       "sum",
       "This function sums two integers.",
       List("""@deprecated("Use add instead", "1.0")"""),
-      List("T: The type parameter", "a: The first parameter: Int", "b: The second parameter: Int (Optional)"),
+      List(
+        "T: The type parameter",
+        "a: The first parameter: Int",
+        "b: The second parameter: Int (Optional)",
+      ),
       "Int",
       8,
       9,
