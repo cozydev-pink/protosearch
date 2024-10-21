@@ -43,7 +43,7 @@ val lucilleV = "0.0.2"
 val munitCatsEffectV = "2.0.0"
 val munitV = "1.0.2"
 val scalajsDomV = "2.8.0"
-def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.1"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.2"
 val scalametaV = "4.9.7"
 
 lazy val root =
