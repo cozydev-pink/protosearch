@@ -44,6 +44,7 @@ val munitCatsEffectV = "2.0.0"
 val munitV = "1.0.2"
 val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.1"
+val scalametaV = "4.9.7"
 
 lazy val root =
   tlCrossRootProject
@@ -53,7 +54,7 @@ lazy val root =
       jsInterop,
     )
     .configureRoot { root =>
-      root.aggregate(plugin) // don't include the plugin in rootJVM, only in root
+      root.aggregate(plugin, scaladoc) // don't include the plugin in rootJVM, only in root
     }
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
@@ -102,6 +103,18 @@ lazy val laikaIO = crossProject(JVMPlatform)
     },
   )
 
+lazy val scaladoc = project
+  .in(file("scaladoc"))
+  .dependsOn(core.jvm)
+  .settings(
+    name := "protosearch-scaladoc",
+    crossScalaVersions := Seq(Scala212),
+    libraryDependencies ++= Seq(
+      "org.scalameta" %%% "munit" % munitV % Test,
+      "org.scalameta" %%% "scalameta" % scalametaV,
+    ),
+  )
+
 lazy val jsInterop = crossProject(JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("jsinterop"))
@@ -116,7 +129,7 @@ lazy val jsInterop = crossProject(JSPlatform)
 lazy val plugin =
   project
     .in(file("sbt"))
-    .dependsOn(core.jvm, laikaIO.jvm)
+    .dependsOn(core.jvm, laikaIO.jvm, scaladoc)
     .enablePlugins(SbtPlugin)
     .settings(
       name := "protosearch-sbt",
