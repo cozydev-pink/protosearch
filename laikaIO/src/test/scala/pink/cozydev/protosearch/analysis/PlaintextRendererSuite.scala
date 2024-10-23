@@ -17,18 +17,23 @@
 package pink.cozydev.protosearch.analysis
 
 import laika.api.MarkupParser
-import laika.format.Markdown
+import laika.format.{Markdown, ReStructuredText}
 import laika.config.SyntaxHighlighting
 import laika.api.Renderer
 import laika.api.errors.TransformationError
 
 class PlaintextRendererSuite extends munit.FunSuite {
 
-  val parser = MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).build
-  val plaintextRenderer = Renderer.of(Plaintext).build
+  val markdownParser: MarkupParser =
+    MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).build
+  val rstParser: MarkupParser =
+    MarkupParser.of(ReStructuredText).build
+  val plaintextRenderer: Renderer = Renderer.of(Plaintext).build
 
-  def render(input: String): Either[TransformationError, String] =
-    parser.parse(input).flatMap(d => plaintextRenderer.render(d))
+  def transformMarkdown(input: String): Either[TransformationError, String] =
+    markdownParser.parse(input).flatMap(d => plaintextRenderer.render(d))
+  def transformRST(input: String): Either[TransformationError, String] =
+    rstParser.parse(input).flatMap(d => plaintextRenderer.render(d))
 
   test("title, words") {
     val doc =
@@ -40,7 +45,7 @@ class PlaintextRendererSuite extends munit.FunSuite {
          |normal bold italics code
          |
          |""".stripMargin
-    assertEquals(render(doc), Right(expected))
+    assertEquals(transformMarkdown(doc), Right(expected))
   }
 
   test("title, empty line, words") {
@@ -54,7 +59,7 @@ class PlaintextRendererSuite extends munit.FunSuite {
          |normal bold italics code
          |
          |""".stripMargin
-    assertEquals(render(doc), Right(expected))
+    assertEquals(transformMarkdown(doc), Right(expected))
   }
 
   test("title, empty line, words, code block") {
@@ -73,7 +78,60 @@ class PlaintextRendererSuite extends munit.FunSuite {
          |val x = 2
          |
          |""".stripMargin
-    assertEquals(render(doc), Right(expected))
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("nested blockquotes - Markdown") {
+    val doc =
+      """|>aaa
+         |>
+         |>>bbb
+         |>
+         |>ccc""".stripMargin
+    val expected =
+      """|aaa
+         |bbb
+         |
+         |ccc
+         |
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("block quote with an attribution - reStructuredText") {
+    val doc =
+      """| Paragraph 1
+         |
+         | -- an attribution""".stripMargin
+    val expected =
+      """|Paragraph 1
+         |an attribution
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
+  }
+
+  test("definition list - reStructuredText") {
+    val doc =
+      """|term 1
+         |   aaa
+         |   aaa
+         |
+         |  bbb *ccc* ddd
+         |
+         |term 2
+         |  ccc""".stripMargin
+    val expected =
+      """|term 1
+         |aaa
+         |aaa
+         |
+         |bbb ccc ddd
+         |term 2
+         |ccc
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
   }
 
 }
