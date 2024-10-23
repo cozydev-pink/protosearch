@@ -21,13 +21,6 @@ import laika.api.format.{Formatter, RenderFormat}
 
 object PlaintextRenderer extends ((Formatter, Element) => String) {
 
-  private case class Content(content: Seq[Element], options: Options = Options.empty)
-      extends Element
-      with ElementContainer[Element] {
-    type Self = Content
-    def withOptions(options: Options): Content = copy(options = options)
-  }
-
   def apply(fmt: Formatter, element: Element): String = {
 
     def renderElement(e: Element): String = {
@@ -37,18 +30,21 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       )
     }
 
-    def lists(lists: Seq[Element]*): String =
-      fmt.childPerLine(lists.map { case elems => Content(elems) })
+    def renderBlocks(blocks: Seq[Block]): String =
+      if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
+      else ""
+
+    def renderBlock(spans: Seq[Span]): String =
+      if (spans.nonEmpty) fmt.children(spans) + fmt.newLine
+      else ""
 
     element match {
-      case s: Section =>
-        fmt.children(s.header.content) + "\n" + fmt.childPerLine(s.content) + "\n"
+      case s: Section => renderBlock(s.header.content) + renderBlocks(s.content)
       case _: SectionNumber => ""
-      case QuotedBlock(content, attr, _) => lists(content, attr)
-      case DefinitionListItem(term, defn, _) => lists(term, defn) + "\n"
-      case bc: BlockContainer => fmt.childPerLine(bc.content) + "\n"
+      case QuotedBlock(content, attr, _) => renderBlocks(content) + renderBlock(attr)
+      case DefinitionListItem(term, defn, _) => renderBlock(term) + renderBlocks(defn)
+      case bc: BlockContainer => renderBlocks(bc.content)
       case tc: TextContainer => tc.content
-      case Content(content, _) => fmt.childPerLine(content)
       case ec: ElementContainer[_] => fmt.children(ec.content)
       case e => renderElement(e)
     }
