@@ -55,7 +55,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       /* SectionInfo is solely used in navigation structures and represents duplicate info.
        */
       case _: SectionInfo => ""
-      /* All other core AST types implement one of the sub-traits of `ElementContainer` -
+      /* All other core AST types implement one of the sub-traits of ElementContainer -
          if we end up here it's an unknown 3rd party node
        */
       case _ => fmt.children(con.content)
@@ -85,6 +85,10 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       else ""
 
     element match {
+      /* These are marker traits for nodes we should ignore.
+       * They usually also implement some of the other traits we match on,
+       * so this always needs to come first. */
+      case _: Hidden | _: Unresolved | _: Invalid => ""
       case lc: ListContainer => renderListContainer(lc)
       case bc: BlockContainer => renderBlockContainer(bc)
       case sc: SpanContainer => fmt.children(sc.content)
