@@ -16,13 +16,18 @@
 
 package pink.cozydev.protosearch.analysis
 
-import laika.api.MarkupParser
+import cats.effect.{IO, Resource}
+import laika.api.{MarkupParser, Renderer, Transformer}
 import laika.format.{Markdown, ReStructuredText}
 import laika.config.SyntaxHighlighting
-import laika.api.Renderer
 import laika.api.errors.TransformationError
+import laika.ast.Path.Root
+import laika.io.api.TreeTransformer
+import laika.io.model.InputTree
+import laika.io.syntax.*
+import munit.CatsEffectSuite
 
-class PlaintextRendererSuite extends munit.FunSuite {
+class PlaintextRendererSuite extends CatsEffectSuite {
 
   val markdownParser: MarkupParser =
     MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).build
@@ -30,10 +35,39 @@ class PlaintextRendererSuite extends munit.FunSuite {
     MarkupParser.of(ReStructuredText).build
   val plaintextRenderer: Renderer = Renderer.of(Plaintext).build
 
+  val ioTransformer: Resource[IO, TreeTransformer[IO]] = Transformer
+    .from(Markdown)
+    .to(Plaintext)
+    .using(Markdown.GitHubFlavor, SyntaxHighlighting)
+    .parallel[IO]
+    .build
+
   def transformMarkdown(input: String): Either[TransformationError, String] =
     markdownParser.parse(input).flatMap(d => plaintextRenderer.render(d))
   def transformRST(input: String): Either[TransformationError, String] =
     rstParser.parse(input).flatMap(d => plaintextRenderer.render(d))
+
+  def transformWithTemplate(input: String, template: String): IO[String] = {
+    val firstDoc =
+      s"""|{% 
+          |laika.template = custom.template.txt
+          |%}
+          |
+          |$input""".stripMargin
+    val secondDoc =
+      """|Second Doc
+         |==========
+         |
+         |Text
+         |""".stripMargin
+    val inputTree = InputTree[IO]
+      .addString(firstDoc, Root / "doc-1.md")
+      .addString(secondDoc, Root / "doc-2.md")
+      .addString(template, Root / "custom.template.txt")
+    ioTransformer.use {
+      _.fromInput(inputTree).toMemory.transform.map(_.allDocuments.head.content)
+    }
+  }
 
   test("title, words") {
     val doc =
@@ -111,6 +145,49 @@ class PlaintextRendererSuite extends munit.FunSuite {
     assertEquals(transformRST(doc), Right(expected))
   }
 
+  /** lists ************************************************************** */
+
+  test("nested bullet lists") {
+    val doc =
+      """|* Bullet 1 - Line 1
+         |
+         |  Bullet 1 - Line 2
+         |
+         |  * Nested - Line 1
+         |
+         |    Nested - Line 2
+         |
+         |* Bullet 2 - Line 1
+         |  Bullet 2 - Line 2
+         |""".stripMargin
+    val expected =
+      """|Bullet 1 - Line 1
+         |Bullet 1 - Line 2
+         |
+         |Nested - Line 1
+         |Nested - Line 2
+         |Bullet 2 - Line 1
+         |Bullet 2 - Line 2
+         |
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("enum lists") {
+    val doc =
+      """|1. Item 1
+         |2. Item *em* 2
+         |3. Item 3
+         |""".stripMargin
+    val expected =
+      """|Item 1
+         |Item em 2
+         |Item 3
+         |
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
   test("definition list - reStructuredText") {
     val doc =
       """|term 1
@@ -132,6 +209,23 @@ class PlaintextRendererSuite extends munit.FunSuite {
          |
          |""".stripMargin
     assertEquals(transformRST(doc), Right(expected))
+  }
+
+  test("exclude navigation lists") {
+    val doc =
+      """|First Doc
+         |=========
+         |""".stripMargin
+    val template =
+      """|@:navigationTree {
+         |  entries = [{ target = "/", excludeRoot = true }]
+         |}
+         |
+         |${cursor.currentDocument.content}
+         |""".stripMargin
+    transformWithTemplate(doc, template).map { res =>
+      assert(!res.contains("Second Doc"))
+    }
   }
 
 }

@@ -30,6 +30,14 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       )
     }
 
+    def renderListContainer(con: ListContainer): String = con match {
+      /* Excluded as they would either produce unwanted entries (e.g. the headline of a different page)
+       * or duplicate entries (e.g. a section title on the current page)
+       */
+      case _: NavigationList | _: NavigationItem => ""
+      case _ => fmt.children(con.content)
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -39,6 +47,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       else ""
 
     element match {
+      case lc: ListContainer => renderListContainer(lc)
       case s: Section => renderBlock(s.header.content) + renderBlocks(s.content)
       case _: SectionNumber => ""
       case QuotedBlock(content, attr, _) => renderBlocks(content) + renderBlock(attr)
