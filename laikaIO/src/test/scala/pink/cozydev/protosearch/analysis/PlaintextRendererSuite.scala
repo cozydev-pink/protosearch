@@ -115,6 +115,28 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     assertEquals(transformMarkdown(doc), Right(expected))
   }
 
+  test("table head and body - Markdown with GitHub Flavor") {
+    val doc =
+      """|| AAA | BBB |
+         || --- | --- |
+         || CCC | DDD |
+         || EEE | FFF |
+         |
+         |Some more text
+      """.stripMargin
+    val expected =
+      """|AAA
+         |BBB
+         |CCC
+         |DDD
+         |EEE
+         |FFF
+         |
+         |Some more text
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
   /** BlockContainers **************************************************** */
 
   test("nested blockquotes - Markdown") {

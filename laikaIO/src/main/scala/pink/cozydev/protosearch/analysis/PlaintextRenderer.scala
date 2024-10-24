@@ -76,6 +76,11 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case _ => con.content
     }
 
+    def renderTable(table: Table): String = {
+      val cells = (table.head.content ++ table.body.content).flatMap(_.content)
+      renderBlocks(cells.flatMap(_.content)) + renderBlock(table.caption.content)
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -95,6 +100,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case ec: ElementContainer[?] => renderElementContainer(ec)
       case tc: TextContainer => renderTextContainer(tc)
       case _: HTMLSpan => ""
+      case t: Table => renderTable(t)
       case e => renderElement(e)
     }
   }
