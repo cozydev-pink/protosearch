@@ -51,6 +51,16 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case _ => renderBlocks(con.content)
     }
 
+    def renderElementContainer(con: ElementContainer[? <: Element]): String = con match {
+      /* SectionInfo is solely used in navigation structures and represents duplicate info.
+       */
+      case _: SectionInfo => ""
+      /* All other core AST types implement one of the sub-traits of `ElementContainer` -
+         if we end up here it's an unknown 3rd party node
+       */
+      case _ => fmt.children(con.content)
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -63,9 +73,9 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case lc: ListContainer => renderListContainer(lc)
       case bc: BlockContainer => renderBlockContainer(bc)
       case sc: SpanContainer => fmt.children(sc.content)
+      case ec: ElementContainer[?] => renderElementContainer(ec)
       case _: SectionNumber => ""
       case tc: TextContainer => tc.content
-      case ec: ElementContainer[_] => fmt.children(ec.content)
       case _: HTMLSpan => ""
       case e => renderElement(e)
     }
