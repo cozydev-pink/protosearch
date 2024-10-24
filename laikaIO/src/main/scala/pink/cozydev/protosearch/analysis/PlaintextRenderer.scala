@@ -38,6 +38,18 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case _ => fmt.children(con.content)
     }
 
+    def renderBlockContainer(con: BlockContainer): String = con match {
+      /* Some special handling for the few containers which hold child nodes
+         in more properties than just the container's `content` property.
+       */
+      case Section(header, content, _) => renderBlock(header.content) + renderBlocks(content)
+      case QuotedBlock(content, attr, _) => renderBlocks(content) + renderBlock(attr)
+      case TitledBlock(title, content, _) => renderBlock(title) + renderBlocks(content)
+      case Figure(_, caption, content, _) => renderBlock(caption) + renderBlocks(content)
+      case DefinitionListItem(term, defn, _) => renderBlock(term) + renderBlocks(defn)
+      case _ => renderBlocks(con.content)
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -48,11 +60,8 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
 
     element match {
       case lc: ListContainer => renderListContainer(lc)
-      case s: Section => renderBlock(s.header.content) + renderBlocks(s.content)
+      case bc: BlockContainer => renderBlockContainer(bc)
       case _: SectionNumber => ""
-      case QuotedBlock(content, attr, _) => renderBlocks(content) + renderBlock(attr)
-      case DefinitionListItem(term, defn, _) => renderBlock(term) + renderBlocks(defn)
-      case bc: BlockContainer => renderBlocks(bc.content)
       case tc: TextContainer => tc.content
       case ec: ElementContainer[_] => fmt.children(ec.content)
       case e => renderElement(e)

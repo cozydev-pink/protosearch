@@ -115,6 +115,8 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     assertEquals(transformMarkdown(doc), Right(expected))
   }
 
+  /** BlockContainers **************************************************** */
+
   test("nested blockquotes - Markdown") {
     val doc =
       """|>aaa
@@ -140,6 +142,37 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     val expected =
       """|Paragraph 1
          |an attribution
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
+  }
+
+  test("titled block - reStructuredText") {
+    val doc =
+      """|.. caution::
+         |
+         | Line 1
+         |
+         | Line 2""".stripMargin
+    val expected =
+      """|Caution!
+         |Line 1
+         |Line 2
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
+  }
+
+  test("figure with a caption and a legend - reStructuredText") {
+    val doc =
+      """|.. figure:: picture.jpg
+         |
+         | This is the *caption*
+         |
+         | And this is the legend""".stripMargin
+    val expected =
+      """|This is the caption
+         |And this is the legend
          |
          |""".stripMargin
     assertEquals(transformRST(doc), Right(expected))
