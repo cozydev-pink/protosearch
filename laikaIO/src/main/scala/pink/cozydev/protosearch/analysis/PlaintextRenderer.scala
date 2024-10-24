@@ -16,8 +16,9 @@
 
 package pink.cozydev.protosearch.analysis
 
-import laika.ast._
+import laika.ast.*
 import laika.api.format.{Formatter, RenderFormat}
+import laika.ast.html.HTMLSpan
 
 object PlaintextRenderer extends ((Formatter, Element) => String) {
 
@@ -25,7 +26,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
 
     def renderElement(e: Element): String = {
       val (elements, _) = e.productIterator.partition(_.isInstanceOf[Element])
-      e.productPrefix + fmt.indentedChildren(
+      fmt.children(
         elements.toList.asInstanceOf[Seq[Element]]
       )
     }
@@ -61,9 +62,11 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
     element match {
       case lc: ListContainer => renderListContainer(lc)
       case bc: BlockContainer => renderBlockContainer(bc)
+      case sc: SpanContainer => fmt.children(sc.content)
       case _: SectionNumber => ""
       case tc: TextContainer => tc.content
       case ec: ElementContainer[_] => fmt.children(ec.content)
+      case _: HTMLSpan => ""
       case e => renderElement(e)
     }
   }

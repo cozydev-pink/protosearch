@@ -30,7 +30,7 @@ import munit.CatsEffectSuite
 class PlaintextRendererSuite extends CatsEffectSuite {
 
   val markdownParser: MarkupParser =
-    MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).build
+    MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).withRawContent.build
   val rstParser: MarkupParser =
     MarkupParser.of(ReStructuredText).build
   val plaintextRenderer: Renderer = Renderer.of(Plaintext).build
@@ -259,6 +259,21 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     transformWithTemplate(doc, template).map { res =>
       assert(!res.contains("Second Doc"))
     }
+  }
+
+  /** raw content ****************************************************** */
+
+  test("extract text nodes in verbatim HTML") {
+    val doc =
+      """|<div>Excluded Text</div>
+         |
+         |Included Text
+         |""".stripMargin
+    val expected =
+      """|Excluded Text
+         |Included Text
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
   }
 
 }
