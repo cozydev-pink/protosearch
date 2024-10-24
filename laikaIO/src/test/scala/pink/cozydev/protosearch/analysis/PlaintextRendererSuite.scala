@@ -32,7 +32,7 @@ class PlaintextRendererSuite extends CatsEffectSuite {
   val markdownParser: MarkupParser =
     MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).withRawContent.build
   val rstParser: MarkupParser =
-    MarkupParser.of(ReStructuredText).build
+    MarkupParser.of(ReStructuredText).withRawContent.build
   val plaintextRenderer: Renderer = Renderer.of(Plaintext).build
 
   val ioTransformer: Resource[IO, TreeTransformer[IO]] = Transformer
@@ -274,6 +274,45 @@ class PlaintextRendererSuite extends CatsEffectSuite {
          |Included Text
          |""".stripMargin
     assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  /** exclusions ********************************************************** */
+
+  test("ignore comments - reStructuredText") {
+    val doc =
+      """|The Title
+         |=========
+         |The text
+         |
+         |.. This is a comment
+         |""".stripMargin
+    val expected =
+      """|The Title
+         |The text
+         |
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
+  }
+
+  test("ignore raw content - reStructuredText") {
+    val doc =
+      """|The Title
+         |=========
+         |The text
+         |
+         |.. raw:: format
+         |
+         | some input
+         |
+         | some more""".stripMargin
+    val expected =
+      """|The Title
+         |The text
+         |
+         |
+         |""".stripMargin
+    assertEquals(transformRST(doc), Right(expected))
   }
 
 }

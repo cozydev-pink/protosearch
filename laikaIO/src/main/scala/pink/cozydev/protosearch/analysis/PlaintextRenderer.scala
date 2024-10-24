@@ -61,6 +61,21 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case _ => fmt.children(con.content)
     }
 
+    def renderTextContainer(con: TextContainer): String = con match {
+      /* match on most common container type first for performance */
+      case Text(content, _) => content
+      /* could be any unknown markup format */
+      case _: RawContent => ""
+      /* comments are usually ignored by search engines */
+      case _: Comment => ""
+      /* embedded debug info node */
+      case _: RuntimeMessage => ""
+      /* this does not represent text nodes in verbatim HTML */
+      case _: HTMLSpan => ""
+      case _: SectionNumber => ""
+      case _ => con.content
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -74,8 +89,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case bc: BlockContainer => renderBlockContainer(bc)
       case sc: SpanContainer => fmt.children(sc.content)
       case ec: ElementContainer[?] => renderElementContainer(ec)
-      case _: SectionNumber => ""
-      case tc: TextContainer => tc.content
+      case tc: TextContainer => renderTextContainer(tc)
       case _: HTMLSpan => ""
       case e => renderElement(e)
     }
