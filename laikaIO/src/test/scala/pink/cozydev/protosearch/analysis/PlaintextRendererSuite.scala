@@ -27,6 +27,9 @@ import laika.io.model.InputTree
 import laika.io.syntax.*
 import munit.CatsEffectSuite
 
+import scala.annotation.nowarn
+
+@nowarn("msg=possible missing interpolator")
 class PlaintextRendererSuite extends CatsEffectSuite {
 
   val selections: Selections = Selections(
