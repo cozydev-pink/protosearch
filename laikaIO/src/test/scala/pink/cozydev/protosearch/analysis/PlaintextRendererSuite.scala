@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.analysis
 import cats.effect.{IO, Resource}
 import laika.api.{MarkupParser, Renderer, Transformer}
 import laika.format.{Markdown, ReStructuredText}
-import laika.config.SyntaxHighlighting
+import laika.config.{ChoiceConfig, SelectionConfig, Selections, SyntaxHighlighting}
 import laika.api.errors.TransformationError
 import laika.ast.Path.Root
 import laika.io.api.TreeTransformer
@@ -29,8 +29,22 @@ import munit.CatsEffectSuite
 
 class PlaintextRendererSuite extends CatsEffectSuite {
 
+  val selections: Selections = Selections(
+    SelectionConfig(
+      "name",
+      ChoiceConfig("aaa", "AAA Content"),
+      ChoiceConfig("bbb", "BBB Content"),
+    )
+  )
+
   val markdownParser: MarkupParser =
-    MarkupParser.of(Markdown).using(Markdown.GitHubFlavor, SyntaxHighlighting).withRawContent.build
+    MarkupParser
+      .of(Markdown)
+      .using(Markdown.GitHubFlavor, SyntaxHighlighting)
+      .withConfigValue(selections)
+      .withRawContent
+      .build
+
   val rstParser: MarkupParser =
     MarkupParser.of(ReStructuredText).withRawContent.build
   val plaintextRenderer: Renderer = Renderer.of(Plaintext).build
@@ -133,6 +147,61 @@ class PlaintextRendererSuite extends CatsEffectSuite {
          |FFF
          |
          |Some more text
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("images - index alt and title attributes") {
+    val doc =
+      """|AAA BBB @:image(logo.png) {
+         |  alt = Some Explanation
+         |  title = Tooltip Text
+         |} CCC
+         |""".stripMargin
+    val expected =
+      """|AAA BBB Some Explanation Tooltip Text CCC
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("content from select directive") {
+    val doc =
+      """|@:select(name)
+         |
+         |@:choice(aaa)
+         |AAA
+         |
+         |@:choice(bbb)
+         |BBB
+         |
+         |@:@
+         |
+         |Other Text""".stripMargin
+    val expected =
+      """|AAA
+         |BBB
+         |
+         |Other Text
+         |""".stripMargin
+    assertEquals(transformMarkdown(doc), Right(expected))
+  }
+
+  test("only index target-specific content for HTML") {
+    val doc =
+      """|Normal Text
+         |
+         |@:format(html)
+         |HTML *Content*
+         |@:@
+         |
+         |@:format(epub)
+         |EPUB *Content*
+         |@:@
+         |""".stripMargin
+    val expected =
+      """|Normal Text
+         |HTML Content
+         |
          |""".stripMargin
     assertEquals(transformMarkdown(doc), Right(expected))
   }

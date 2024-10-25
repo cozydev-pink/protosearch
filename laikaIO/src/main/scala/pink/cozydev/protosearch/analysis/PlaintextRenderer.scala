@@ -18,17 +18,32 @@ package pink.cozydev.protosearch.analysis
 
 import laika.ast.*
 import laika.api.format.{Formatter, RenderFormat}
-import laika.ast.html.HTMLSpan
+import laika.ast.html.{HTMLBlock, HTMLSpan}
 
 object PlaintextRenderer extends ((Formatter, Element) => String) {
 
   def apply(fmt: Formatter, element: Element): String = {
 
-    def renderElement(e: Element): String = {
-      val (elements, _) = e.productIterator.partition(_.isInstanceOf[Element])
-      fmt.children(
-        elements.toList.asInstanceOf[Seq[Element]]
-      )
+    def renderElement(e: Element): String = e match {
+
+      /* search engines tend to index alt and title attributes of images */
+      case img: Image => (img.alt.toList ++ img.title.toList).mkString(" ")
+
+      /* only pick up nodes targeting HTML output */
+      case TargetFormat(formats, element, _) if formats.contains("html") => fmt.child(element)
+
+      /* tabbed content in HTML, including all tabs */
+      case sel: Selection => renderBlocks(sel.choices.flatMap(_.content))
+
+      /* traverse to extract text nodes in verbatim HTML */
+      case html: HTMLBlock => fmt.child(html.root)
+
+      /* 3rd party nodes can implement Fallback to provide an alternative representation
+       * of the same element based on more common node types. */
+      case f: Fallback => fmt.child(f.fallback)
+
+      /* ignore unknown nodes as we cannot know if they represent visual, textual information */
+      case _ => ""
     }
 
     def renderListContainer(con: ListContainer): String = con match {
@@ -99,7 +114,6 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case sc: SpanContainer => fmt.children(sc.content)
       case ec: ElementContainer[?] => renderElementContainer(ec)
       case tc: TextContainer => renderTextContainer(tc)
-      case _: HTMLSpan => ""
       case t: Table => renderTable(t)
       case e => renderElement(e)
     }
