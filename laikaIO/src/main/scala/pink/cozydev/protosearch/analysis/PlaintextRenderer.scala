@@ -96,6 +96,22 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       renderBlocks(cells.flatMap(_.content)) + renderBlock(table.caption.content)
     }
 
+    def renderTemplateSpan(ts: TemplateSpan): String = ts match {
+      /* The first two types represent nodes originating in markup.
+       * Applying a template happens by merging its AST with the markup AST,
+       * meaning its node types will be interspersed.
+       * It is unlikely anyone will use a template for the index renderer,
+       * but the use case should be covered - it could lead to an empty index
+       * for pages with templates otherwise. */
+      case EmbeddedRoot(content, _, _) => renderBlocks(content)
+      case TemplateElement(element, _, _) => renderElement(element)
+
+      case tsc: TemplateSpanContainer => fmt.children(tsc.content)
+
+      /* The rest is HTML markup or unknown content */
+      case _ => ""
+    }
+
     def renderBlocks(blocks: Seq[Block]): String =
       if (blocks.nonEmpty) fmt.childPerLine(blocks) + fmt.newLine
       else ""
@@ -112,9 +128,11 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       case lc: ListContainer => renderListContainer(lc)
       case bc: BlockContainer => renderBlockContainer(bc)
       case sc: SpanContainer => fmt.children(sc.content)
-      case ec: ElementContainer[?] => renderElementContainer(ec)
-      case tc: TextContainer => renderTextContainer(tc)
       case t: Table => renderTable(t)
+      case tsc: TemplateSpanContainer => fmt.children(tsc.content)
+      case ts: TemplateSpan => renderTemplateSpan(ts)
+      case tc: TextContainer => renderTextContainer(tc)
+      case ec: ElementContainer[?] => renderElementContainer(ec)
       case e => renderElement(e)
     }
   }

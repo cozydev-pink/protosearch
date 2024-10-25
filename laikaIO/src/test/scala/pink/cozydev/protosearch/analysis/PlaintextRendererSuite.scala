@@ -347,27 +347,50 @@ class PlaintextRendererSuite extends CatsEffectSuite {
          |
          |${cursor.currentDocument.content}
          |""".stripMargin
+    val expected =
+      """|First Doc
+         |
+         |""".stripMargin
     transformWithTemplate(doc, template).map { res =>
-      assert(!res.contains("Second Doc"))
+      assertEquals(res, expected)
     }
   }
 
-  /** raw content ****************************************************** */
+  /** templates and raw content ****************************************************** */
+
+  test("exclude template content except the nodes merged from the associated markup files") {
+    val doc =
+      """|First Doc
+         |=========
+         |""".stripMargin
+    val template =
+      """|<Some Funny Markup Here>
+         |
+         |${cursor.currentDocument.content}
+         |
+         |<More Funny Markup>
+         |""".stripMargin
+    val expected =
+      """|First Doc
+         |
+         |""".stripMargin
+    transformWithTemplate(doc, template).map { res =>
+      assertEquals(res, expected)
+    }
+  }
 
   test("extract text nodes in verbatim HTML") {
     val doc =
-      """|<div>Excluded Text</div>
+      """|<div>Text Node</div>
          |
          |Included Text
          |""".stripMargin
     val expected =
-      """|Excluded Text
+      """|Text Node
          |Included Text
          |""".stripMargin
     assertEquals(transformMarkdown(doc), Right(expected))
   }
-
-  /** exclusions ********************************************************** */
 
   test("ignore comments - reStructuredText") {
     val doc =
