@@ -22,7 +22,6 @@ case class FragmentFormatter(
     endTag: String,
 ) {
   private val tagSize = startTag.size + endTag.size
-  private val tags: Array[String] = Array(startTag, endTag)
 
   def format(fragment: String, offsets: Iterable[Int]): String =
     if (offsets.size == 0) fragment
