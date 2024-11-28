@@ -17,7 +17,7 @@
 package pink.cozydev.protosearch.highlight
 
 class FirstMatchHighlighterSuite extends munit.FunSuite {
-  val formatter = FragmentFormatter(36, "<b>", "</b>")
+  val formatter = FragmentFormatter(60, "<b>", "</b>")
   val highlighter = FirstMatchHighlighter(formatter)
 
   test("no highlight on no match") {
