@@ -17,7 +17,7 @@
 package pink.cozydev.protosearch
 
 import cats.data.NonEmptyList
-import pink.cozydev.lucille.{MultiQuery, Query, TermQuery}
+import pink.cozydev.lucille.{Query, TermQuery}
 import pink.cozydev.protosearch.internal.PositionalIter
 
 import java.util.regex.PatternSyntaxException
@@ -50,11 +50,10 @@ object IndexSearcher {
 
     def search(q: Query): Either[String, Set[Int]] =
       q match {
-        case MultiQuery(qs) => qs.traverse(search).map(defaultCombine)
         case Query.Or(qs) => qs.traverse(search).map(IndexSearcher.unionSets)
         case Query.And(qs) => qs.traverse(search).map(IndexSearcher.intersectSets)
         case Query.Not(q) => search(q).map(matches => allDocs -- matches)
-        case Query.Group(qs) => qs.traverse(search).map(defaultCombine)
+        case Query.Group(q) => search(q)
         case Query.Field(f, q) =>
           index.indexes
             .get(f)
@@ -89,10 +88,9 @@ object IndexSearcher {
         case Query.Or(qs) => qs.traverse(search).map(IndexSearcher.unionSets)
         case Query.And(qs) => qs.traverse(search).map(IndexSearcher.intersectSets)
         case Query.Not(q) => search(q).map(matches => allDocs -- matches)
-        case Query.Group(qs) => qs.traverse(search).map(defaultCombine)
+        case Query.Group(q) => search(q)
         case Query.Field(fn, q) =>
           Left(s"Nested field queries not supported. Cannot query field '$fn' with q: $q")
-        case q: MultiQuery => q.qs.traverse(search).map(defaultCombine)
         case q: Query.UnaryMinus => Left(s"Unsupported UnaryMinus in BooleanRetrieval: $q")
         case q: Query.UnaryPlus => Left(s"Unsupported UnaryPlus in BooleanRetrieval: $q")
         case q: Query.Proximity => Left(s"Unsupported Proximity in BooleanRetrieval: $q")
@@ -100,6 +98,7 @@ object IndexSearcher {
         case q: Query.TermRegex => regexSearch(q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in BooleanRetrieval: $q")
         case q: Query.Boost => Left(s"Unsupported Boost in BooleanRetrieval: $q")
+        case q: Query.WildCard => Left(s"Unsupported WildCard in BooleanRetrieval: $q")
       }
 
     private def phraseSearch(index: Index, q: Query.Phrase): Either[String, Set[Int]] =
