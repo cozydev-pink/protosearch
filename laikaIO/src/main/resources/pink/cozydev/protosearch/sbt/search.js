@@ -2,7 +2,7 @@ function renderDoc(hit) {
   const path = hit.fields.path
   const link = "../" + hit.fields.path.replace(".txt", ".html")
   const title = hit.fields.title
-  const preview = hit.fields.body.slice(0, 150) + "..."
+  const preview = hit.highlight
   return (
 `
 <ol>
