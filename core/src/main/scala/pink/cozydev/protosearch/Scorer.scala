@@ -21,7 +21,6 @@ import cats.syntax.all.*
 import pink.cozydev.lucille.Query
 
 import scala.collection.mutable.HashMap
-import pink.cozydev.lucille.MultiQuery
 import pink.cozydev.protosearch.internal.PositionalIter
 
 import java.util.regex.PatternSyntaxException
@@ -43,13 +42,12 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case Query.Or(qs) => accScore(idx, qs)
         case Query.And(qs) => accScore(idx, qs)
         case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
-        case Query.Group(qs) => accScore(idx, qs)
+        case Query.Group(qs) => accScore(idx, NonEmptyList.one(qs))
         case Query.Field(fn, q) =>
           index.indexes.get(fn) match {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
-        case q: MultiQuery => accScore(idx, q.qs)
         case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.Proximity => Left(s"Unsupported Proximity encountered in Scorer: $q")
@@ -57,6 +55,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case q: Query.TermRegex => regexScore(idx, docs, q)
         case q: Query.MinimumMatch => Left(s"Unsupported MinimumMatch in Scorer: $q")
         case q: Query.Boost => Left(s"Unsupported Boost in Scorer: $q")
+        case q: Query.WildCard => Left(s"Unsupported WildCard in Scorer: $q")
       }
     accScore(defaultIdx, NonEmptyList.one(qs)).map(combineMaps)
   }
