@@ -22,8 +22,8 @@ ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
 val Scala212 = "2.12.20"
-val Scala213 = "2.13.15"
-val Scala3 = "3.3.4"
+val Scala213 = "2.13.16"
+val Scala3 = "3.3.5"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
 
@@ -35,16 +35,16 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
 }
 
-val catsEffectV = "3.5.5"
-val catsV = "2.12.0"
+val catsEffectV = "3.5.7"
+val catsV = "2.13.0"
 val fs2V = "3.11.0"
-val laikaV = "1.2.1"
+val laikaV = "1.3.1"
 val lucilleV = "0.0.3"
 val munitCatsEffectV = "2.0.0"
-val munitV = "1.0.2"
+val munitV = "1.1.0"
 val scalajsDomV = "2.8.0"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.2"
-val scalametaV = "4.11.0"
+val scalametaV = "4.12.7"
 
 lazy val root =
   tlCrossRootProject
@@ -136,7 +136,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.4"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.7"),
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val inDir = baseDirectory.value / "src" / "main" / "resources"
