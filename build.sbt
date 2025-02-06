@@ -28,9 +28,8 @@ ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
 
 // Plugin setup stolen from Laika with love
-ThisBuild / githubWorkflowBuildMatrixExclusions ++= {
+ThisBuild / githubWorkflowBuildMatrixExclusions ++=
   List("2.13", "3").map(scala => MatrixExclude(Map("project" -> "plugin", "scala" -> scala)))
-}
 ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
 }
