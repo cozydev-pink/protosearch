@@ -34,6 +34,27 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     assertEquals(actual, expected)
   }
 
+  test("highlights first character") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, "h")
+    val expected = "<b>h</b>ello world"
+    assertEquals(actual, expected)
+  }
+
+  test("highlights last character") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, "d")
+    val expected = "hello worl<b>d</b>"
+    assertEquals(actual, expected)
+  }
+
+  test("highlights whole string") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, "hello world")
+    val expected = "<b>hello world</b>"
+    assertEquals(actual, expected)
+  }
+
   test("highlights only first match") {
     val s = "hello world, you, nice world, you"
     val actual = highlighter.highlight(s, "world")
@@ -41,17 +62,41 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     assertEquals(actual, expected)
   }
 
+  val longDoc = List.fill(100)("hello cat,").mkString("Contents: A letter to cat\n", " ", " world")
+
+  test("highlights first word match near beginning of long doc") {
+    val actual = highlighter.highlight(longDoc, "Contents")
+    val expected = "<b>Contents</b>: A letter to cat\nhello cat, hello cat, hello..."
+    assertEquals(actual, expected)
+  }
+
+  test("highlights character in word near beginning of long doc") {
+    val actual = highlighter.highlight(longDoc, "t")
+    val expected = "Con<b>t</b>ents: A letter to cat\nhello cat, hello cat, hello..."
+    assertEquals(actual, expected)
+  }
+
+  test("highlights word near beginning of long doc") {
+    val actual = highlighter.highlight(longDoc, "cat")
+    val expected = "Contents: A letter to <b>cat</b>\nhello cat, hello cat, hello..."
+    assertEquals(actual, expected)
+  }
+
   test("highlights matches near end of long doc") {
-    val s = List.fill(100)("hello cat,").mkString("", " ", " world")
-    val actual = highlighter.highlight(s, "world")
+    val actual = highlighter.highlight(longDoc, "world")
     val expected = "cat, hello cat, hello cat, <b>world</b>"
     assertEquals(actual, expected)
   }
 
+  test("highlights last character at end of long doc") {
+    val actual = highlighter.highlight(longDoc, "d")
+    val expected = "hello cat, hello cat, worl<b>d</b>"
+    assertEquals(actual, expected)
+  }
+
   test("long docs get trimmed with ellipses") {
-    val s = List.fill(100)("hello cat,").mkString("", " ", " world")
-    val actual = highlighter.highlight(s, "fake")
-    val expected = s.take(formatter.maxSize) + "..."
+    val actual = highlighter.highlight(longDoc, "fake")
+    val expected = longDoc.take(formatter.maxSize) + "..."
     assertEquals(actual, expected)
   }
 }
