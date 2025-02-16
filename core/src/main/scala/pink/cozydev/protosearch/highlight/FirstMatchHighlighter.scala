@@ -32,14 +32,24 @@ case class FirstMatchHighlighter(
   def highlight(str: String, queryStr: String): String = {
     val offset = str.indexOf(queryStr)
     if (offset == -1)
+      // 'queryStr' does not appear in 'str'
       trim(str)
     else {
       val start = Math.max(0, offset - lookBackWindowSize)
-      val nearby = str.indexWhere(c => " \n\t.".contains(c), start)
-      val slice = if (str.size < formatter.maxSize) str else str.drop(nearby)
-      val newOffset = if (str.size < formatter.maxSize) offset else offset - nearby
-      val fStr = formatter.format(slice, List(newOffset, queryStr.size))
-      trim(fStr)
+      if (start == 0 || str.size < formatter.maxSize) {
+        // First match 'offset' is within first 'lookBackWindowSize' characters,
+        // or the whole 'str' is within formatter max, no slicing necessary.
+        val fStr = formatter.format(str, List(offset, queryStr.size))
+        trim(fStr)
+      } else {
+        // First match 'offset' not within first 'lookBackWindowSize' characters,
+        // or 'str' is too big, need to find a nearby starting place from 'start'.
+        val nearby = str.indexWhere(c => " \n\t.".contains(c), start)
+        val slice = str.drop(nearby)
+        val newOffset = offset - nearby
+        val fStr = formatter.format(slice, List(newOffset, queryStr.size))
+        trim(fStr)
+      }
     }
   }
 
