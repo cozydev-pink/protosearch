@@ -21,6 +21,11 @@ sealed trait SearchResult {
     case SearchFailure(msg) => fail(msg)
     case SearchSuccess(hits) => success(hits)
   }
+
+  def toEither: Either[String, List[Hit]] = this match {
+    case SearchFailure(msg) => Left(msg)
+    case SearchSuccess(hits) => Right(hits)
+  }
 }
 final case class SearchFailure(msg: String) extends SearchResult
 final case class SearchSuccess(hits: List[Hit]) extends SearchResult

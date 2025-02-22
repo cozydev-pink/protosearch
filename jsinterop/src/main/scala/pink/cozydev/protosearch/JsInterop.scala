@@ -32,11 +32,15 @@ class JsHit(
 @JSExportTopLevel("Querier")
 class Querier(val mIndex: MultiIndex) {
   import js.JSConverters._
+  val searcher = SearchInterpreter.default(mIndex)
+  val highlightFields = List("body")
+  val resultFields = List("body", "path", "title")
 
   @JSExport
   def search(query: String): js.Array[JsHit] = {
-    val hits = mIndex
-      .searchInteractive(query)
+    val req = SearchRequest(query, 10, highlightFields, resultFields, true)
+    val hits = searcher
+      .search(req)
       .fold(
         err => { println(err); Nil },
         identity,
