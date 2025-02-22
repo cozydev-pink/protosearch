@@ -26,5 +26,5 @@ case class Hit(
     val id: Int,
     val score: Double,
     val fields: Map[String, String],
-    val highlight: String,
+    val highlights: Map[String, String],
 )

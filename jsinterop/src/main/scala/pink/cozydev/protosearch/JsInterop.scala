@@ -26,7 +26,7 @@ class JsHit(
     val id: Int,
     val score: Double,
     val fields: js.Dictionary[String],
-    val highlight: String,
+    val highlights: js.Dictionary[String],
 ) extends js.Object
 
 @JSExportTopLevel("Querier")
@@ -45,7 +45,7 @@ class Querier(val mIndex: MultiIndex) {
         err => { println(err); Nil },
         identity,
       )
-      .map(h => new JsHit(h.id, h.score, h.fields.toJSDictionary, h.highlight))
+      .map(h => new JsHit(h.id, h.score, h.fields.toJSDictionary, h.highlights.toJSDictionary))
     hits.toJSArray
   }
 }

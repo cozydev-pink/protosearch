@@ -59,8 +59,8 @@ final case class SearchInterpreter(
           }
 
           // TODO Update Hit highlight to be Map
-          val highlight = highlightBldr.result().headOption.map(_._2).getOrElse("")
-          lstB += Hit(docId, score, fieldBldr.result(), highlight)
+          val highlights = highlightBldr.result()
+          lstB += Hit(docId, score, fieldBldr.result(), highlights)
         }
         SearchSuccess(lstB.result())
     }
