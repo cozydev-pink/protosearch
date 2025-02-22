@@ -2,7 +2,7 @@ function render(hit) {
   const path = hit.fields.path
   const htmlPath = hit.fields.path.replace(".txt", ".html")
   const link = new URL("../" + htmlPath, baseUrl)
-  const title = hit.fields.title
+  const title = hit.highlights["title"] || hit.fields["title"]
   const preview = hit.highlights["body"]
   return (
 `

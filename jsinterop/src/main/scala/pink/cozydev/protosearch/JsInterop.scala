@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch
 
+import pink.cozydev.protosearch.highlight.{FirstMatchHighlighter, FragmentFormatter}
 import scala.scalajs.js.annotation._
 import scala.scalajs.js
 import org.scalajs.dom.Blob
@@ -32,8 +33,10 @@ class JsHit(
 @JSExportTopLevel("Querier")
 class Querier(val mIndex: MultiIndex) {
   import js.JSConverters._
-  val searcher = SearchInterpreter.default(mIndex)
-  val highlightFields = List("body")
+  val highlighter =
+    FirstMatchHighlighter(FragmentFormatter(150, "<mark>", "</mark>"))
+  val searcher = SearchInterpreter(mIndex, highlighter)
+  val highlightFields = List("title", "body")
   val resultFields = List("body", "path", "title")
 
   @JSExport
