@@ -16,15 +16,16 @@
 
 package pink.cozydev.protosearch
 
-/** A search result
-  *
-  * @param id Document ID
-  * @param score The score of this result given the query
-  * @param fields Stored fields of the result
-  */
-final case class Hit(
-    val id: Int,
-    val score: Double,
-    val fields: Map[String, String],
-    val highlights: Map[String, String],
-)
+sealed trait SearchResult {
+  def fold[A](fail: String => A, success: List[Hit] => A): A = this match {
+    case SearchFailure(msg) => fail(msg)
+    case SearchSuccess(hits) => success(hits)
+  }
+
+  def toEither: Either[String, List[Hit]] = this match {
+    case SearchFailure(msg) => Left(msg)
+    case SearchSuccess(hits) => Right(hits)
+  }
+}
+final case class SearchFailure(msg: String) extends SearchResult
+final case class SearchSuccess(hits: List[Hit]) extends SearchResult

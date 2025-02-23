@@ -38,7 +38,7 @@ class ScorerSuite extends munit.FunSuite {
   def score(q: String, docs: Set[Int]): Either[String, List[(Int, Double)]] =
     QueryParser
       .parse(q)
-      .flatMap(q => scorer.score(q, docs))
+      .flatMap(q => scorer.score(q, docs, 10))
 
   def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
@@ -72,6 +72,18 @@ class ScorerSuite extends munit.FunSuite {
   test("scores phrase query") {
     val hits = score("\"Two Bad Mice\"", allDocs)
     assertEquals(ordered(hits), List(1))
+  }
+
+  test("scorer with topN=1 returns only top doc") {
+    val q = "Tale OR Two" // has 3 matches
+    val hits = QueryParser.parse(q).flatMap(q => scorer.score(q, allDocs, topN = 1))
+    assertEquals(ordered(hits), List(1))
+  }
+
+  test("scorer topN can be bigger than number of matches") {
+    val q = "Tale OR Two" // has 3 matches
+    val hits = QueryParser.parse(q).flatMap(q => scorer.score(q, allDocs, topN = 999))
+    assertEquals(ordered(hits), List(1, 0, 2))
   }
 
 }

@@ -38,17 +38,4 @@ And then we can finally index our `books` using the builder:
 val index = indexBldr.fromList(books)
 ```
 
-Finally we'll then need a `search` function to test out.
-We use a `queryAnalyzer` with the same default field here to make sure our queries get the same analysis as our documents did at indexing time.
-
-
-```scala mdoc:silent
-val qAnalyzer = index.queryAnalyzer
-
-def search(q: String): List[Book] =
-  index.search(q)
-    .map(hits => hits.map(h => books(h.id)))
-    .fold(_ => Nil, identity)
-```
-
-Now we can use our `search` function to explore some different query types!
+To learn how to search our `index`, jump over to the [querying tutorial][Querying].
