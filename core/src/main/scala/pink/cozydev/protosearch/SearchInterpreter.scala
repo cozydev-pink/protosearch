@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.highlight.FirstMatchHighlighter
 import pink.cozydev.protosearch.highlight.FragmentFormatter
+import pink.cozydev.protosearch.internal.IndexSearcher
 
 final case class SearchInterpreter(
     multiIndex: MultiIndex,

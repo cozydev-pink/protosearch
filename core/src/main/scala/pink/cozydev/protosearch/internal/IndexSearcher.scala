@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch
+package pink.cozydev.protosearch.internal
 
 import cats.data.NonEmptyList
 import pink.cozydev.lucille.{Query, TermQuery}
-import pink.cozydev.protosearch.internal.PositionalIter
+import pink.cozydev.protosearch._
 
 import java.util.regex.PatternSyntaxException
 
