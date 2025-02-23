@@ -31,7 +31,6 @@ final case class SearchInterpreter(
     val parseQ = queryAnalyzer
       .parse(request.query)
       .map(q => if (request.lastTermPrefix) q.mapLastTerm(LastTermRewrite.termToPrefix) else q)
-    // TODO push down request size
     val getDocs: Either[String, List[(Int, Double)]] =
       parseQ.flatMap(q =>
         indexSearcher
@@ -57,8 +56,6 @@ final case class SearchInterpreter(
               highlightBldr += hf -> h
             }
           }
-
-          // TODO Update Hit highlight to be Map
           val highlights = highlightBldr.result()
           lstB += Hit(docId, score, fieldBldr.result(), highlights)
         }
