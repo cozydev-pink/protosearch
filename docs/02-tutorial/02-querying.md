@@ -23,12 +23,12 @@ val index = IndexBuilder.of[Book](
 
 ## Searching
 
-In order to search our index with various queries we need to setup a `SearchInterpreter`.
+In order to search our index with various queries we need to setup a `Searcher`.
 
 ```scala mdoc:silent
-import pink.cozydev.protosearch.SearchInterpreter
+import pink.cozydev.protosearch.Searcher
 
-val searcher = SearchInterpreter.default(index)
+val searcher = Searcher.default(index)
 ```
 
 And now we can define our search function

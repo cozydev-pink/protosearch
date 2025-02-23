@@ -35,7 +35,7 @@ class Querier(val mIndex: MultiIndex) {
   import js.JSConverters._
   val highlighter =
     FirstMatchHighlighter(FragmentFormatter(150, "<mark>", "</mark>"))
-  val searcher = SearchInterpreter(mIndex, highlighter)
+  val searcher = Searcher(mIndex, highlighter)
   val highlightFields = List("title", "body")
   val resultFields = List("body", "path", "title")
 

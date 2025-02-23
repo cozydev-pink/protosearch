@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch.scaladoc
 import munit.FunSuite
-import pink.cozydev.protosearch.{SearchInterpreter, SearchRequest}
+import pink.cozydev.protosearch.{Searcher, SearchRequest}
 
 class ScaladocSuite extends FunSuite {
 
@@ -119,7 +119,7 @@ final case class IndexBuilder[A] private (
   def searchScaladoc(source: String, queries: List[String]): List[ScaladocInfo] = {
     val scaladocInfoList = ParseScaladoc.parseAndExtractInfo(source)
     val index = ScaladocIndexer.indexBuilder.fromList(scaladocInfoList)
-    val searcher = SearchInterpreter.default(index)
+    val searcher = Searcher.default(index)
     def search(q: String): List[ScaladocInfo] = {
       val req = SearchRequest.default(q)
       val searchResults = searcher.search(req)

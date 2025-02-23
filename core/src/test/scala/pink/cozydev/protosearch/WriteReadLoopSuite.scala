@@ -35,7 +35,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
     val indexBytes = MultiIndex.codec.encode(index).map(_.bytes)
 
     def search(index: MultiIndex)(qs: String): Either[String, List[Book]] = {
-      val searcher = SearchInterpreter.default(index)
+      val searcher = Searcher.default(index)
       val req = SearchRequest.default(qs)
       val result = searcher.search(req)
       result.toEither.map(hits => hits.map(h => allBooks(h.id)))

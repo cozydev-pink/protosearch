@@ -20,7 +20,7 @@ import pink.cozydev.protosearch.highlight.FirstMatchHighlighter
 import pink.cozydev.protosearch.highlight.FragmentFormatter
 import pink.cozydev.protosearch.internal.IndexSearcher
 
-final case class SearchInterpreter(
+final case class Searcher(
     multiIndex: MultiIndex,
     highlighter: FirstMatchHighlighter,
 ) {
@@ -64,10 +64,10 @@ final case class SearchInterpreter(
     }
   }
 }
-object SearchInterpreter {
+object Searcher {
   private val defaultHighlighter =
     FirstMatchHighlighter(FragmentFormatter(100, "<b>", "</b>"))
 
-  def default(index: MultiIndex): SearchInterpreter =
-    SearchInterpreter(index, defaultHighlighter)
+  def default(index: MultiIndex): Searcher =
+    Searcher(index, defaultHighlighter)
 }
