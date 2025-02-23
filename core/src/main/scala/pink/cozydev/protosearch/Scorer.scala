@@ -131,23 +131,28 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
-    // Sort scores
-    val arr = new Array[Tuple2[Int, Double]](mb.size)
-    var i = 0
-    mb.foreach { docScore =>
-      arr(i) = docScore
-      i += 1
+    val len = mb.size
+    if (len == 1)
+      mb.toList
+    else {
+      // Sort scores
+      val arr = new Array[Tuple2[Int, Double]](len)
+      var i = 0
+      mb.foreach { docScore =>
+        arr(i) = docScore
+        i += 1
+      }
+      java.util.Arrays.sort(arr, ord)
+      // Build list of topN
+      val bldr = List.newBuilder[(Int, Double)]
+      val resultSize = if (len < topN) len else topN
+      bldr.sizeHint(resultSize)
+      var n = 0
+      while (n < resultSize) {
+        bldr += arr(n)
+        n += 1
+      }
+      bldr.result()
     }
-    java.util.Arrays.sort(arr, ord)
-    // Build list of topN
-    val bldr = List.newBuilder[(Int, Double)]
-    val resultSize = if (mb.size < topN) mb.size else topN
-    bldr.sizeHint(resultSize)
-    var n = 0
-    while (n < resultSize) {
-      bldr += arr(n)
-      n += 1
-    }
-    bldr.result()
   }
 }
