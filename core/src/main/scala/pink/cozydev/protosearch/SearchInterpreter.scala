@@ -36,7 +36,7 @@ final case class SearchInterpreter(
       parseQ.flatMap(q =>
         indexSearcher
           .search(q)
-          .flatMap(ds => scorer.score(q, ds))
+          .flatMap(ds => scorer.score(q, ds, request.size))
       )
 
     val lstB = List.newBuilder[Hit]

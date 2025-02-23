@@ -41,7 +41,7 @@ class Querier(val mIndex: MultiIndex) {
 
   @JSExport
   def search(query: String): js.Array[JsHit] = {
-    val req = SearchRequest(query, 10, highlightFields, resultFields, true)
+    val req = SearchRequest(query, size = 10, highlightFields, resultFields, lastTermPrefix = true)
     val hits = searcher
       .search(req)
       .fold(

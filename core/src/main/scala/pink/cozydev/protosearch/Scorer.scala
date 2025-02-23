@@ -20,7 +20,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import pink.cozydev.lucille.Query
 
-import scala.collection.mutable.HashMap
 import pink.cozydev.protosearch.internal.PositionalIter
 
 import java.util.regex.PatternSyntaxException
@@ -29,7 +28,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
   private val defaultIdx: Index = index.indexes(index.schema.defaultField)
 
-  def score(qs: Query, docs: Set[Int]): Either[String, List[(Int, Double)]] = {
+  def score(qs: Query, docs: Set[Int], topN: Int): Either[String, List[(Int, Double)]] = {
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],
@@ -57,7 +56,7 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case q: Query.Boost => Left(s"Unsupported Boost in Scorer: $q")
         case q: Query.WildCard => Left(s"Unsupported WildCard in Scorer: $q")
       }
-    accScore(defaultIdx, NonEmptyList.one(qs)).map(combineMaps)
+    accScore(defaultIdx, NonEmptyList.one(qs)).map(ms => combineMaps(ms, topN))
   }
 
   private def phraseScore(
@@ -124,11 +123,31 @@ case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
     }
   }
 
-  private def combineMaps(ms: NonEmptyList[Map[Int, Double]]): List[(Int, Double)] = {
-    val mb = HashMap.empty ++ ms.head
+  private val ord = Ordering[(Double, Int)].on[(Int, Double)](idScore => (-idScore._2, idScore._1))
+
+  private def combineMaps(ms: NonEmptyList[Map[Int, Double]], topN: Int): List[(Int, Double)] = {
+    // Combine scores by Id
+    val mb = scala.collection.mutable.HashMap.empty[Int, Double] ++ ms.head
     ms.tail.foreach(m1 =>
       m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
     )
-    mb.toList.sortBy(idScore => (-idScore._2, idScore._1))
+    // Sort scores
+    val arr = new Array[Tuple2[Int, Double]](mb.size)
+    var i = 0
+    mb.foreach { docScore =>
+      arr(i) = docScore
+      i += 1
+    }
+    java.util.Arrays.sort(arr, ord)
+    // Build list of topN
+    val bldr = List.newBuilder[(Int, Double)]
+    val resultSize = if (mb.size < topN) mb.size else topN
+    bldr.sizeHint(resultSize)
+    var n = 0
+    while (n < resultSize) {
+      bldr += arr(n)
+      n += 1
+    }
+    bldr.result()
   }
 }
