@@ -24,7 +24,7 @@ import pink.cozydev.protosearch.internal.PositionalIter
 
 import java.util.regex.PatternSyntaxException
 
-case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
+final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
   private val defaultIdx: Index = index.indexes(index.schema.defaultField)
 

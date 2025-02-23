@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-case class MultiIndex(
+final case class MultiIndex(
     indexes: Map[String, Index],
     schema: Schema,
     fields: Map[String, Array[String]],

@@ -22,7 +22,7 @@ package pink.cozydev.protosearch
   * @param score The score of this result given the query
   * @param fields Stored fields of the result
   */
-case class Hit(
+final case class Hit(
     val id: Int,
     val score: Double,
     val fields: Map[String, String],
