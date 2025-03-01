@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.QueryParser
+import internal.IndexSearcher
 
 class PositionalIndexSearcherSuite extends munit.FunSuite {
 

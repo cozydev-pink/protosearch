@@ -26,7 +26,7 @@ import pink.cozydev.protosearch.analysis.Analyzer
   * @param indexed Whether the field value should be indexed for fast querying
   * @param positions Whether the positions should be indexed for fast phrase querying
   */
-case class Field(
+final case class Field(
     name: String,
     analyzer: Analyzer,
     stored: Boolean,

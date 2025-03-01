@@ -19,11 +19,30 @@ val index = IndexBuilder.of[Book](
   (Field("title", analyzer, stored=true, indexed=true, positions=true), _.title),
   (Field("author", analyzer, stored=true, indexed=true, positions=false), _.author),
 ).fromList(books)
+```
 
-def search(q: String): List[Book] =
-  index.search(q)
-    .map(hits => hits.map(h => books(h.id)))
-    .fold(_ => Nil, identity)
+## Searching
+
+In order to search our index with various queries we need to setup a `Searcher`.
+
+```scala mdoc:silent
+import pink.cozydev.protosearch.Searcher
+
+val searcher = Searcher.default(index)
+```
+
+And now we can define our search function
+
+```scala mdoc:silent
+import pink.cozydev.protosearch.{SearchFailure, SearchRequest, SearchSuccess}
+
+def search(q: String): List[Book] = {
+  val req = SearchRequest.default(q)
+  searcher.search(req) match {
+    case SearchFailure(_) => Nil
+    case SearchSuccess(hits) => hits.map(h => books(h.id))
+  }
+}
 ```
 
 Now we can use our `search` function to explore some different query types!
