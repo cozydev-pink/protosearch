@@ -65,6 +65,15 @@
   color: var(--secondary-color);
 }
 
+.search-modal-content .title mark {
+  color: var(--secondary-color);
+  background-color: var(--syntax-wheel3);
+}
+
+.search-modal-content mark {
+  background-color: var(--syntax-wheel3);
+}
+
 /* The Close Button */
 .search-close {
   float: right;

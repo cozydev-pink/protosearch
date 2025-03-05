@@ -23,7 +23,7 @@ import pink.cozydev.lucille.QueryParser
 // TODO This is a hack, the Lucille parser tokenizes on white space only currently
 // We perhaps want Lucille to use a tokenizer from textmogrify
 // In the meantime, we rewrite the Query with our `Analyzer`
-case class QueryAnalyzer(
+final case class QueryAnalyzer(
     defaultField: String,
     analyzers: Map[String, Analyzer],
 ) {

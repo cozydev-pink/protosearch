@@ -16,56 +16,12 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.lucille.Query
-import pink.cozydev.protosearch.highlight.{FirstMatchHighlighter, FragmentFormatter}
-
-case class MultiIndex(
+final case class MultiIndex(
     indexes: Map[String, Index],
     schema: Schema,
     fields: Map[String, Array[String]],
 ) {
-
-  private val indexSearcher = IndexSearcher(this, schema.defaultOR)
-  private val scorer = Scorer(this, schema.defaultOR)
-  private val highlighter = FirstMatchHighlighter(FragmentFormatter(100, "<b>", "</b>"))
   val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
-
-  /** Search the index with a `Query`. Results are sorted by descending score.
-    *
-    * @param q The `Query` to search
-    * @return A list of `Hit`s or error
-    */
-  def search(rawQStr: String, q: Query): Either[String, List[Hit]] = {
-    val docs = indexSearcher.search(q).flatMap(ds => scorer.score(q, ds))
-    val lstb = List.newBuilder[Hit]
-    docs.map(_.foreach { case (docId, score) =>
-      val docFields = fields.map { case (k, v) => (k, v(docId)) }
-      val highlight =
-        docFields.get("body").map(b => highlighter.highlight(b, rawQStr)).getOrElse("")
-      lstb += Hit(docId, score, docFields, highlight)
-    })
-    docs.map(_ => lstb.result())
-  }
-
-  /** Search the index with a Lucene syntax string. Results are sorted by descending score.
-    *
-    * @param q The query string to search
-    * @return A list of `Hit`s or error
-    */
-  def search(q: String): Either[String, List[Hit]] =
-    queryAnalyzer.parse(q).flatMap(pq => search(q, pq))
-
-  /** Search the index with a possibly incomplete query. Meant for use in a "search as your type"
-    * scenario. The last term, which is possibly incomplete, is rewritten to be a prefix.
-    *
-    * @param partialQuery The possibly incomplete lucene query string
-    * @return A list of `Hit`s or error
-    */
-  def searchInteractive(partialQuery: String): Either[String, List[Hit]] = {
-    val rewriteQ =
-      queryAnalyzer.parse(partialQuery).map(mq => mq.mapLastTerm(LastTermRewrite.termToPrefix))
-    rewriteQ.flatMap(newq => search(partialQuery, newq))
-  }
 }
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs

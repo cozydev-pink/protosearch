@@ -16,15 +16,17 @@
 
 package pink.cozydev.protosearch
 
-/** A search result
-  *
-  * @param id Document ID
-  * @param score The score of this result given the query
-  * @param fields Stored fields of the result
-  */
-final case class Hit(
-    val id: Int,
-    val score: Double,
-    val fields: Map[String, String],
-    val highlights: Map[String, String],
+final case class SearchRequest(
+    query: String,
+    size: Int,
+    highlightFields: List[String],
+    resultFields: List[String],
+    lastTermPrefix: Boolean,
+    // sort
+    // query re-writing?
 )
+object SearchRequest {
+  private val defaultSize = 10
+  def default(query: String): SearchRequest =
+    SearchRequest(query, defaultSize, Nil, Nil, false)
+}
