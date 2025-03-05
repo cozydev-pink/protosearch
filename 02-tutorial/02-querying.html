@@ -92,6 +92,7 @@
   <p class="header"><a href="#">Querying</a></p>
 
   <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#searching">Searching</a></li>
     <li class="level1 nav-node"><a href="#term-queries">Term Queries</a></li>
     <li class="level2 nav-leaf"><a href="#term-query">Term Query</a></li>
     <li class="level2 nav-leaf"><a href="#prefix-query">Prefix Query</a></li>
@@ -125,12 +126,23 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">index</span><span> = </span><span class="type-name">IndexBuilder</span><span>.</span><span class="identifier">of</span><span>[</span><span class="type-name">Book</span><span>](
   (</span><span class="type-name">Field</span><span>(</span><span class="string-literal">&quot;title&quot;</span><span>, </span><span class="identifier">analyzer</span><span>, </span><span class="identifier">stored</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">indexed</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">positions</span><span>=</span><span class="boolean-literal">true</span><span>), </span><span class="identifier">_</span><span>.</span><span class="identifier">title</span><span>),
   (</span><span class="type-name">Field</span><span>(</span><span class="string-literal">&quot;author&quot;</span><span>, </span><span class="identifier">analyzer</span><span>, </span><span class="identifier">stored</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">indexed</span><span>=</span><span class="boolean-literal">true</span><span>, </span><span class="identifier">positions</span><span>=</span><span class="boolean-literal">false</span><span>), </span><span class="identifier">_</span><span>.</span><span class="identifier">author</span><span>),
-).</span><span class="identifier">fromList</span><span>(</span><span class="identifier">books</span><span>)
+).</span><span class="identifier">fromList</span><span>(</span><span class="identifier">books</span><span>)</span></code></pre>
+        
+        <h2 id="searching" class="section"><a class="anchor-link left" href="#searching"><i class="icofont-laika link">&#xef71;</i></a>Searching</h2>
+        <p>In order to search our index with various queries we need to setup a <code>Searcher</code>.</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">pink</span><span>.</span><span class="identifier">cozydev</span><span>.</span><span class="identifier">protosearch</span><span>.</span><span class="type-name">Searcher</span><span>
 
-</span><span class="keyword">def</span><span> </span><span class="declaration-name">search</span><span>(</span><span class="identifier">q</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">List</span><span>[</span><span class="type-name">Book</span><span>] =
-  </span><span class="identifier">index</span><span>.</span><span class="identifier">search</span><span>(</span><span class="identifier">q</span><span>)
-    .</span><span class="identifier">map</span><span>(</span><span class="identifier">hits</span><span> =&gt; </span><span class="identifier">hits</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">h</span><span> =&gt; </span><span class="identifier">books</span><span>(</span><span class="identifier">h</span><span>.</span><span class="identifier">id</span><span>)))
-    .</span><span class="identifier">fold</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Nil</span><span>, </span><span class="identifier">identity</span><span>)</span></code></pre>
+</span><span class="keyword">val</span><span> </span><span class="identifier">searcher</span><span> = </span><span class="type-name">Searcher</span><span>.</span><span class="keyword">default</span><span>(</span><span class="identifier">index</span><span>)</span></code></pre>
+        <p>And now we can define our search function</p>
+        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">pink</span><span>.</span><span class="identifier">cozydev</span><span>.</span><span class="identifier">protosearch</span><span>.{</span><span class="type-name">SearchFailure</span><span>, </span><span class="type-name">SearchRequest</span><span>, </span><span class="type-name">SearchSuccess</span><span>}
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">search</span><span>(</span><span class="identifier">q</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">List</span><span>[</span><span class="type-name">Book</span><span>] = {
+  </span><span class="keyword">val</span><span> </span><span class="identifier">req</span><span> = </span><span class="type-name">SearchRequest</span><span>.</span><span class="keyword">default</span><span>(</span><span class="identifier">q</span><span>)
+  </span><span class="identifier">searcher</span><span>.</span><span class="identifier">search</span><span>(</span><span class="identifier">req</span><span>) </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">SearchFailure</span><span>(</span><span class="identifier">_</span><span>) =&gt; </span><span class="type-name">Nil</span><span>
+    </span><span class="keyword">case</span><span> </span><span class="type-name">SearchSuccess</span><span>(</span><span class="identifier">hits</span><span>) =&gt; </span><span class="identifier">hits</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">h</span><span> =&gt; </span><span class="identifier">books</span><span>(</span><span class="identifier">h</span><span>.</span><span class="identifier">id</span><span>))
+  }
+}</span></code></pre>
         <p>Now we can use our <code>search</code> function to explore some different query types!</p>
         
         <h2 id="term-queries" class="section"><a class="anchor-link left" href="#term-queries"><i class="icofont-laika link">&#xef71;</i></a>Term Queries</h2>

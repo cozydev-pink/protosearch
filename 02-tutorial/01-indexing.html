@@ -127,15 +127,7 @@
 )</span></code></pre>
         <p>And then we can finally index our <code>books</code> using the builder:</p>
         <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">index</span><span> = </span><span class="identifier">indexBldr</span><span>.</span><span class="identifier">fromList</span><span>(</span><span class="identifier">books</span><span>)</span></code></pre>
-        <p>Finally we&#39;ll then need a <code>search</code> function to test out.
-        We use a <code>queryAnalyzer</code> with the same default field here to make sure our queries get the same analysis as our documents did at indexing time.</p>
-        <pre class="keep-together pdf epub"><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">qAnalyzer</span><span> = </span><span class="identifier">index</span><span>.</span><span class="identifier">queryAnalyzer</span><span>
-
-</span><span class="keyword">def</span><span> </span><span class="declaration-name">search</span><span>(</span><span class="identifier">q</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">List</span><span>[</span><span class="type-name">Book</span><span>] =
-  </span><span class="identifier">index</span><span>.</span><span class="identifier">search</span><span>(</span><span class="identifier">q</span><span>)
-    .</span><span class="identifier">map</span><span>(</span><span class="identifier">hits</span><span> =&gt; </span><span class="identifier">hits</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">h</span><span> =&gt; </span><span class="identifier">books</span><span>(</span><span class="identifier">h</span><span>.</span><span class="identifier">id</span><span>)))
-    .</span><span class="identifier">fold</span><span>(</span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Nil</span><span>, </span><span class="identifier">identity</span><span>)</span></code></pre>
-        <p>Now we can use our <code>search</code> function to explore some different query types!</p>
+        <p>To learn how to search our <code>index</code>, jump over to the <a href="02-querying.html#querying">querying tutorial</a>.</p>
 
         
 <hr class="footer-rule"/>
