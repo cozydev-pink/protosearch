@@ -34,6 +34,13 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     assertEquals(actual, expected)
   }
 
+  test("highlights substring with different casing") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, "WoRlD")
+    val expected = "hello <b>world</b>"
+    assertEquals(actual, expected)
+  }
+
   test("highlights first character") {
     val s = "hello world"
     val actual = highlighter.highlight(s, "h")
