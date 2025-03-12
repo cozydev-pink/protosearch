@@ -30,7 +30,8 @@ case class FirstMatchHighlighter(
   }
 
   def highlight(str: String, queryStr: String): String = {
-    val offset = str.indexOf(queryStr)
+    // lowercase both in place, to find case-insensitive matches
+    val offset = str.toLowerCase().indexOf(queryStr.toLowerCase())
     if (offset == -1)
       // 'queryStr' does not appear in 'str'
       trim(str)
