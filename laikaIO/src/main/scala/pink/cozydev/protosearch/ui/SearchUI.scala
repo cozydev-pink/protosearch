@@ -21,12 +21,16 @@ import laika.ast.Path
 import laika.io.model.InputTree
 import laika.theme.{Theme, ThemeBuilder, ThemeProvider}
 import laika.helium.Helium
+import laika.api.config.ConfigBuilder
+import laika.config.LaikaKeys
 
 object SearchUI extends ThemeProvider {
 
   def build[F[_]: Async]: Resource[F, Theme[F]] = {
 
     val path = "pink/cozydev/protosearch/sbt"
+
+    val unversioned = ConfigBuilder.empty.withValue(LaikaKeys.versioned, false).build
 
     val inputs = InputTree[F]
       .addClassLoaderResource(
@@ -57,6 +61,7 @@ object SearchUI extends ThemeProvider {
         s"$path/search.css",
         Path.Root / "search" / "search.css",
       )
+      .addConfig(unversioned, Path.Root / "search")
       .addClassLoaderResource(
         s"$path/topNav.template.html",
         Path.Root / "helium" / "templates" / "topNav.template.html",

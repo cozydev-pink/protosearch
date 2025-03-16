@@ -41,7 +41,8 @@ class IndexFormatSuite extends CatsEffectSuite {
       .build
 
   def renderIndex(str: String): IO[MultiIndex] = {
-    val tree = InputTree[IO].addString(str, Path.Root / "client" / "doc.md")
+    val dir = Path.Root / "client"
+    val tree = InputTree[IO].addString(str, dir / "doc.md")
     val bytes = fs2.io
       .readOutputStream[IO](1024)(out =>
         transformer.use(_.fromInput(tree).toStream(IO(out)).transform)
@@ -79,13 +80,14 @@ class IndexFormatSuite extends CatsEffectSuite {
     assertIO(title, Some(List("The Title hasSpan")))
   }
 
-  test("stores path field") {
+  test("stores path field without .txt suffix") {
     val doc =
       """|# The Title
          |normal **bold** *italics* `code`
          |""".stripMargin
-    val path = renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(path, Some(List("client/doc.txt")))
+    val path =
+      renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
+    assertIO(path, Some(List("/client/doc")))
   }
 
 }

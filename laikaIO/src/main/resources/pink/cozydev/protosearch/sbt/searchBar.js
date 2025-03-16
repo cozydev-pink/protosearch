@@ -1,7 +1,7 @@
 function render(hit) {
   const path = hit.fields.path
-  const htmlPath = hit.fields.path.replace(".txt", ".html")
-  const link = new URL("../" + htmlPath, baseUrl)
+  const htmlPath = `${path}.html`
+  const link = new URL(htmlPath, baseUrl)
   const title = hit.highlights["title"] || hit.fields["title"]
   const preview = hit.highlights["body"]
   return (
@@ -46,7 +46,7 @@ async function main() {
   }
 
   // Setup the search worker, it returns inner html to the modal
-  const worker = new Worker(new URL("searchBarWorker.js", baseUrl))
+  const worker = new Worker(new URL("search/searchBarWorker.js", baseUrl))
   worker.onmessage = function(e) {
     const markup = e.data.map(render).join("\n")
     modalBody.innerHTML = markup
@@ -72,7 +72,7 @@ async function main() {
 }
 
 // Only run once page has finished loading
-const baseUrl = document.currentScript.src
+const baseUrl = new URL("../", document.currentScript.src)
 window.onload = function() {
   main()
 }

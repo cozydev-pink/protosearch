@@ -55,7 +55,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             .of[RenderedDocument](
               (Field("body", analyzer, true, true, true), _.content),
               (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
-              (Field("path", analyzer, true, true, false), d => renderLink(d)),
+              (Field("path", analyzer, true, true, false), d => renderPath(d)),
             )
             .fromList(result.allDocuments.toList)
 
@@ -85,10 +85,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
       case None => path.name
     }
 
-  private def renderLink(doc: RenderedDocument): String =
-    doc.asNavigationItem().link match {
-      case None => ""
-      case Some(l) => l.target.render()
-    }
+  private def renderPath(doc: RenderedDocument): String =
+    doc.path.withoutSuffix.toString
 
 }

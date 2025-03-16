@@ -141,6 +141,10 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
 case object Plaintext extends RenderFormat[Formatter] {
   val fileSuffix = "txt"
 
+  // Override `RenderFormat#description` to "html" so that Laika's `PathTranslator` treats us like
+  // the html renderer, which supports versioning, and properly gives us versioned paths.
+  override val description: String = "html"
+
   val defaultRenderer: (Formatter, Element) => String =
     PlaintextRenderer
 
