@@ -79,13 +79,13 @@ class IndexFormatSuite extends CatsEffectSuite {
     assertIO(title, Some(List("The Title hasSpan")))
   }
 
-  test("stores path field") {
+  test("stores path field without .txt suffix") {
     val doc =
       """|# The Title
          |normal **bold** *italics* `code`
          |""".stripMargin
     val path = renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(path, Some(List("client/doc.txt")))
+    assertIO(path, Some(List("client/doc")))
   }
 
 }

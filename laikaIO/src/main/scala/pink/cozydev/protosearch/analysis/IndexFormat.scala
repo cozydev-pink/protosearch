@@ -28,6 +28,8 @@ import laika.theme.Theme
 import java.io.OutputStream
 import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
+import laika.config.Versions
+import laika.config.LaikaKeys
 
 case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
@@ -85,10 +87,21 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
       case None => path.name
     }
 
-  private def renderLink(doc: RenderedDocument): String =
-    doc.asNavigationItem().link match {
-      case None => ""
-      case Some(l) => l.target.render()
+  private def renderLink(doc: RenderedDocument): String = {
+    val isVersioned = doc.config
+      .get[Boolean](LaikaKeys.versioned)
+      .getOrElse(false)
+    val version = doc.config
+      .get[Versions]
+      .toOption
+      .map(v => v.currentVersion.pathSegment)
+      .getOrElse("")
+
+    val path = doc.asNavigationItem().link.map { l =>
+      val target = l.target.render().stripSuffix(".txt")
+      if (isVersioned) s"$version/$target" else target
     }
+    path.getOrElse("")
+  }
 
 }
