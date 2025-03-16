@@ -22,13 +22,14 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import laika.api.Transformer
 import laika.ast.Path
-import laika.config.SyntaxHighlighting
+import laika.config.{LaikaKeys, SyntaxHighlighting, Version, Versions}
 import laika.format.Markdown
 import laika.io.api.BinaryTreeTransformer
 import laika.io.model.InputTree
 import laika.io.syntax.*
 import munit.CatsEffectSuite
 import scodec.bits.ByteVector
+import laika.api.config.ConfigBuilder
 
 class IndexFormatSuite extends CatsEffectSuite {
 
@@ -40,8 +41,16 @@ class IndexFormatSuite extends CatsEffectSuite {
       .parallel[IO]
       .build
 
-  def renderIndex(str: String): IO[MultiIndex] = {
-    val tree = InputTree[IO].addString(str, Path.Root / "client" / "doc.md")
+  val versioned = ConfigBuilder.empty
+    .withValue(LaikaKeys.versioned, true)
+    .withValue(LaikaKeys.versions, Versions.forCurrentVersion(Version("latest", "v1.0")))
+    .build
+  val unversioned = ConfigBuilder.empty.withValue(LaikaKeys.versioned, false).build
+
+  def renderIndex(str: String, isVersioned: Boolean = false): IO[MultiIndex] = {
+    val dir = Path.Root / "client"
+    val base = InputTree[IO].addString(str, dir / "doc.md")
+    val tree = if (isVersioned) base.addConfig(versioned, dir) else base.addConfig(unversioned, dir)
     val bytes = fs2.io
       .readOutputStream[IO](1024)(out =>
         transformer.use(_.fromInput(tree).toStream(IO(out)).transform)
@@ -79,13 +88,23 @@ class IndexFormatSuite extends CatsEffectSuite {
     assertIO(title, Some(List("The Title hasSpan")))
   }
 
-  test("stores path field without .txt suffix") {
+  test("stores unversioned path field without .txt suffix") {
     val doc =
       """|# The Title
          |normal **bold** *italics* `code`
          |""".stripMargin
-    val path = renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
+    val path =
+      renderIndex(doc, isVersioned = false).map(idx => idx.fields.get("path").map(_.toList))
     assertIO(path, Some(List("client/doc")))
+  }
+
+  test("stores versioned path field without .txt suffix") {
+    val doc =
+      """|# The Title
+         |normal **bold** *italics* `code`
+         |""".stripMargin
+    val path = renderIndex(doc, isVersioned = true).map(idx => idx.fields.get("path").map(_.toList))
+    assertIO(path, Some(List("v1.0/client/doc")))
   }
 
 }
