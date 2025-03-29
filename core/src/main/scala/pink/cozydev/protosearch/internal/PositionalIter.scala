@@ -23,7 +23,7 @@ import cats.syntax.all._
 class PositionalIter(
     val postings: Array[PositionalPostingsReader],
     val relativePositions: Array[Int],
-) extends Iterator[Int] {
+) extends QueryIterator {
 
   // TODO optimized ordering
   // We could check for doc matches with postings ordered by term frequency
@@ -33,14 +33,18 @@ class PositionalIter(
 
   private[this] var currDocId: Int = 0
 
-  /* Tests whether we have more matching documents */
+  def currentDocId: Int = currDocId
+  def currentScore: Float = ???
+  def isMatch: Boolean = allPositionsMatch
   def hasNext: Boolean = currDocId != -1
+  def advance(docId: Int) =
+    if (currDocId == -1) -1 else if (docId <= currDocId) currDocId else advanceAllDocs(docId)
 
   /* Produces the next matching docId, returns -1 if no more matches.
    * First attempts to advance all postings to matching docId, and only then
    * attempts to find a matching position.
    */
-  def next(): Int = {
+  def nextDoc(): Int = {
     while (!allDocsMatch(currDocId)) {
       // Advance all docs to currDocId
       if (advanceAllDocs(currDocId) == -1)
@@ -70,7 +74,7 @@ class PositionalIter(
     postings.indexWhere(p => p.currentDocId != docId)
 
   /** Returns true if all postings are in positional match */
-  def allPositionsMatch: Boolean =
+  private def allPositionsMatch: Boolean =
     firstNonPositionMatching == -1
 
   /** Returns the index of the first posting that is not in a positional match
@@ -81,7 +85,7 @@ class PositionalIter(
     if (postings.size < 2) -1
     else NextPositionToMatch.nextNotInOrderWithLargest(postings.map(_.currentPosition))
 
-  def advanceAllDocs(docId: Int): Int = {
+  private def advanceAllDocs(docId: Int): Int = {
     // Advance currDocId to at least docId target
     currDocId = docId
     // Iterate over all postings until they match
