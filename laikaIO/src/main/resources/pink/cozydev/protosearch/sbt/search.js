@@ -59,6 +59,7 @@ async function main() {
   var searchBar = document.getElementById("search_input")
   const urlParams = new URLSearchParams(location.search)
 
+
   // Optional Scaladoc rendering
   const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
   const maybeIndex = urlParams.get("index")
@@ -73,6 +74,14 @@ async function main() {
   searchBar.addEventListener('input', function () {
     worker.postMessage(this.value)
   })
+
+  // If query param `q` is set, use it as query input
+  // e.g. search.html?q=hello
+  const maybeQuery = urlParams.get("q")
+  if (maybeQuery) {
+    searchBar.value = maybeQuery
+    worker.postMessage(maybeQuery)
+  }
 }
 
 // Only run once page has finished loading
