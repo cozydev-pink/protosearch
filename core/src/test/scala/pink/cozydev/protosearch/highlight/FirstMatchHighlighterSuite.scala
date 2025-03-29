@@ -34,6 +34,20 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     assertEquals(actual, expected)
   }
 
+  test("highlights simple substring, ignoring trailing whitespace in query") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, "world ")
+    val expected = "hello <b>world</b>"
+    assertEquals(actual, expected)
+  }
+
+  test("highlights simple substring, ignoring leading whitespace in query") {
+    val s = "hello world"
+    val actual = highlighter.highlight(s, " world")
+    val expected = "hello <b>world</b>"
+    assertEquals(actual, expected)
+  }
+
   test("highlights substring with different casing") {
     val s = "hello world"
     val actual = highlighter.highlight(s, "WoRlD")
