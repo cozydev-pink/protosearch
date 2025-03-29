@@ -62,8 +62,11 @@ async function main() {
 
   // Optional Scaladoc rendering
   const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
-  const maybeIndex = urlParams.get("index")
-  const workerJS = maybeIndex ? `worker.js?index=${maybeIndex}` : "worker.js"
+  urlParams.delete("type")
+
+  // Pass remaining query params to worker.js
+  const params = urlParams.toString()
+  const workerJS = urlParams.size > 0 ? `worker.js?${params}` : "worker.js"
 
   const worker = new Worker(workerJS)
   worker.onmessage = function(e) {
