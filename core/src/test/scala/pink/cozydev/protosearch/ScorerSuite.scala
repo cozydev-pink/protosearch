@@ -35,12 +35,12 @@ class ScorerSuite extends munit.FunSuite {
   val allDocs: Set[Int] = Range(0, allBooks.size).toSet
 
   val scorer = Scorer(index)
-  def score(q: String, docs: Set[Int]): Either[String, List[(Int, Double)]] =
+  def score(q: String, docs: Set[Int]): Either[String, List[(Int, Float)]] =
     QueryParser
       .parse(q)
       .flatMap(q => scorer.score(q, docs, 10))
 
-  def ordered(hits: Either[String, List[(Int, Double)]]): List[Int] =
+  def ordered(hits: Either[String, List[(Int, Float)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
 
   test("doc with matching term is ordered first") {
