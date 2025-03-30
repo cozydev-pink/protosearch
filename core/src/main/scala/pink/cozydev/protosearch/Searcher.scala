@@ -45,15 +45,16 @@ final case class Searcher(
       case Left(err) => SearchFailure(err)
       case Right(docs) =>
         docs.foreach { case (docId, score) =>
+          val docOffset = docId - 1 // Because docIds start at 1, not 0
           val fieldBldr = Map.newBuilder[String, String]
           request.resultFields.foreach(f =>
-            multiIndex.fields.get(f).foreach(arr => fieldBldr += f -> arr(docId))
+            multiIndex.fields.get(f).foreach(arr => fieldBldr += f -> arr(docOffset))
           )
           val highlightBldr = Map.newBuilder[String, String]
           request.highlightFields.foreach { hf =>
             val field = multiIndex.fields.get(hf)
             field.foreach { arr =>
-              val h = highlighter.highlight(arr(docId), request.query)
+              val h = highlighter.highlight(arr(docOffset), request.query)
               highlightBldr += hf -> h
             }
           }

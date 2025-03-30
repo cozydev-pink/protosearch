@@ -103,7 +103,7 @@ object FrequencyIndex {
 
   def apply(docs: Iterable[Iterable[String]]): FrequencyIndex = {
     val termPostingsMap = new MMap[String, FrequencyPostingsBuilder].empty
-    var docId = 0
+    var docId = 1 // docIds start at 1 so iters can start at 0
     docs.foreach { doc =>
       doc.foreach { term =>
         termPostingsMap
