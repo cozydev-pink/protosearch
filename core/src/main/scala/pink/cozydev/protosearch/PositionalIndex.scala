@@ -102,7 +102,7 @@ object PositionalIndex {
 
   def apply(docs: Iterable[Iterable[String]]): PositionalIndex = {
     val termPostingsMap = new MMap[String, PositionalPostingsBuilder].empty
-    var docId = 0
+    var docId = 1 // docIds start at 1 so iterators can start at 0
     docs.foreach { doc =>
       var position = 0
       doc.foreach { term =>
@@ -122,7 +122,7 @@ object PositionalIndex {
       keys += k
       values += v.toPositionalPostingsList
     }
-    new PositionalIndex(new TermDictionary(keys.result()), values.result(), docId) {}
+    new PositionalIndex(new TermDictionary(keys.result()), values.result(), docId - 1) {}
   }
 
   val codec: Codec[PositionalIndex] = {

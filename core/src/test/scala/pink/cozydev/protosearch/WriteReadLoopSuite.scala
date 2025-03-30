@@ -38,7 +38,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
       val searcher = Searcher.default(index)
       val req = SearchRequest.default(qs)
       val result = searcher.search(req)
-      result.toEither.map(hits => hits.map(h => allBooks(h.id)))
+      result.toEither.map(hits => hits.map(h => allBooks(h.id - 1)))
     }
 
     val indexRead = indexBytes

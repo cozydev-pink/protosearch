@@ -34,7 +34,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
@@ -42,7 +42,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast cat")
     assertEquals(
       q,
-      Right(Set(0, 1, 2)),
+      Right(Set(1, 2, 3)),
     )
   }
 
@@ -50,7 +50,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast AND cat")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
@@ -58,13 +58,13 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("the AND fast AND cat")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
   test("Or") {
     val q = search("fast OR cat")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -73,7 +73,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("Double Or") {
     val q = search("the OR fast OR cat")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -82,7 +82,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("cat AND (fast OR quick)") {
     val q = search("cat AND (fast OR quick)")
-    val results = Set(0, 1)
+    val results = Set(1, 2)
     assertEquals(
       q,
       Right(results),
@@ -91,7 +91,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("cat AND NOT fast") {
     val q = search("cat AND NOT fast")
-    val results = Set(0, 2)
+    val results = Set(1, 3)
     assertEquals(
       q,
       Right(results),
@@ -100,7 +100,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("[a TO z]") {
     val q = search("[a TO z]")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -109,7 +109,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("f*") {
     val q = search("f*")
-    val results = Set(0, 1)
+    val results = Set(1, 2)
     assertEquals(
       q,
       Right(results),
@@ -118,7 +118,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("sleeps*") {
     val q = search("sleeps*")
-    val results = Set(2)
+    val results = Set(3)
     assertEquals(
       q,
       Right(results),
@@ -127,7 +127,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
 
   test("regex") {
     val q = search("/jump.*/ /cat/")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
