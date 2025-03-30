@@ -19,30 +19,34 @@ package pink.cozydev.protosearch.internal
 /** A non-empty array of postings for a single term. */
 final class FrequencyPostingsList private[internal] (private val postings: Array[Int]) {
 
-  def reader(): FrequencyPostingsReader = new FrequencyPostingsReader {
-    private[this] var docIndex = 0
+  def queryIterator(): QueryIterator = new QueryIterator {
+    private val max = postings.size
+    private var currDocId = 0
+    private var docIndex = -2
+    def currentDocId: Int = currDocId
 
-    def currentDocId: Int = postings(docIndex)
-    def currentFrequency: Int = postings(docIndex + 1)
-
-    override def toString(): String =
-      s"FrequencyPostingsReader(i=$docIndex, currentDocId=$currentDocId, positions=${postings.toList})"
-
-    def hasNext: Boolean =
-      (docIndex + 2) < postings.size
-
-    def nextDoc(): Int = {
-      docIndex += 1 + 1
-      currentDocId
+    def currentScore: Float = {
+      val currentFreq = postings(docIndex + 1)
+      currentFreq.toFloat
     }
 
-    def advance(docId: Int): Int = {
-      var newDocId = currentDocId
-      while (currentDocId < docId && hasNext)
-        newDocId = nextDoc()
-      newDocId
-    }
+    private def hasNext = (docIndex + 2) < max || docIndex == -2
+
+    def advance(docId: Int): Int =
+      if (currDocId == -1) -1
+      else if (docId <= currDocId) currDocId
+      else {
+        // docId > currDocId, let's try and advance
+        while (docId > currDocId && hasNext) {
+          docIndex += 1 + 1
+          currDocId = postings(docIndex)
+        }
+        if (currDocId < docId) -1 else currDocId
+      }
+
   }
+
+  def docs: Iterator[Int] = queryIterator().docs
 
   def frequencyForDocID(docID: Int): Int = {
     var i = 0
@@ -51,18 +55,6 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
       i += 2
     }
     -1
-  }
-
-  def docs: Iterator[Int] = new Iterator[Int] {
-    // FrequencyPostingsList always have at least one element
-    var oneAfter: Boolean = true
-    def hasNext: Boolean = oneAfter
-    val rdr = reader()
-    def next(): Int = {
-      val res = rdr.currentDocId
-      if (rdr.hasNext) rdr.nextDoc() else { oneAfter = false }
-      res
-    }
   }
 
 }
