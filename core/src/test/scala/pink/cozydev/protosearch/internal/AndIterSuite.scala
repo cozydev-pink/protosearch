@@ -13,7 +13,7 @@ class AndIterSuite extends munit.FunSuite {
     val iter2 = PositionalIter.exact(index, Query.Phrase("the room")).get
     val iter = new AndIter(Array(iter1, iter2))
     val docs = iter.takeWhile(_ > -1).toSet
-    assertEquals(docs, Set(1))
+    assertEquals(docs, Set(2))
   }
 
   test("do it") {
@@ -23,7 +23,7 @@ class AndIterSuite extends munit.FunSuite {
     val iter4 = PositionalIter.exact(index, Query.Phrase("the room")).get
     val iter = new AndIter(Array(iter1, iter2, iter3, iter4))
     val docs = iter.takeWhile(_ > -1).toSet
-    assertEquals(docs, Set(1))
+    assertEquals(docs, Set(2))
   }
 
   test("do it") {

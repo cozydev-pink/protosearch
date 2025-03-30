@@ -45,10 +45,8 @@ class OrQueryIteratorSuite extends munit.FunSuite {
   ): Unit =
     queries.permutations.foreach { tqs =>
       val name = tqs.map(_.label).mkString(", ")
-      println(s"--- testing: $name")
       val iter = OrQueryIterator(tqs.map(tq => tq.iter()).toArray, minShouldMatch)
       val docs = iter.docs.toList
-      println(s"--- result : $docs")
       assertEquals(docs, expected, clue = name)
     }
 
@@ -108,10 +106,12 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     checkAllPermutations(queries, List.empty, minShouldMatch = 2)
   }
 
-  test("always match with 2 matching, minShouldMatch=1".only) {
+  test("always match with 2 matching, minShouldMatch=1") {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
+      TestQuery.exact("doc1", "4 5 6 7"),
       TestQuery.exact("doc2", "a b c d"),
+      TestQuery.exact("doc2", "e f g h"),
       TestQuery.noMatch,
       TestQuery.noMatch,
     )
@@ -121,17 +121,30 @@ class OrQueryIteratorSuite extends munit.FunSuite {
   test("always match with 2 matching, minShouldMatch=2") {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
+      TestQuery.exact("doc1", "4 5 6 7"),
       TestQuery.exact("doc2", "a b c d"),
+      TestQuery.exact("doc2", "e f g h"),
       TestQuery.noMatch,
       TestQuery.noMatch,
     )
     checkAllPermutations(queries, List(1, 2), minShouldMatch = 2)
   }
 
+  test("only match with 2 matching, minShouldMatch=2") {
+    val queries = List(
+      TestQuery.exact("doc1", "0 1 2 3"),
+      TestQuery.exact("doc1", "4 5 6 7"),
+      TestQuery.exact("doc2", "a b c d"),
+      TestQuery.noMatch,
+      TestQuery.noMatch,
+    )
+    checkAllPermutations(queries, List(1), minShouldMatch = 2)
+  }
+
   test("never match with 2 matching, minShouldMatch=3") {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
-      TestQuery.exact("doc2", "a b c d"),
+      TestQuery.exact("doc1", "4 5 6 7"),
       TestQuery.noMatch,
       TestQuery.noMatch,
     )
