@@ -19,6 +19,23 @@ package pink.cozydev.protosearch.internal
 /** A non-empty array of postings for a single term. */
 final class PositionalPostingsList private[internal] (private val postings: Array[Int]) {
 
+  def queryIterator(): QueryIterator = {
+    val reader = this.reader()
+    new QueryIterator {
+      def currentDocId: Int = reader.currentDocId
+
+      def currentScore: Float = ???
+
+      def advance(docId: Int): Int =
+        if (currentDocId == -1) -1
+        else if (docId <= currentDocId) currentDocId
+        else {
+          reader.advance(docId)
+        }
+    }
+
+  }
+
   def reader(): PositionalPostingsReader = new PositionalPostingsReader {
     private[this] var docIndex = 0
     private[this] var posIndex = 2
