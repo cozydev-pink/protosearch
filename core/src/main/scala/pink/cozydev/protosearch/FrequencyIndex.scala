@@ -27,6 +27,7 @@ import pink.cozydev.protosearch.internal.FrequencyPostingsBuilder
 import pink.cozydev.protosearch.internal.QueryIterator
 import pink.cozydev.protosearch.internal.OrQueryIterator
 import pink.cozydev.protosearch.internal.ConstantScoreQueryIterator
+import java.util.regex.Pattern
 
 sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
@@ -107,6 +108,20 @@ sealed abstract class FrequencyIndex private (
       i += 1
     }
     new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
+  }
+
+  def docsForRegexIter(pattern: Pattern): QueryIterator = {
+    val terms = termDict.indicesForRegex(pattern)
+    if (terms.size == 0) QueryIterator.empty
+    else {
+      val arr = new Array[QueryIterator](terms.size)
+      var i = 0
+      terms.foreach { idx =>
+        arr(i) = tfData(idx).queryIterator()
+        i += 1
+      }
+      new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
+    }
   }
 
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)] =

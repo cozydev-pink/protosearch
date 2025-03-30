@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.internal.TermDictionary
 import pink.cozydev.protosearch.internal.QueryIterator
+import java.util.regex.Pattern
 
 trait Index {
   def numDocs: Int
@@ -32,6 +33,7 @@ trait Index {
   def docsWithTermIter(term: String): QueryIterator
   def docsForRangeIter(left: String, right: String): QueryIterator
   def docsForPrefixIter(prefix: String): QueryIterator
+  def docsForRegexIter(prefix: Pattern): QueryIterator
 
   // Preliminary Scoring support
   def termDict: TermDictionary
