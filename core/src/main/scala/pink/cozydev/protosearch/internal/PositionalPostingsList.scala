@@ -30,7 +30,8 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
         if (currentDocId == -1) -1
         else if (docId <= currentDocId) currentDocId
         else {
-          reader.advance(docId)
+          val res = reader.advance(docId)
+          if (currentDocId < docId) -1 else res
         }
     }
 
