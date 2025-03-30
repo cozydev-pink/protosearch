@@ -45,13 +45,13 @@ abstract class QueryIterator {
   }
 }
 
-class BoostQueryIterator(qi: QueryIterator, boost: Float) {
+class BoostQueryIterator(qi: QueryIterator, boost: Float) extends QueryIterator {
   def currentDocId = qi.currentDocId
   def currentScore = qi.currentScore * boost
   def advance(docId: Int) = qi.advance(docId)
 }
 
-class ConstantScoreQueryIterator(qi: QueryIterator, score: Int) {
+class ConstantScoreQueryIterator(qi: QueryIterator, score: Float) extends QueryIterator {
   def currentDocId = qi.currentDocId
   val currentScore = score
   def advance(docId: Int) = qi.advance(docId)
