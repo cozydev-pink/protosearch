@@ -35,8 +35,6 @@ class PositionalIter(
 
   def currentDocId: Int = currDocId
   def currentScore: Float = ???
-  def isMatch: Boolean = allPositionsMatch
-  def hasNext: Boolean = currDocId != -1
 
   /* First attempts to advance all postings to matching docId, and only then
    * attempts to find a matching position.

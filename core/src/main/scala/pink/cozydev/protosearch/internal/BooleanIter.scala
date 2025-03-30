@@ -23,13 +23,6 @@ class AndIter(
 
   def currentDocId: Int = currDocId
   def currentScore: Float = ???
-  def isMatch: Boolean = {
-    // TODO this is never called....
-    println("AndIter isMatch")
-    things.forall(q => q.isMatch)
-  }
-  def hasNext: Boolean = currDocId != -1
-  def nextDoc(): Int = advance(currDocId + 1)
   def advance(docId: Int): Int = {
     val target = things(0).advance(docId)
     currDocId = target
@@ -63,13 +56,7 @@ class OrQueryIterator(
 
   def currentDocId: Int = currDocId
   def currentScore: Float = ???
-  def isMatch: Boolean = {
-    var numMatch = 0
-    things.foreach(p => if (p.isMatch) numMatch += 1)
-    numMatch >= minShouldMatch
-  }
-  def hasNext: Boolean = currDocId != -1
-  def nextDoc(): Int = advance(currDocId + 1)
+
   def advance(docId: Int): Int = if (currDocId == -1) -1
   else {
     currDocId = docId
@@ -92,7 +79,7 @@ class OrQueryIterator(
       }
       i += 1
     }
-    if (numMatched >= minShouldMatch) currDocId else nextDoc()
+    if (numMatched >= minShouldMatch) currDocId else advance(currDocId + 1)
   }
 }
 object OrQueryIterator {

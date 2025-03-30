@@ -106,7 +106,7 @@ object IndexSearcher {
         case pindex: PositionalIndex =>
           PositionalIter.exact(pindex, q) match {
             case None => Right(Set.empty)
-            case Some(pIter) => Right(pIter.takeWhile(_ > -1).toSet)
+            case Some(pIter) => Right(pIter.docs.toSet)
           }
         case idx: Index =>
           // Optimistic phrase query handling for single term only

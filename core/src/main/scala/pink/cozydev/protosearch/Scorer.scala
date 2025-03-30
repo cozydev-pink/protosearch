@@ -70,7 +70,7 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
           case None => Right(NonEmptyList.one(Map.empty[Int, Float]))
           case Some(pIter) =>
             // TODO this is a total hack, and not how phrase scoring works
-            val scoreMap = pIter.takeWhile(_ > -1).map(docId => (docId, 1.0f)).toMap
+            val scoreMap = pIter.docs.map(docId => (docId, 1.0f)).toMap
             Right(NonEmptyList.one(scoreMap))
         }
       case idx: Index =>
