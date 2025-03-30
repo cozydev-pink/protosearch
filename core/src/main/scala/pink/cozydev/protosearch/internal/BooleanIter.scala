@@ -90,4 +90,7 @@ object OrQueryIterator {
       throw new IllegalArgumentException("minShouldMatch must be positive")
     else
       new OrQueryIterator(queries, minShouldMatch)
+
+  def apply(queries: Seq[QueryIterator], minShouldMatch: Int): OrQueryIterator =
+    apply(queries.toArray, minShouldMatch)
 }
