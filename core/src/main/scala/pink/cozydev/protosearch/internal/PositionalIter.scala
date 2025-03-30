@@ -37,33 +37,12 @@ class PositionalIter(
   def currentScore: Float = ???
   def isMatch: Boolean = allPositionsMatch
   def hasNext: Boolean = currDocId != -1
-  def advance(docId: Int) =
-    if (currDocId == -1) -1 else if (docId <= currDocId) currDocId else advanceAllDocs(docId)
 
-  /* Produces the next matching docId, returns -1 if no more matches.
-   * First attempts to advance all postings to matching docId, and only then
+  /* First attempts to advance all postings to matching docId, and only then
    * attempts to find a matching position.
    */
-  def nextDoc(): Int = {
-    while (!allDocsMatch(currDocId)) {
-      // Advance all docs to currDocId
-      if (advanceAllDocs(currDocId) == -1)
-        // bail early if no more matching docs
-        return -1
-
-      // iterate until positional match
-      var currStartPosition = 0
-      while (currStartPosition != -1 && !allPositionsMatch)
-        currStartPosition = nextPositionAllDocs()
-    }
-    val res = currDocId
-    // prepare for next, increment current docId if we're not done
-    if (currDocId != -1) {
-      currDocId += 1
-    }
-    // if we're in match, return it, else, keep going
-    if (allPositionsMatch) res else next()
-  }
+  def advance(docId: Int) =
+    if (currDocId == -1) -1 else if (docId <= currDocId) currDocId else advanceAllDocs(docId)
 
   /** Returns true if all postings match `docId` */
   def allDocsMatch(docId: Int): Boolean =
@@ -92,10 +71,25 @@ class PositionalIter(
     while (!allDocsMatch(currDocId)) {
       val i = firstNonMatching(currDocId)
       val newDocId = postings(i).advance(currDocId)
-      if (newDocId < currDocId)
+      if (newDocId < currDocId) {
         // posting has no docIds at or above currDocId, bail
+        currDocId = -1
         return -1
+      }
       currDocId = newDocId
+    }
+    if (!allDocsMatch(currDocId)) {
+      // after while loop, not all docs match $currDocId, setting -1
+      currDocId = -1
+    } else {
+      // All docs match, now let's check positions!
+      var currStartPosition = 0
+      while (currStartPosition != -1 && !allPositionsMatch)
+        currStartPosition = nextPositionAllDocs()
+      if (currStartPosition == -1) {
+        // we didn't find matching positions on this doc, look for a new doc
+        return advanceAllDocs(currDocId + 1)
+      }
     }
     currDocId
   }
