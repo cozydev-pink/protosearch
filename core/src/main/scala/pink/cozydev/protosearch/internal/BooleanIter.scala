@@ -47,6 +47,10 @@ class AndIter(
     }
   }
 }
+object AndIter {
+  def apply(queries: Seq[QueryIterator]): AndIter =
+    new AndIter(queries.toArray)
+}
 
 class OrQueryIterator(
     things: Array[QueryIterator],

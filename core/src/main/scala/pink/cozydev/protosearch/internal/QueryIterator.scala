@@ -44,6 +44,9 @@ abstract class QueryIterator {
       }
   }
 }
+object QueryIterator {
+  def empty = new NoMatchQueryIterator
+}
 
 class BoostQueryIterator(qi: QueryIterator, boost: Float) extends QueryIterator {
   def currentDocId = qi.currentDocId
