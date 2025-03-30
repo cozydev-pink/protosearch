@@ -16,40 +16,9 @@
 
 package pink.cozydev.protosearch.internal
 
-import pink.cozydev.lucille.Query
-import pink.cozydev.protosearch.PositionalIndex
-import pink.cozydev.protosearch.analysis.Analyzer
+import TestQueryFixtures._
 
 class OrQueryIteratorSuite extends munit.FunSuite {
-
-  val analyzer = Analyzer.default
-  val index = PositionalIndex(
-    List(
-      analyzer.tokenize("0 1 2 3 4 5 6 7 8 9"),
-      analyzer.tokenize("a b c d e f g h i j"),
-      analyzer.tokenize("a 1 c 3 e 5 g 7 i 9"),
-      analyzer.tokenize("0 b 2 d 4 f 6 h 8 j"),
-    )
-  )
-
-  // Iters are stateful, so we make some constructors that return "thunks"
-  case class TestQuery(label: String, iter: () => QueryIterator)
-  object TestQuery {
-    def noMatch: TestQuery = TestQuery("noMatch", () => new NoMatchQueryIterator)
-    def exact(label: String, query: String): TestQuery =
-      TestQuery(
-        label,
-        () => positionalIter(query),
-      )
-
-    private def positionalIter(q: String): PositionalIter =
-      PositionalIter.exact(index, Query.Phrase(q)) match {
-        case Some(iter) => iter
-        case None =>
-          val msg = s"some terms in query: '$q', could not be found in test index"
-          throw new IllegalArgumentException(msg)
-      }
-  }
 
   // The order of QueryIterators should not matter, so we test all permutations
   def checkAllPermutations(
@@ -85,7 +54,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
   }
 
   test("always match with 1 matching, minShouldMatch=1 (last doc)") {
-    assert(index.numDocs == 4, clue = "expected 4 to be last docId")
+    assert(alphaNumIndex.numDocs == 4, clue = "expected 4 to be last docId")
     val queries = List(
       TestQuery.exact("doc4", "0 b 2 d"),
       TestQuery.noMatch,
@@ -113,7 +82,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
   }
 
   test("never match with 1 matching, minShouldMatch=2 (last doc)") {
-    assert(index.numDocs == 4, clue = "expected 4 to be last docId")
+    assert(alphaNumIndex.numDocs == 4, clue = "expected 4 to be last docId")
     val queries = List(
       TestQuery.exact("doc4", "0 b 2 d"),
       TestQuery.noMatch,
