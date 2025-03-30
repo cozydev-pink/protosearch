@@ -24,6 +24,9 @@ import pink.cozydev.protosearch.codecs.IndexCodecs
 import pink.cozydev.protosearch.internal.TermDictionary
 import pink.cozydev.protosearch.internal.FrequencyPostingsList
 import pink.cozydev.protosearch.internal.FrequencyPostingsBuilder
+import pink.cozydev.protosearch.internal.QueryIterator
+import pink.cozydev.protosearch.internal.OrQueryIterator
+import pink.cozydev.protosearch.internal.ConstantScoreQueryIterator
 
 sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
@@ -72,6 +75,38 @@ sealed abstract class FrequencyIndex private (
     Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
       .foreach(i => bldr ++= tfData(i).docs)
     bldr.iterator
+  }
+
+  def docsWithTermIter(term: String): QueryIterator = {
+    val idx = termDict.termIndex(term)
+    if (idx < 0) QueryIterator.empty
+    else tfData(idx).queryIterator()
+  }
+
+  def docsForPrefixIter(prefix: String): QueryIterator = {
+    val terms = termDict.indicesForPrefix(prefix)
+    if (terms.size == 0) QueryIterator.empty
+    else {
+      val arr = new Array[QueryIterator](terms.size)
+      var i = 0
+      terms.foreach { idx =>
+        arr(i) = tfData(idx).queryIterator()
+        i += 1
+      }
+      new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
+    }
+  }
+
+  def docsForRangeIter(left: String, right: String): QueryIterator = {
+    // TODO Should check termIndex values for -1
+    val range = Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
+    val arr = new Array[QueryIterator](range.size)
+    var i = 0
+    range.foreach { idx =>
+      arr(i) = tfData(idx).queryIterator()
+      i += 1
+    }
+    new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
   }
 
   def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)] =
