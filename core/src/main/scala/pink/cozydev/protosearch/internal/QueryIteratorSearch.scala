@@ -26,8 +26,8 @@ import cats.data.NonEmptyList
 import java.util.regex.PatternSyntaxException
 
 object QueryIteratorSearch {
-  def apply(multiIndex: MultiIndex, defaultOR: Boolean): IndexSearcher = {
-    val doer = new MultiIndexQueryIteratorSearcher(multiIndex, defaultOR)
+  def apply(multiIndex: MultiIndex): IndexSearcher = {
+    val doer = new MultiIndexQueryIteratorSearcher(multiIndex)
     new IndexSearcher {
       def search(q: Query): Either[String, Set[Int]] = doer.doit(q).map(_.docs.toSet)
 
@@ -36,16 +36,16 @@ object QueryIteratorSearch {
     }
   }
 
-  private class MultiIndexQueryIteratorSearcher(index: MultiIndex, defaultOR: Boolean) {
+  private class MultiIndexQueryIteratorSearcher(index: MultiIndex) {
     private val defaultIndex = index.indexes(index.schema.defaultField)
 
     def doit(q: Query): Either[String, QueryIterator] = q match {
-      case qt: TermQuery => new SingleIndexQueryIteratorSearcher(defaultIndex, defaultOR).doit(qt)
+      case qt: TermQuery => new SingleIndexQueryIteratorSearcher(defaultIndex).doit(qt)
       case Query.Field(f, q) =>
         index.indexes
           .get(f)
           .toRight(s"Unsupported field: '$f'")
-          .flatMap(idx => new SingleIndexQueryIteratorSearcher(idx, defaultOR).doit(q))
+          .flatMap(idx => new SingleIndexQueryIteratorSearcher(idx).doit(q))
       case Query.Group(q) => doit(q)
       case Query.And(qs) => qs.traverse(doit).map(qis => AndIter(qis.toList))
       case Query.Or(qs) => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
@@ -59,7 +59,7 @@ object QueryIteratorSearch {
     }
   }
 
-  private class SingleIndexQueryIteratorSearcher(index: Index, defaultOR: Boolean) {
+  private class SingleIndexQueryIteratorSearcher(index: Index) {
     def doit(query: Query): Either[String, QueryIterator] = query match {
       case q: Query.Term => Right(index.docsWithTermIter(q.str))
       case q: Query.Prefix => Right(index.docsForPrefixIter(q.str))

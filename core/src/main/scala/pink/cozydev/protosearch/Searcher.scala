@@ -24,7 +24,7 @@ final case class Searcher(
     multiIndex: MultiIndex,
     highlighter: FirstMatchHighlighter,
 ) {
-  private val indexSearcher = QueryIteratorSearch(multiIndex, multiIndex.schema.defaultOR)
+  private val indexSearcher = QueryIteratorSearch(multiIndex)
   private val scorer = Scorer(multiIndex, multiIndex.schema.defaultOR)
   private val queryAnalyzer = multiIndex.schema.queryAnalyzer(multiIndex.schema.defaultField)
 
