@@ -77,41 +77,26 @@ class NotQueryIterator(qi: QueryIterator, max: Int) extends QueryIterator {
   // We match every doc that `qi` doesn't
   // If `qi` is exhausted, we match docIds up to `max`
   def advance(docId: Int): Int = {
-    println(s"NOT advance($docId)")
     currDocId = docId
     if (currDocId > max || currDocId == -1) {
-      println(s"BAIL currDocId=$currDocId >= max=$max")
+      // Bail early
       return -1
     }
-    if (docId < innerCurrDocId) {
-      println(s"NOT docId=$docId < innerCurrDoc=$innerCurrDocId, returning $currentDocId")
-      currDocId
-    } else {
-      println(s"-- NOT docId=$docId >= innerCurrDoc=$innerCurrDocId, currDocId=$currDocId")
+    if (docId < innerCurrDocId) currDocId
+    else {
       // Being asked about a docId we can't match
       // or don't yet know how `qi` matches, so we advance `qi`
       // until we find a docId it doesn't match
       var target = docId
-      val old = innerCurrDocId
       innerCurrDocId = qi.advance(target)
       while (innerCurrDocId != -1 && currDocId < innerCurrDocId) {
-        println(
-          s"--- NOT while innerCurrDocId=$innerCurrDocId, currDocId=$currDocId, target=$target"
-        )
         innerCurrDocId = qi.advance(target)
         if (innerCurrDocId > docId) {
-          println(s"--- returning early, innerCurrDocId=$innerCurrDocId, returning $currentDocId")
           return currDocId
         }
         target += 1
       }
-      if (currDocId == innerCurrDocId) {
-        println(s"done while docId=$docId, innerCurrDoc=currDocId($currDocId), advancing")
-        advance(docId + 1)
-      } else {
-        println(s"done while docId=$docId, returning currDocId")
-        currDocId
-      }
+      if (currDocId == innerCurrDocId) advance(docId + 1) else currDocId
     }
   }
 
