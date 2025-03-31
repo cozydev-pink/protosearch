@@ -22,7 +22,7 @@ import pink.cozydev.protosearch._
 
 import java.util.regex.PatternSyntaxException
 
-sealed abstract class IndexSearcher {
+abstract class IndexSearcher {
   def search(q: Query): Either[String, Set[Int]]
 
   def search(q: NonEmptyList[Query]): Either[String, Set[Int]]

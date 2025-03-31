@@ -18,13 +18,13 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.highlight.FirstMatchHighlighter
 import pink.cozydev.protosearch.highlight.FragmentFormatter
-import pink.cozydev.protosearch.internal.IndexSearcher
+import pink.cozydev.protosearch.internal.QueryIteratorSearch
 
 final case class Searcher(
     multiIndex: MultiIndex,
     highlighter: FirstMatchHighlighter,
 ) {
-  private val indexSearcher = IndexSearcher(multiIndex, multiIndex.schema.defaultOR)
+  private val indexSearcher = QueryIteratorSearch(multiIndex, multiIndex.schema.defaultOR)
   private val scorer = Scorer(multiIndex, multiIndex.schema.defaultOR)
   private val queryAnalyzer = multiIndex.schema.queryAnalyzer(multiIndex.schema.defaultField)
 
