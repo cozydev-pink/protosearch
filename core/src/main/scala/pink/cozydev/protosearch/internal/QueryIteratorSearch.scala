@@ -86,6 +86,9 @@ object QueryIteratorSearch {
         qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, num))
       case _: Query.UnaryMinus => ???
       case _: Query.UnaryPlus => ???
+      case _: Query.Proximity => ???
+      case _: Query.Fuzzy => ???
+      case _: Query.WildCard => ???
     }
 
     private def rangeSearch(q: Query.TermRange): Either[String, QueryIterator] =
