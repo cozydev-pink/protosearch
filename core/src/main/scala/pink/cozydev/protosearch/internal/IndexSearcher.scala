@@ -38,7 +38,7 @@ object IndexSearcher {
   private class MultiIndexSearcher(index: MultiIndex, defaultOR: Boolean) extends IndexSearcher {
 
     private val defaultIndex = index.indexes(index.schema.defaultField)
-    private lazy val allDocs: Set[Int] = Range(0, defaultIndex.numDocs).toSet
+    private lazy val allDocs: Set[Int] = Range(1, defaultIndex.numDocs + 1).toSet
     private val defaultCombine =
       if (defaultOR)
         (sets: NonEmptyList[Set[Int]]) => IndexSearcher.unionSets(sets)
@@ -69,7 +69,7 @@ object IndexSearcher {
 
   private class SingleIndexSearcher(index: Index, defaultOR: Boolean) extends IndexSearcher {
 
-    private lazy val allDocs: Set[Int] = Range(0, index.numDocs).toSet
+    private lazy val allDocs: Set[Int] = Range(1, index.numDocs + 1).toSet
     private val defaultCombine =
       if (defaultOR)
         (sets: NonEmptyList[Set[Int]]) => IndexSearcher.unionSets(sets)

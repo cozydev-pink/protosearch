@@ -34,7 +34,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
@@ -42,7 +42,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast cat")
     assertEquals(
       q,
-      Right(Set(0, 1, 2)),
+      Right(Set(1, 2, 3)),
     )
   }
 
@@ -50,7 +50,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast AND cat")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
@@ -58,13 +58,13 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
     val q = search("the AND fast AND cat")
     assertEquals(
       q,
-      Right(Set(1)),
+      Right(Set(2)),
     )
   }
 
   test("Or") {
     val q = search("fast OR cat")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -73,7 +73,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("Double Or") {
     val q = search("the OR fast OR cat")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -82,7 +82,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("cat AND (fast OR quick)") {
     val q = search("cat AND (fast OR quick)")
-    val results = Set(0, 1)
+    val results = Set(1, 2)
     assertEquals(
       q,
       Right(results),
@@ -91,7 +91,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("cat AND NOT fast") {
     val q = search("cat AND NOT fast")
-    val results = Set(0, 2)
+    val results = Set(1, 3)
     assertEquals(
       q,
       Right(results),
@@ -100,7 +100,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("[a TO z]") {
     val q = search("[a TO z]")
-    val results = Set(0, 1, 2)
+    val results = Set(1, 2, 3)
     assertEquals(
       q,
       Right(results),
@@ -109,7 +109,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("f*") {
     val q = search("f*")
-    val results = Set(0, 1)
+    val results = Set(1, 2)
     assertEquals(
       q,
       Right(results),
@@ -118,7 +118,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("sleeps*") {
     val q = search("sleeps*")
-    val results = Set(2)
+    val results = Set(3)
     assertEquals(
       q,
       Right(results),
@@ -127,52 +127,52 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("phrase, single word, start \"a\"") {
     val q = search("\"a\"")
-    assertEquals(q, Right(Set(2)))
+    assertEquals(q, Right(Set(3)))
   }
 
   test("phrase, single word, middle \"very\"") {
     val q = search("\"very\"")
-    assertEquals(q, Right(Set(1)))
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, single word, end \"day\"") {
     val q = search("\"day\"")
-    assertEquals(q, Right(Set(2)))
+    assertEquals(q, Right(Set(3)))
   }
 
   test("phrase, multi word, single match, start \"the quick brown\"") {
     val q = search("\"the quick brown\"")
-    assertEquals(q, Right(Set(0)))
+    assertEquals(q, Right(Set(1)))
   }
 
   test("phrase, multi word, single match, middle \"very fast\"") {
     val q = search("\"very fast\"")
-    assertEquals(q, Right(Set(1)))
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, multi word, single match, end \"sleeps all day\"") {
     val q = search("\"sleeps all day\"")
-    assertEquals(q, Right(Set(2)))
+    assertEquals(q, Right(Set(3)))
   }
 
   test("phrase, multi word(5), single match") {
     val q = search("\"the very fast cat jumped\"")
-    assertEquals(q, Right(Set(1)))
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, multi word(7), repeated words, single match") {
     val q = search("\"the very fast cat jumped across the\"")
-    assertEquals(q, Right(Set(1)))
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, all words, repeated words, single match") {
     val q = search("\"the very fast cat jumped across the room\"")
-    assertEquals(q, Right(Set(1)))
+    assertEquals(q, Right(Set(2)))
   }
 
   test("phrase, multi word, multi match \"lazy cat\"") {
     val q = search("\"lazy cat\"")
-    assertEquals(q, Right(Set(0, 2)))
+    assertEquals(q, Right(Set(1, 3)))
   }
 
   test("phrase, multi word, false match \"sleeps day\"") {
@@ -192,7 +192,7 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("regex") {
     val q = search("/f(o|a)/")
-    val results = Set(0, 1)
+    val results = Set(1, 2)
     assertEquals(
       q,
       Right(results),

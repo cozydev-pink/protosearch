@@ -40,7 +40,10 @@ def search(q: String): List[Book] = {
   val req = SearchRequest.default(q)
   searcher.search(req) match {
     case SearchFailure(_) => Nil
-    case SearchSuccess(hits) => hits.map(h => books(h.id))
+    case SearchSuccess(hits) => hits.map(h =>
+      // docIds start at 1 not 0
+      books(h.id - 1)
+    )
   }
 }
 ```

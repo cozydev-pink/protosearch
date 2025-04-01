@@ -37,7 +37,7 @@ class SearcherSuite extends munit.FunSuite {
   def search(q: String): Either[String, List[Book]] = {
     val req = SearchRequest.default(q)
     val result = searcher.search(req)
-    result.toEither.map(hits => hits.map(h => allBooks(h.id)))
+    result.toEither.map(hits => hits.map(h => allBooks(h.id - 1)))
   }
 
   def searchHit(q: String): Either[String, List[(Int, Map[String, String])]] = {
@@ -52,7 +52,7 @@ class SearcherSuite extends munit.FunSuite {
       "title" -> "The Tale of Two Bad Mice",
       "author" -> "Beatrix Potter",
     )
-    assertEquals(books, Right(List(1 -> miceMap)))
+    assertEquals(books, Right(List(2 -> miceMap)))
   }
 
   test("Term") {
