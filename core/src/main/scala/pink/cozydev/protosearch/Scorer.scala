@@ -28,11 +28,11 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
 
   private val defaultIdx: Index = index.indexes(index.schema.defaultField)
 
-  def score(qs: Query, docs: Set[Int], topN: Int): Either[String, List[(Int, Double)]] = {
+  def score(qs: Query, docs: Set[Int], topN: Int): Either[String, List[(Int, Float)]] = {
     def accScore(
         idx: Index,
         queries: NonEmptyList[Query],
-    ): Either[String, NonEmptyList[Map[Int, Double]]] =
+    ): Either[String, NonEmptyList[Map[Int, Float]]] =
       queries.flatTraverse {
         case Query.Term(t) => Right(NonEmptyList.one(idx.scoreTFIDF(docs, t).toMap))
         case q: Query.Prefix => prefixScore(idx, docs, q)
@@ -40,14 +40,14 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
         case q: Query.Phrase => phraseScore(idx, docs, q)
         case Query.Or(qs) => accScore(idx, qs)
         case Query.And(qs) => accScore(idx, qs)
-        case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.Not(_) => Right(NonEmptyList.one(Map.empty[Int, Float]))
         case Query.Group(qs) => accScore(idx, NonEmptyList.one(qs))
         case Query.Field(fn, q) =>
           index.indexes.get(fn) match {
             case None => Left(s"Field not found")
             case Some(newIndex) => accScore(newIndex, NonEmptyList.one(q))
           }
-        case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Double]))
+        case Query.UnaryMinus(_) => Right(NonEmptyList.one(Map.empty[Int, Float]))
         case Query.UnaryPlus(q) => accScore(idx, NonEmptyList.one(q))
         case q: Query.Proximity => Left(s"Unsupported Proximity encountered in Scorer: $q")
         case q: Query.Fuzzy => Left(s"Unsupported Fuzzy encountered in Scorer: $q")
@@ -63,14 +63,14 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       idx: Index,
       docs: Set[Int],
       q: Query.Phrase,
-  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+  ): Either[String, NonEmptyList[Map[Int, Float]]] =
     idx match {
       case pindex: PositionalIndex =>
         PositionalIter.exact(pindex, q) match {
-          case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+          case None => Right(NonEmptyList.one(Map.empty[Int, Float]))
           case Some(pIter) =>
             // TODO this is a total hack, and not how phrase scoring works
-            val scoreMap = pIter.takeWhile(_ > -1).map(docId => (docId, 1.0)).toMap
+            val scoreMap = pIter.takeWhile(_ > -1).map(docId => (docId, 1.0f)).toMap
             Right(NonEmptyList.one(scoreMap))
         }
       case idx: Index =>
@@ -82,9 +82,9 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       idx: Index,
       docs: Set[Int],
       q: Query.Prefix,
-  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+  ): Either[String, NonEmptyList[Map[Int, Float]]] =
     NonEmptyList.fromList(idx.termDict.termsForPrefix(q.str)) match {
-      case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+      case None => Right(NonEmptyList.one(Map.empty[Int, Float]))
       case Some(terms) => Right(terms.map(t => idx.scoreTFIDF(docs, t).toMap))
     }
 
@@ -92,7 +92,7 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       idx: Index,
       docs: Set[Int],
       q: Query.TermRange,
-  ): Either[String, NonEmptyList[Map[Int, Double]]] =
+  ): Either[String, NonEmptyList[Map[Int, Float]]] =
     (q.lower, q.upper) match {
       case (Some(l), Some(r)) =>
         // TODO handle inclusive / exclusive, optionality
@@ -109,7 +109,7 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       idx: Index,
       docs: Set[Int],
       q: Query.TermRegex,
-  ): Either[String, NonEmptyList[Map[Int, Double]]] = {
+  ): Either[String, NonEmptyList[Map[Int, Float]]] = {
     val regex =
       try
         q.str.r
@@ -118,25 +118,25 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       }
 
     NonEmptyList.fromList(idx.termDict.termsForRegex(regex)) match {
-      case None => Right(NonEmptyList.one(Map.empty[Int, Double]))
+      case None => Right(NonEmptyList.one(Map.empty[Int, Float]))
       case Some(terms) => Right(terms.map(idx.scoreTFIDF(docs, _).toMap))
     }
   }
 
-  private val ord = Ordering[(Double, Int)].on[(Int, Double)](idScore => (-idScore._2, idScore._1))
+  private val ord = Ordering[(Float, Int)].on[(Int, Float)](idScore => (-idScore._2, idScore._1))
 
-  private def combineMaps(ms: NonEmptyList[Map[Int, Double]], topN: Int): List[(Int, Double)] = {
+  private def combineMaps(ms: NonEmptyList[Map[Int, Float]], topN: Int): List[(Int, Float)] = {
     // Combine scores by Id
-    val mb = scala.collection.mutable.HashMap.empty[Int, Double] ++ ms.head
+    val mb = scala.collection.mutable.HashMap.empty[Int, Float] ++ ms.head
     ms.tail.foreach(m1 =>
-      m1.foreach { case (k: Int, v: Double) => mb.update(k, v + mb.getOrElse(k, 0.0)) }
+      m1.foreach { case (k: Int, v: Float) => mb.update(k, v + mb.getOrElse(k, 0.0f)) }
     )
     val len = mb.size
     if (len == 1)
       mb.toList
     else {
       // Sort scores
-      val arr = new Array[Tuple2[Int, Double]](len)
+      val arr = new Array[Tuple2[Int, Float]](len)
       var i = 0
       mb.foreach { docScore =>
         arr(i) = docScore
@@ -144,7 +144,7 @@ final case class Scorer(index: MultiIndex, defaultOR: Boolean = true) {
       }
       java.util.Arrays.sort(arr, ord)
       // Build list of topN
-      val bldr = List.newBuilder[(Int, Double)]
+      val bldr = List.newBuilder[(Int, Float)]
       val resultSize = if (len < topN) len else topN
       bldr.sizeHint(resultSize)
       var n = 0

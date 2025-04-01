@@ -25,7 +25,7 @@ import scodec.bits.ByteVector
 @JSExportTopLevel("Hit")
 class JsHit(
     val id: Int,
-    val score: Double,
+    val score: Float,
     val fields: js.Dictionary[String],
     val highlights: js.Dictionary[String],
 ) extends js.Object
