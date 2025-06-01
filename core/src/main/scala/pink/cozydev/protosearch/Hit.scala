@@ -24,7 +24,7 @@ package pink.cozydev.protosearch
   */
 final case class Hit(
     val id: Int,
-    val score: Double,
+    val score: Float,
     val fields: Map[String, String],
     val highlights: Map[String, String],
 )

@@ -74,21 +74,21 @@ sealed abstract class FrequencyIndex private (
     bldr.iterator
   }
 
-  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)] =
+  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)] =
     if (docs.size == 0) Nil
     else {
       val idx = termDict.termIndex(term)
       if (idx == -1) Nil
       else {
         val posting = tfData(idx)
-        val idf: Double = 2.0 / posting.docs.size.toDouble
-        val bldr = ListBuffer.newBuilder[(Int, Double)]
+        val idf: Float = 2.0f / posting.docs.size.toFloat
+        val bldr = ListBuffer.newBuilder[(Int, Float)]
         bldr.sizeHint(docs.size)
         docs.foreach { docId =>
           val freq = posting.frequencyForDocID(docId)
           if (freq != -1) {
-            val tf = Math.log(1.0 + freq)
-            val tfidf: Double = tf * idf
+            val tf: Float = Math.log(1.0 + freq).toFloat
+            val tfidf: Float = tf * idf
             // println(s"term($term) doc($docId) tf: $tf, idf: $idf, tfidf: $tfidf")
             bldr += (docId -> tfidf)
           }

@@ -7,9 +7,15 @@ async function getQuerier(index) {
     .catch((error) => console.error("getQuerier error: ", error));
   return await querier
 }
+
 const urlParams = new URLSearchParams(location.search)
+
+// Handle `index` query param
 const maybeIndex = urlParams.get("index")
 const index = maybeIndex ? maybeIndex : "searchIndex"
+
+// Handle `q` query param
+const maybeQuery = urlParams.get("q")
 
 const querierPromise = getQuerier(index)
 
@@ -23,4 +29,8 @@ onmessage = async function(e) {
   this.postMessage(await searchIt(query))
 }
 
-searchIt("warmup")
+if (maybeQuery == undefined) {
+  searchIt("warmup")
+}
+// If it is defined, search.js is going to call us as soon as we return
+// So we skip the warmup
