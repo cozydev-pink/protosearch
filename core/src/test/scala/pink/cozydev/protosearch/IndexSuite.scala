@@ -39,9 +39,9 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsWithTerm returns list of docIDs containing term") {
-    assertEquals(index.docsWithTerm("cat").toList.sorted, List(0, 1, 2))
-    assertEquals(index.docsWithTerm("the").toList.sorted, List(0, 1))
-    assertEquals(index.docsWithTerm("lazy").toList.sorted, List(0, 2))
+    assertEquals(index.docsWithTerm("cat").toList.sorted, List(1, 2, 3))
+    assertEquals(index.docsWithTerm("the").toList.sorted, List(1, 2))
+    assertEquals(index.docsWithTerm("lazy").toList.sorted, List(1, 3))
   }
 
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
@@ -55,11 +55,11 @@ class IndexSuite extends munit.FunSuite {
   }
 
   test("docsForPrefix returns set of docIDs containing prefixes") {
-    assertEquals(index.docsForPrefix("f").toSet, Set(0, 1))
+    assertEquals(index.docsForPrefix("f").toSet, Set(1, 2))
   }
 
   test("docsForPrefix returns set of docIDs containing exact term as prefix") {
-    assertEquals(index.docsForPrefix("sleeps").toSet, Set(2))
+    assertEquals(index.docsForPrefix("sleeps").toSet, Set(3))
   }
 
   test("docsForPrefix returns empty set when no docs contain prefix") {
