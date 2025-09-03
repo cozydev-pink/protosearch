@@ -47,7 +47,7 @@ async function main() {
   }
 
   // Setup the search worker, it returns inner html to the modal
-  const worker = new Worker(new URL("search/searchBarWorker.js", baseUrl))
+  const worker = new Worker(new URL("search/worker.js", baseUrl))
   worker.onmessage = function(e) {
     const markup = e.data.map(render).join("\n")
     modalBody.innerHTML = markup

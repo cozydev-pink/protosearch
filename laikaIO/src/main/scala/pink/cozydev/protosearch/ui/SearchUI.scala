@@ -50,10 +50,6 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "searchBar.js",
       )
       .addClassLoaderResource(
-        s"$path/searchBarWorker.js",
-        Path.Root / "search" / "searchBarWorker.js",
-      )
-      .addClassLoaderResource(
         s"$path/search.html",
         Path.Root / "search" / "search.html",
       )

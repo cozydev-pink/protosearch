@@ -29,6 +29,6 @@ trait Index {
 
   // Preliminary Scoring support
   def termDict: TermDictionary
-  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Double)]
+  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)]
 
 }

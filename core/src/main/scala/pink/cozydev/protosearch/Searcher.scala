@@ -32,7 +32,7 @@ final case class Searcher(
     val parseQ = queryAnalyzer
       .parse(request.query)
       .map(q => if (request.lastTermPrefix) q.mapLastTerm(LastTermRewrite.termToPrefix) else q)
-    val getDocs: Either[String, List[(Int, Double)]] =
+    val getDocs: Either[String, List[(Int, Float)]] =
       parseQ.flatMap(q =>
         indexSearcher
           .search(q)

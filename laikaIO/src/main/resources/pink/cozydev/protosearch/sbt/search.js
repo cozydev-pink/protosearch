@@ -1,16 +1,16 @@
 function renderDoc(hit) {
-  const path = hit.fields.path
-  const link = "../" + hit.fields.path.replace(".txt", ".html")
+  // Check if the path has a leading slash, if so, remove it
+  const path = hit.fields.path.startsWith("/") ? hit.fields.path.slice(1) : hit.fields.path
+  const htmlPath = `${path}.html`
+  const link = new URL(htmlPath, baseUrl)
   const title = hit.highlights["title"] || hit.fields["title"]
   const preview = hit.highlights["body"]
+  const score = hit.score.toFixed(4)
   return (
 `
 <ol>
   <div class="card">
     <div class="card-content">
-      <p class="is-size-6 has-text-grey-light">
-        <span>${path}</span>
-      </p>
       <div class="level-left">
         <p class="title is-capitalized is-flex-wrap-wrap">
           <a href="${link}" target="_blank">
@@ -19,6 +19,10 @@ function renderDoc(hit) {
         </p>
       </div>
       <p class="subtitle">${preview}</p>
+      <p class="is-size-7 has-text-grey-light">
+        <span>score: ${score}</span>
+        <span>path: ${path}</span>
+      </p>
     </div>
   </div>
 </ol>
@@ -55,10 +59,14 @@ async function main() {
   var searchBar = document.getElementById("search_input")
   const urlParams = new URLSearchParams(location.search)
 
-  const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
 
-  const maybeIndex = urlParams.get("index")
-  const workerJS = maybeIndex ? `worker.js?index=${maybeIndex}` : "worker.js"
+  // Optional Scaladoc rendering
+  const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
+  urlParams.delete("type")
+
+  // Pass remaining query params to worker.js
+  const params = urlParams.toString()
+  const workerJS = urlParams.size > 0 ? `worker.js?${params}` : "worker.js"
 
   const worker = new Worker(workerJS)
   worker.onmessage = function(e) {
@@ -69,5 +77,18 @@ async function main() {
   searchBar.addEventListener('input', function () {
     worker.postMessage(this.value)
   })
+
+  // If query param `q` is set, use it as query input
+  // e.g. search.html?q=hello
+  const maybeQuery = urlParams.get("q")
+  if (maybeQuery) {
+    searchBar.value = maybeQuery
+    worker.postMessage(maybeQuery)
+  }
 }
-main()
+
+// Only run once page has finished loading
+const baseUrl = new URL("../", document.currentScript.src)
+window.onload = function() {
+  main()
+}
