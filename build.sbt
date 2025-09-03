@@ -140,7 +140,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.7"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.0"),
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val inDir = baseDirectory.value / "src" / "main" / "resources"
