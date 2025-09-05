@@ -140,7 +140,10 @@
   </span><span class="keyword">val</span><span> </span><span class="identifier">req</span><span> = </span><span class="type-name">SearchRequest</span><span>.</span><span class="keyword">default</span><span>(</span><span class="identifier">q</span><span>)
   </span><span class="identifier">searcher</span><span>.</span><span class="identifier">search</span><span>(</span><span class="identifier">req</span><span>) </span><span class="keyword">match</span><span> {
     </span><span class="keyword">case</span><span> </span><span class="type-name">SearchFailure</span><span>(</span><span class="identifier">_</span><span>) =&gt; </span><span class="type-name">Nil</span><span>
-    </span><span class="keyword">case</span><span> </span><span class="type-name">SearchSuccess</span><span>(</span><span class="identifier">hits</span><span>) =&gt; </span><span class="identifier">hits</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">h</span><span> =&gt; </span><span class="identifier">books</span><span>(</span><span class="identifier">h</span><span>.</span><span class="identifier">id</span><span>))
+    </span><span class="keyword">case</span><span> </span><span class="type-name">SearchSuccess</span><span>(</span><span class="identifier">hits</span><span>) =&gt; </span><span class="identifier">hits</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">h</span><span> =&gt;
+      </span><span class="comment">// docIds start at 1 not 0
+</span><span>      </span><span class="identifier">books</span><span>(</span><span class="identifier">h</span><span>.</span><span class="identifier">id</span><span> - </span><span class="number-literal">1</span><span>)
+    )
   }
 }</span></code></pre>
         <p>Now we can use our <code>search</code> function to explore some different query types!</p>
