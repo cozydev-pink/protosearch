@@ -43,7 +43,7 @@ val munitCatsEffectV = "2.1.0"
 val munitV = "1.1.1"
 val scalajsDomV = "2.8.1"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.11" else "2.3.3"
-val scalametaV = "4.13.4"
+val scalametaV = "4.13.9"
 
 lazy val root =
   tlCrossRootProject
