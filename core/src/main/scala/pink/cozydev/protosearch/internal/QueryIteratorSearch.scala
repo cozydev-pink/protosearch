@@ -22,16 +22,23 @@ import pink.cozydev.lucille.Query._
 import pink.cozydev.protosearch.PositionalIndex
 import pink.cozydev.protosearch.MultiIndex
 import pink.cozydev.lucille.TermQuery
-import cats.data.NonEmptyList
 import java.util.regex.PatternSyntaxException
 
+abstract class IndexSearcher {
+  def search(q: Query): Either[String, Set[Int]]
+}
 object QueryIteratorSearch {
   def apply(multiIndex: MultiIndex): IndexSearcher = {
     val doer = new MultiIndexQueryIteratorSearcher(multiIndex)
     new IndexSearcher {
       def search(q: Query): Either[String, Set[Int]] = doer.doit(q).map(_.docs.toSet)
 
-      def search(q: NonEmptyList[Query]): Either[String, Set[Int]] = ???
+    }
+  }
+  def apply(index: Index): IndexSearcher = {
+    val doer = new SingleIndexQueryIteratorSearcher(index)
+    new IndexSearcher {
+      def search(q: Query): Either[String, Set[Int]] = doer.doit(q).map(_.docs.toSet)
 
     }
   }
