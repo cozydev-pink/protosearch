@@ -23,7 +23,7 @@ ThisBuild / tlJdkRelease := Some(11)
 
 val Scala212 = "2.12.20"
 val Scala213 = "2.13.16"
-val Scala3 = "3.3.5"
+val Scala3 = "3.3.6"
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
 
@@ -34,15 +34,15 @@ ThisBuild / githubWorkflowBuildMatrixAdditions ~= { matrix =>
   matrix + ("project" -> (matrix("project") :+ "plugin"))
 }
 
-val catsEffectV = "3.6.0"
+val catsEffectV = "3.6.3"
 val catsV = "2.13.0"
-val fs2V = "3.12.0"
-val laikaV = "1.3.1"
-val lucilleV = "0.0.3"
-val munitCatsEffectV = "2.0.0"
-val munitV = "1.1.0"
-val scalajsDomV = "2.8.0"
-def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.10" else "2.3.2"
+val fs2V = "3.12.2"
+val laikaV = "1.3.2"
+val lucilleV = "0.0.4"
+val munitCatsEffectV = "2.1.0"
+val munitV = "1.2.0"
+val scalajsDomV = "2.8.1"
+def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.11" else "2.3.3"
 val scalametaV = "4.13.4"
 
 lazy val root =
@@ -135,7 +135,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.7.7"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.0"),
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val inDir = baseDirectory.value / "src" / "main" / "resources"

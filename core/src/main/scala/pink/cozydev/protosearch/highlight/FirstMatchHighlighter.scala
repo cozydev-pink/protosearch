@@ -31,16 +31,17 @@ case class FirstMatchHighlighter(
 
   def highlight(str: String, queryStr: String): String = {
     // lowercase both in place, to find case-insensitive matches
-    val offset = str.toLowerCase().indexOf(queryStr.toLowerCase())
+    val normalizedQ = queryStr.trim().toLowerCase()
+    val offset = str.toLowerCase().indexOf(normalizedQ)
     if (offset == -1)
-      // 'queryStr' does not appear in 'str'
+      // 'normalizedQ' does not appear in 'str'
       trim(str)
     else {
       val start = Math.max(0, offset - lookBackWindowSize)
       if (start == 0 || str.size < formatter.maxSize) {
         // First match 'offset' is within first 'lookBackWindowSize' characters,
         // or the whole 'str' is within formatter max, no slicing necessary.
-        val fStr = formatter.format(str, List(offset, queryStr.size))
+        val fStr = formatter.format(str, List(offset, normalizedQ.size))
         trim(fStr)
       } else {
         // First match 'offset' not within first 'lookBackWindowSize' characters,
@@ -48,7 +49,7 @@ case class FirstMatchHighlighter(
         val nearby = str.indexWhere(c => " \n\t.".contains(c), start)
         val slice = str.drop(nearby)
         val newOffset = offset - nearby
-        val fStr = formatter.format(slice, List(newOffset, queryStr.size))
+        val fStr = formatter.format(slice, List(newOffset, normalizedQ.size))
         trim(fStr)
       }
     }
