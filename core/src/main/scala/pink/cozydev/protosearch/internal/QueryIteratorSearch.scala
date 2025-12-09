@@ -75,7 +75,7 @@ object QueryIteratorSearch {
       case q: Query.Phrase =>
         index match {
           case indx: PositionalIndex =>
-            PositionalIter.exact(indx, q) match {
+            PhraseIterator.exact(indx, q.str.split(" ").toList) match {
               case Some(pi) => Right(pi)
               case None => Left(s"Some terms in phrase '$q' could not be found in index")
             }

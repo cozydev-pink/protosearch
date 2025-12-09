@@ -16,7 +16,6 @@
 
 package pink.cozydev.protosearch.internal
 
-import pink.cozydev.lucille.Query
 import pink.cozydev.protosearch.PositionalIndex
 import pink.cozydev.protosearch.analysis.Analyzer
 
@@ -42,8 +41,8 @@ object TestQueryFixtures {
         () => positionalIter(query),
       )
 
-    private def positionalIter(q: String): PositionalIter =
-      PositionalIter.exact(alphaNumIndex, Query.Phrase(q)) match {
+    private def positionalIter(q: String): PhraseIterator =
+      PhraseIterator.exact(alphaNumIndex, q.split(" ").toList) match {
         case Some(iter) => iter
         case None =>
           val msg = s"some terms in query: '$q', could not be found in test index"

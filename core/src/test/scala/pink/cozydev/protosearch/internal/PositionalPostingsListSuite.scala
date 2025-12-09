@@ -119,7 +119,7 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     val ppl1 = new PositionalPostingsList(Array(1, 2, 100, 200, 3, 2, 0, 1))
     val ppl2 = new PositionalPostingsList(Array(0, 2, 10, 20, 1, 3, 15, 150, 250, 3, 1, 2))
     val ppl3 = new PositionalPostingsList(Array(0, 1, 7, 1, 2, 33, 333, 3, 1, 3))
-    val pi = new PositionalIter(Array(ppl1.reader(), ppl2.reader(), ppl3.reader()), Array(1, 2, 3))
+    val pi = new PhraseIterator(Array(ppl1.reader(), ppl2.reader(), ppl3.reader()), Array(1, 2, 3))
     val res = pi.docs.toList
     assertEquals(res, List(3))
   }
