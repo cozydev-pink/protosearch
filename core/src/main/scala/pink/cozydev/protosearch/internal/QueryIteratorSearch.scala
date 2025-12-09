@@ -23,36 +23,41 @@ import pink.cozydev.protosearch.PositionalIndex
 import pink.cozydev.protosearch.MultiIndex
 import pink.cozydev.lucille.TermQuery
 import java.util.regex.PatternSyntaxException
+import pink.cozydev.protosearch.ScoreFunction
 
 abstract class IndexSearcher {
-  def search(q: Query): Either[String, Set[Int]]
+  def search(q: Query): Either[String, Iterator[Int]]
+  def scoredSearch(q: Query): Either[String, Iterator[(Int, Float)]]
 }
 object QueryIteratorSearch {
-  def apply(multiIndex: MultiIndex): IndexSearcher = {
-    val doer = new MultiIndexQueryIteratorSearcher(multiIndex)
+  def apply(multiIndex: MultiIndex, scorer: ScoreFunction): IndexSearcher = {
+    val doer = new MultiIndexQueryIteratorSearcher(multiIndex, scorer)
     new IndexSearcher {
-      def search(q: Query): Either[String, Set[Int]] = doer.doit(q).map(_.docs.toSet)
+      def search(q: Query): Either[String, Iterator[Int]] = doer.doit(q).map(_.docs)
+      def scoredSearch(q: Query): Either[String, Iterator[(Int, Float)]] =
+        doer.doit(q).map(_.scoredDocs)
+    }
+  }
+  def apply(index: Index, scorer: ScoreFunction): IndexSearcher = {
+    val doer = new SingleIndexQueryIteratorSearcher(index, scorer)
+    new IndexSearcher {
+      def search(q: Query): Either[String, Iterator[Int]] = doer.doit(q).map(_.docs)
+      def scoredSearch(q: Query): Either[String, Iterator[(Int, Float)]] =
+        doer.doit(q).map(_.scoredDocs)
 
     }
   }
-  def apply(index: Index): IndexSearcher = {
-    val doer = new SingleIndexQueryIteratorSearcher(index)
-    new IndexSearcher {
-      def search(q: Query): Either[String, Set[Int]] = doer.doit(q).map(_.docs.toSet)
 
-    }
-  }
-
-  private class MultiIndexQueryIteratorSearcher(index: MultiIndex) {
+  private class MultiIndexQueryIteratorSearcher(index: MultiIndex, scorer: ScoreFunction) {
     private val defaultIndex = index.indexes(index.schema.defaultField)
 
     def doit(q: Query): Either[String, QueryIterator] = q match {
-      case qt: TermQuery => new SingleIndexQueryIteratorSearcher(defaultIndex).doit(qt)
+      case qt: TermQuery => new SingleIndexQueryIteratorSearcher(defaultIndex, scorer).doit(qt)
       case Query.Field(f, q) =>
         index.indexes
           .get(f)
           .toRight(s"Unsupported field: '$f'")
-          .flatMap(idx => new SingleIndexQueryIteratorSearcher(idx).doit(q))
+          .flatMap(idx => new SingleIndexQueryIteratorSearcher(idx, scorer).doit(q))
       case Query.Group(q) => doit(q)
       case Query.And(qs) => qs.traverse(doit).map(qis => AndIter(qis.toList))
       case Query.Or(qs) => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
@@ -66,10 +71,10 @@ object QueryIteratorSearch {
     }
   }
 
-  private class SingleIndexQueryIteratorSearcher(index: Index) {
+  private class SingleIndexQueryIteratorSearcher(index: Index, scorer: ScoreFunction) {
     def doit(query: Query): Either[String, QueryIterator] = query match {
-      case q: Query.Term => Right(index.docsWithTermIter(q.str))
-      case q: Query.Prefix => Right(index.docsForPrefixIter(q.str))
+      case q: Query.Term => Right(index.docsWithTermIter(q.str, scorer))
+      case q: Query.Prefix => Right(index.docsForPrefixIter(q.str, scorer))
       case q: Query.TermRange => rangeSearch(q)
       case q: Query.TermRegex => regexSearch(q)
       case q: Query.Phrase =>
@@ -105,7 +110,7 @@ object QueryIteratorSearch {
             case (Some(l), Some(r)) =>
               // TODO handle inclusive / exclusive
               // TODO optionality
-              Right(index.docsForRangeIter(l, r))
+              Right(index.docsForRangeIter(l, r, scorer))
             case _ => Left("Unsupported TermRange error?")
           }
       }
@@ -117,7 +122,7 @@ object QueryIteratorSearch {
         catch {
           case _: PatternSyntaxException => return Left(s"Invalid regex query $q")
         }
-      Right(index.docsForRegexIter(regex))
+      Right(index.docsForRegexIter(regex, scorer))
     }
   }
 

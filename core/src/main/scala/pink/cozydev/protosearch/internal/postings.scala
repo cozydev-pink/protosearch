@@ -16,19 +16,20 @@
 
 package pink.cozydev.protosearch.internal
 
+import pink.cozydev.protosearch.ScoreFunction
+
 /** A non-empty array of postings for a single term. */
 final class FrequencyPostingsList private[internal] (private val postings: Array[Int]) {
 
-  def queryIterator(): QueryIterator = new QueryIterator {
+  def queryIterator(scorer: ScoreFunction): QueryIterator = new QueryIterator {
     private val max = postings.size
+    private val numDocs = postings.size / 2
     private var currDocId = 0
     private var docIndex = -2
     def currentDocId: Int = currDocId
 
-    def currentScore: Float = {
-      val currentFreq = postings(docIndex + 1)
-      currentFreq.toFloat
-    }
+    def currentScore: Float =
+      scorer(postings(docIndex + 1), currDocId, numDocs)
 
     private def hasNext = (docIndex + 2) < max || docIndex == -2
 
@@ -139,57 +140,59 @@ private[internal] abstract class PositionalPostingsReader {
 /** A non-empty array of postings for a single term. */
 final class PositionalPostingsList private[internal] (private val postings: Array[Int]) {
 
-  def queryIterator(): QueryIteratorWithPositions = new QueryIteratorWithPositions {
-    private[this] var docIndex = 0
-    private[this] var posIndex = 2
+  def queryIterator(scorer: ScoreFunction): QueryIteratorWithPositions =
+    new QueryIteratorWithPositions {
+      private[this] var docIndex = 0
+      private[this] var posIndex = 2
+      private[this] val numDocs = postings.size / 3 // TODO WRONG, need to save numDocs in array
 
-    def currentDocId: Int = postings(docIndex)
-    def currentFrequency: Int = postings(docIndex + 1)
-    def currentScore: Float = currentFrequency.toFloat
-    def currentPosition: Int = postings(posIndex)
+      def currentDocId: Int = postings(docIndex)
+      def currentFrequency: Int = postings(docIndex + 1)
+      def currentScore: Float = scorer(currentFrequency, currentDocId, numDocs)
+      def currentPosition: Int = postings(posIndex)
 
-    override def toString(): String =
-      s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currentDocId, currentPosition=$currentPosition\n  positions=${postings.toList})"
+      override def toString(): String =
+        s"PositionalPostingsReader(i=$docIndex, posIndex=$posIndex, currentDocId=$currentDocId, currentPosition=$currentPosition\n  positions=${postings.toList})"
 
-    def hasNext: Boolean =
-      (docIndex + 2) < postings.size &&
-        (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
+      def hasNext: Boolean =
+        (docIndex + 2) < postings.size &&
+          (docIndex + 1 + postings(docIndex + 1) + 1) < postings.size
 
-    def nextDoc(): Int = {
-      docIndex += 1 + currentFrequency + 1
-      posIndex = docIndex + 2
-      currentDocId
-    }
-
-    def advance(docId: Int): Int =
-      if (currentDocId == -1) -1
-      else if (docId <= currentDocId) currentDocId
-      else {
-        val res = {
-          var newDocId = currentDocId
-          while (currentDocId < docId && hasNext)
-            newDocId = nextDoc()
-          newDocId
-        }
-        if (currentDocId < docId) -1 else res
+      def nextDoc(): Int = {
+        docIndex += 1 + currentFrequency + 1
+        posIndex = docIndex + 2
+        currentDocId
       }
 
-    def hasNextPosition: Boolean =
-      // less than or equal to catch the very last position
-      posIndex <= docIndex + currentFrequency
+      def advance(docId: Int): Int =
+        if (currentDocId == -1) -1
+        else if (docId <= currentDocId) currentDocId
+        else {
+          val res = {
+            var newDocId = currentDocId
+            while (currentDocId < docId && hasNext)
+              newDocId = nextDoc()
+            newDocId
+          }
+          if (currentDocId < docId) -1 else res
+        }
 
-    def nextPosition(): Int = {
-      posIndex += 1
-      currentPosition
-    }
+      def hasNextPosition: Boolean =
+        // less than or equal to catch the very last position
+        posIndex <= docIndex + currentFrequency
 
-    def nextPosition(target: Int): Int = {
-      var newPos = currentPosition
-      while (currentPosition < target && hasNextPosition)
-        newPos = nextPosition()
-      newPos
+      def nextPosition(): Int = {
+        posIndex += 1
+        currentPosition
+      }
+
+      def nextPosition(target: Int): Int = {
+        var newPos = currentPosition
+        while (currentPosition < target && hasNextPosition)
+          newPos = nextPosition()
+        newPos
+      }
     }
-  }
 
 }
 object PositionalPostingsList {

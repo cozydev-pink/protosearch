@@ -28,7 +28,8 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
   def search(qStr: String): Either[String, Set[Int]] =
     QueryParser
       .parse(qStr)
-      .flatMap(q => QueryIteratorSearch(index).search(q))
+      .flatMap(q => QueryIteratorSearch(index, ScoreFunction.noScore).search(q))
+      .map(_.toSet)
 
   test("Term") {
     val q = search("fast")

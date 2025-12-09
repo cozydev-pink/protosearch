@@ -16,6 +16,7 @@
 
 package pink.cozydev.protosearch.internal
 import pink.cozydev.protosearch.PositionalIndex
+import pink.cozydev.protosearch.ScoreFunction
 import cats.syntax.all._
 
 abstract class QueryIterator {
@@ -36,6 +37,24 @@ abstract class QueryIterator {
         var hasNext: Boolean = true
         def next(): Int = {
           val res = head
+          head = advance(currentDocId + 1)
+          if (head == -1) {
+            hasNext = false
+          }
+          res
+        }
+
+      }
+  }
+
+  def scoredDocs: Iterator[(Int, Float)] = {
+    var head: Int = advance(1)
+    if (head == -1) Iterator.empty
+    else
+      new Iterator[(Int, Float)] {
+        var hasNext: Boolean = true
+        def next(): (Int, Float) = {
+          val res = (head, currentScore)
           head = advance(currentDocId + 1)
           if (head == -1) {
             hasNext = false
@@ -115,7 +134,8 @@ class AndIter(
   private var currDocId: Int = 0
 
   def currentDocId: Int = currDocId
-  def currentScore: Float = ???
+  def currentScore: Float =
+    things.map(_.currentScore).sum
   def advance(docId: Int): Int = {
     val target = things(0).advance(docId)
     currDocId = target
@@ -152,7 +172,8 @@ class OrQueryIterator(
   private var currDocId: Int = 0
 
   def currentDocId: Int = currDocId
-  def currentScore: Float = ???
+  def currentScore: Float =
+    things.map(_.currentScore).sum
 
   def advance(docId: Int): Int = if (currDocId == -1) -1
   else {
@@ -206,7 +227,7 @@ class PhraseIterator(
   private[this] var currDocId: Int = 0
 
   def currentDocId: Int = currDocId
-  def currentScore: Float = ???
+  def currentScore: Float = 1.0f
 
   /* First attempts to advance all postings to matching docId, and only then
    * attempts to find a matching position.
@@ -288,7 +309,7 @@ object PhraseIterator {
     val relativePositions = (1 to terms.size).toArray
     val maybePostings = terms.traverse(t => index.postingForTerm(t))
     maybePostings.map(ps =>
-      new PhraseIterator(ps.map(_.queryIterator()).toArray, relativePositions)
+      new PhraseIterator(ps.map(_.queryIterator(ScoreFunction.noScore)).toArray, relativePositions)
     )
   }
 }

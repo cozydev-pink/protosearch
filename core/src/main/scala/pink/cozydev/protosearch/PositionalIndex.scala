@@ -41,46 +41,46 @@ sealed abstract class PositionalIndex private (
     }
   }
 
-  def docsWithTermIter(term: String): QueryIterator = {
+  def docsWithTermIter(term: String, scorer: ScoreFunction): QueryIterator = {
     val idx = termDict.termIndex(term)
     if (idx < 0) QueryIterator.empty
-    else tfData(idx).queryIterator()
+    else tfData(idx).queryIterator(scorer)
   }
 
-  def docsForPrefixIter(prefix: String): QueryIterator = {
+  def docsForPrefixIter(prefix: String, scorer: ScoreFunction): QueryIterator = {
     val terms = termDict.indicesForPrefix(prefix)
     if (terms.size == 0) QueryIterator.empty
     else {
       val arr = new Array[QueryIterator](terms.size)
       var i = 0
       terms.foreach { idx =>
-        arr(i) = tfData(idx).queryIterator()
+        arr(i) = tfData(idx).queryIterator(scorer)
         i += 1
       }
       new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
     }
   }
 
-  def docsForRangeIter(left: String, right: String): QueryIterator = {
+  def docsForRangeIter(left: String, right: String, scorer: ScoreFunction): QueryIterator = {
     // TODO Should check termIndex values for -1
     val range = Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
     val arr = new Array[QueryIterator](range.size)
     var i = 0
     range.foreach { idx =>
-      arr(i) = tfData(idx).queryIterator()
+      arr(i) = tfData(idx).queryIterator(scorer)
       i += 1
     }
     new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
   }
 
-  def docsForRegexIter(pattern: Pattern): QueryIterator = {
+  def docsForRegexIter(pattern: Pattern, scorer: ScoreFunction): QueryIterator = {
     val terms = termDict.indicesForRegex(pattern)
     if (terms.size == 0) QueryIterator.empty
     else {
       val arr = new Array[QueryIterator](terms.size)
       var i = 0
       terms.foreach { idx =>
-        arr(i) = tfData(idx).queryIterator()
+        arr(i) = tfData(idx).queryIterator(scorer)
         i += 1
       }
       new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
