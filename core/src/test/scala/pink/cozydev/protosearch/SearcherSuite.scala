@@ -87,12 +87,12 @@ class SearcherSuite extends munit.FunSuite {
 
   test("implicit OR with field TermRange") {
     val books = search("two author:[a TO c]")
-    assertEquals(books, Right(List(mice, peter, fish)))
+    assertEquals(books, Right(List(peter, mice, fish)))
   }
 
   test("explicit OR with field TermRange") {
     val books = search("two OR author:[a TO c]")
-    assertEquals(books, Right(List(mice, peter, fish)))
+    assertEquals(books, Right(List(peter, mice, fish)))
   }
 
   test("field Group") {

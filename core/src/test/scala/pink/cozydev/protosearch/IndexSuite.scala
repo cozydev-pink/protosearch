@@ -24,16 +24,6 @@ class IndexSuite extends munit.FunSuite {
     assertEquals(index.numTerms, 16)
   }
 
-  test("docCount returns zero when no docs contain term") {
-    assertEquals(index.docCount("???"), 0)
-  }
-
-  test("docCount returns number of documents containing term") {
-    assertEquals(index.docCount("cat"), 3)
-    assertEquals(index.docCount("lazy"), 2)
-    assertEquals(index.docCount("room"), 1)
-  }
-
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
     val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
     assertEquals(indexB.termDict.termIndexWhere("a"), 0)

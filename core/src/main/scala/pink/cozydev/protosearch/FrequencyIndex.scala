@@ -37,12 +37,6 @@ sealed abstract class FrequencyIndex private (
 
   override def toString(): String = s"FrequencyIndex($numTerms terms, $numDocs docs)"
 
-  def docCount(term: String): Int = {
-    val idx = termDict.termIndex(term)
-    if (idx < 0) 0
-    else tfData(idx).docs.size
-  }
-
   def postingForTerm(term: String): Option[FrequencyPostingsList] = {
     val idx = termDict.termIndex(term)
     if (idx < 0) None

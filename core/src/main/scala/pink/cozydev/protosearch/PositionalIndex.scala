@@ -33,14 +33,6 @@ sealed abstract class PositionalIndex private (
 ) extends Index {
   val numTerms = termDict.numTerms
 
-  def docCount(term: String): Int = {
-    val idx = termDict.termIndex(term)
-    if (idx < 0) 0
-    else {
-      tfData(idx).docs.size
-    }
-  }
-
   def postingForTerm(term: String): Option[PositionalPostingsList] = {
     val idx = termDict.termIndex(term)
     if (idx < 0) None

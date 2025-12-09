@@ -46,6 +46,12 @@ abstract class QueryIterator {
       }
   }
 }
+abstract class QueryIteratorWithPositions extends QueryIterator {
+  def currentPosition: Int
+  def hasNextPosition: Boolean
+  def nextPosition(): Int
+  def nextPosition(target: Int): Int
+}
 object QueryIterator {
   def empty = new NoMatchQueryIterator
 }
@@ -187,7 +193,7 @@ object OrQueryIterator {
 }
 
 class PhraseIterator(
-    val postings: Array[PositionalPostingsReader],
+    val postings: Array[QueryIteratorWithPositions],
     val relativePositions: Array[Int],
 ) extends QueryIterator {
 
@@ -281,6 +287,8 @@ object PhraseIterator {
   def exact(index: PositionalIndex, terms: List[String]): Option[PhraseIterator] = {
     val relativePositions = (1 to terms.size).toArray
     val maybePostings = terms.traverse(t => index.postingForTerm(t))
-    maybePostings.map(ps => new PhraseIterator(ps.map(_.reader()).toArray, relativePositions))
+    maybePostings.map(ps =>
+      new PhraseIterator(ps.map(_.queryIterator()).toArray, relativePositions)
+    )
   }
 }
