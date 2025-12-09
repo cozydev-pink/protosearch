@@ -18,7 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.QueryParser
-import internal.IndexSearcher
+import internal.QueryIteratorSearch
 
 class PositionalIndexSearcherSuite extends munit.FunSuite {
 
@@ -28,7 +28,8 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
   def search(qStr: String): Either[String, Set[Int]] =
     QueryParser
       .parse(qStr)
-      .flatMap(q => IndexSearcher(index).search(q))
+      .flatMap(q => QueryIteratorSearch(index, ScoreFunction.noScore).search(q))
+      .map(_.toSet)
 
   test("Term") {
     val q = search("fast")
@@ -187,7 +188,8 @@ class PositionalIndexSearcherSuite extends munit.FunSuite {
 
   test("phrase, single word, false match \"fakeword\"") {
     val q = search("\"fakeword\"")
-    assertEquals(q, Right(Set.empty[Int]))
+    val err = "Some terms in phrase 'Phrase(fakeword)' could not be found in index"
+    assertEquals(q, Left(err))
   }
 
   test("regex") {
