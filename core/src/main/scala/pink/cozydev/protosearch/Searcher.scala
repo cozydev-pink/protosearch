@@ -25,7 +25,6 @@ final case class Searcher(
     highlighter: FirstMatchHighlighter,
 ) {
   private val indexSearcher = QueryIteratorSearch(multiIndex)
-  private val scorer = Scorer(multiIndex, multiIndex.schema.defaultOR)
   private val queryAnalyzer = multiIndex.schema.queryAnalyzer(multiIndex.schema.defaultField)
 
   def search(request: SearchRequest): SearchResult = {
@@ -36,7 +35,7 @@ final case class Searcher(
       parseQ.flatMap(q =>
         indexSearcher
           .search(q)
-          .flatMap(ds => scorer.score(q, ds, request.size))
+          .map(ds => ds.toList.map(doc => (doc, 0.0f)))
       )
 
     val lstB = List.newBuilder[Hit]

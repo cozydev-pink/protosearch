@@ -17,7 +17,6 @@
 package pink.cozydev.protosearch
 
 import scala.collection.mutable.ArrayBuilder
-import scala.collection.mutable.HashSet
 
 import pink.cozydev.protosearch.internal.PositionalPostingsList
 import pink.cozydev.protosearch.internal.PositionalPostingsBuilder
@@ -48,33 +47,6 @@ sealed abstract class PositionalIndex private (
     else {
       Some(tfData(idx))
     }
-  }
-
-  def docsWithTerm(term: String): Iterator[Int] = {
-    val idx = termDict.termIndex(term)
-    if (idx < 0) Iterator.empty
-    else {
-      tfData(idx).docs
-    }
-  }
-
-  /** For every term starting with prefix, get the docs using those terms. */
-  def docsForPrefix(prefix: String): Iterator[Int] = {
-    val terms = termDict.indicesForPrefix(prefix)
-    if (terms.size == 0) Iterator.empty
-    else {
-      val bldr = HashSet.empty[Int]
-      terms.foreach(i => bldr ++= tfData(i).docs)
-      bldr.iterator
-    }
-  }
-
-  /** For every term between left and right, get the docs using those terms. */
-  def docsForRange(left: String, right: String): Iterator[Int] = {
-    val bldr = HashSet.empty[Int]
-    Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
-      .foreach(i => bldr ++= tfData(i).docs)
-    bldr.iterator
   }
 
   def docsWithTermIter(term: String): QueryIterator = {
@@ -122,28 +94,6 @@ sealed abstract class PositionalIndex private (
       new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
     }
   }
-
-  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)] =
-    if (docs.size == 0) Nil
-    else {
-      val idx = termDict.termIndex(term)
-      if (idx == -1) Nil
-      else {
-        val posting = tfData(idx)
-        val idf: Float = 2.0f / posting.docs.size.toFloat
-        val bldr = List.newBuilder[(Int, Float)]
-        bldr.sizeHint(docs.size)
-        docs.foreach { docId =>
-          val freq = posting.frequencyForDocID(docId)
-          if (freq != -1) {
-            val tf = Math.log(1.0 + freq).toFloat
-            val tfidf: Float = tf * idf
-            bldr += (docId -> tfidf)
-          }
-        }
-        bldr.result().sortBy(-_._2).toList
-      }
-    }
 }
 object PositionalIndex {
   import scala.collection.mutable.{TreeMap => MMap}
