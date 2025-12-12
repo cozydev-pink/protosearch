@@ -21,7 +21,7 @@ ThisBuild / resolvers +=
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
-val Scala212 = "2.12.20"
+val Scala212 = "2.12.21"
 
 val Scala213 = "2.13.18"
 
