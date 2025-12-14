@@ -1,0 +1,9 @@
+/* Protosearch Helium theme integration - maps --ps-* vars to Helium vars */
+:root {
+  --ps-bg: var(--component-area-bg);
+  --ps-border: var(--primary-medium);
+  --ps-text: var(--primary-color);
+  --ps-accent: var(--secondary-color);
+  --ps-highlight: var(--syntax-wheel3);
+}
+
