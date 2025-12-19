@@ -1,37 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
-  <title>Protosearch</title>
-  <link href=" https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css " rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search</title>
+  <link rel="stylesheet" href="search.css">
 </head>
 
 <body>
-  <section class="section">
-    <div class="container">
-      <h1 class="title has-text-centered">Protosearch</h1>
-      <p class="subtitle has-text-centered">
-        Search over Scala documentation with <a href="https://cozydev-pink.github.io/protosearch/02-tutorial/02-querying.html">advanced query support</a>
-      </p>
-      
-      <div class="field has-addons has-addons-centered">
-        <div class="control is-expanded">
-          <input id="search_input" class="input is-primary" type="text" placeholder="Type your query...">
-        </div>
-      </div>
-    </div>
-  </section>
+  <main class="ps-page">
+    <header class="ps-page-header">
+      <h1>Search</h1>
+    </header>
 
-  <section class="section">
-    <div class="container is-widescreen">
-      <div id="app" class="box">
+    <search class="ps-page-search">
+      <input id="search-input" type="search" placeholder="Type your query..." autocomplete="off">
+    </search>
 
-      </div>
-    </div>
-  </section>
+    <section id="search-results" class="ps-results">
+      <!-- search results go here -->
+    </section>
+  </main>
 
-  <script type="text/javascript" src="search.js"></script>
+  <script src="search.js" data-show-score="true" data-show-path="true"></script>
 </body>
 
 </html>

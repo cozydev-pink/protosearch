@@ -1,94 +1,170 @@
-function renderDoc(hit) {
-  // Check if the path has a leading slash, if so, remove it
+const currentScript = document.currentScript
+const baseUrl = new URL("../", currentScript.src)
+
+// Read configuration from script data attributes and URL params
+function getConfig() {
+  const urlParams = new URLSearchParams(location.search)
+  return {
+    showScore: currentScript?.dataset.showScore === "true",
+    showPath: currentScript?.dataset.showPath === "true",
+    showPreview: currentScript?.dataset.showPreview !== "false",
+    type: urlParams.get("type") || currentScript?.dataset.type,
+    query: urlParams.get("q"),
+    workerParams: buildWorkerParams(urlParams),
+  }
+}
+
+function buildWorkerParams(urlParams) {
+  const workerParams = new URLSearchParams()
+  const index = urlParams.get("index")
+  if (index) workerParams.set("index", index)
+  return workerParams.toString()
+}
+
+function renderHit(hit, config) {
   const path = hit.fields.path.startsWith("/") ? hit.fields.path.slice(1) : hit.fields.path
   const htmlPath = `${path}.html`
   const link = new URL(htmlPath, baseUrl)
   const title = hit.highlights["title"] || hit.fields["title"]
   const preview = hit.highlights["body"]
   const score = hit.score.toFixed(4)
-  return (
-`
-<ol>
-  <div class="card">
-    <div class="card-content">
-      <div class="level-left">
-        <p class="title is-capitalized is-flex-wrap-wrap">
-          <a href="${link}" target="_blank">
-            <span>${title}</span>
-          </a>
-        </p>
-      </div>
-      <p class="subtitle">${preview}</p>
-      <p class="is-size-7 has-text-grey-light">
-        <span>score: ${score}</span>
-        <span>path: ${path}</span>
-      </p>
-    </div>
-  </div>
-</ol>
-`
-  )
+
+  const previewHtml = config.showPreview && preview
+    ? `<p class="ps-preview">${preview}</p>`
+    : ""
+
+  const scoreHtml = config.showScore
+    ? `<span class="ps-score">score: ${score}</span>`
+    : ""
+
+  const pathHtml = config.showPath
+    ? `<span class="ps-path">${path}</span>`
+    : ""
+
+  const metaHtml = (config.showScore || config.showPath)
+    ? `<footer class="ps-meta">${scoreHtml}${pathHtml}</footer>`
+    : ""
+
+  return `
+<article class="ps-result">
+  <header>
+    <a href="${link}">${title}</a>
+  </header>
+  ${previewHtml}
+  ${metaHtml}
+</article>`
 }
-function renderScaladoc(hit) {
+
+function renderScaladoc(hit, config) {
   const title = hit.fields.functionName
   const description = hit.fields.description
   const returnType = hit.fields.returnType
   const params = hit.fields.params
-  return (
-`
-<ol>
-  <div class="card">
-    <div class="card-content">
-      <div class="level-left">
-        <p class="title is-capitalized is-flex-wrap-wrap">
-          <span>${title}</span>
-        </p>
-      </div>
-      <p class="subtitle">${description}</p>
-      <p class="subtitle">Parameters: ${params}</p>
-      <p class="subtitle">Return type: ${returnType}</p>
-    </div>
-  </div>
-</ol>
-`
-  )
+
+  return `
+<article class="ps-result ps-scaladoc">
+  <header>${title}</header>
+  <p class="ps-preview">${description}</p>
+  <dl class="ps-params">
+    <dt>Parameters</dt>
+    <dd>${params}</dd>
+    <dt>Returns</dt>
+    <dd>${returnType}</dd>
+  </dl>
+</article>`
 }
 
-async function main() {
-  var app = document.getElementById("app")
-  var searchBar = document.getElementById("search_input")
-  const urlParams = new URLSearchParams(location.search)
+function createSearchWorker(config, resultsElement, renderFn) {
+  const workerFile = config.workerParams ? `worker.js?${config.workerParams}` : "worker.js"
+  const workerUrl = new URL(workerFile, currentScript.src)
 
-
-  // Optional Scaladoc rendering
-  const renderFunction = urlParams.get("type") == "scaladoc" ? renderScaladoc : renderDoc
-  urlParams.delete("type")
-
-  // Pass remaining query params to worker.js
-  const params = urlParams.toString()
-  const workerJS = urlParams.size > 0 ? `worker.js?${params}` : "worker.js"
-
-  const worker = new Worker(workerJS)
+  const worker = new Worker(workerUrl)
   worker.onmessage = function(e) {
-    const markup = e.data.map(renderFunction).join("\n")
-    app.innerHTML = markup
+    const markup = e.data.map(hit => renderFn(hit, config)).join("")
+    resultsElement.innerHTML = markup
+  }
+  return worker
+}
+
+function setupModal(config, renderFn) {
+  const modal = document.getElementById("search-modal")
+  const modalInput = document.getElementById("search-modal-input")
+  const modalBody = document.getElementById("search-modal-content-body")
+  const searchTopBar = document.getElementById("search-top-bar")
+
+  if (!modal || !modalInput || !modalBody || !searchTopBar) return false
+
+  searchTopBar.onclick = function() {
+    modal.style.display = "block"
+    modalInput.focus()
   }
 
-  searchBar.addEventListener('input', function () {
+  const modalClose = document.getElementsByClassName("search-close")[0]
+  if (modalClose) {
+    modalClose.onclick = function() {
+      modal.style.display = "none"
+    }
+  }
+
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none"
+    }
+  }
+
+  // Keyboard shortcuts: `/` to open, `Escape` to close
+  window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) return
+    if (event.code == "Slash" && modal.style.display != "block") {
+      event.preventDefault()
+      modal.style.display = "block"
+      modalInput.focus()
+    }
+    if (event.code == "Escape" && modal.style.display == "block") {
+      event.preventDefault()
+      modal.style.display = "none"
+    }
+  })
+
+  // Send input to worker
+  const worker = createSearchWorker(config, modalBody, renderFn)
+  modalInput.addEventListener("input", function() {
     worker.postMessage(this.value)
   })
 
-  // If query param `q` is set, use it as query input
-  // e.g. search.html?q=hello
-  const maybeQuery = urlParams.get("q")
-  if (maybeQuery) {
-    searchBar.value = maybeQuery
-    worker.postMessage(maybeQuery)
+  return true
+}
+
+function setupPage(config, renderFn) {
+  const resultsContainer = document.getElementById("search-results")
+  const searchBar = document.getElementById("search-input")
+
+  if (!resultsContainer || !searchBar) return false
+
+  // Send input to worker
+  const worker = createSearchWorker(config, resultsContainer, renderFn)
+  searchBar.addEventListener("input", function() {
+    worker.postMessage(this.value)
+  })
+
+  // If query param `q` is set, use it as initial query
+  if (config.query) {
+    searchBar.value = config.query
+    worker.postMessage(config.query)
+  }
+
+  return true
+}
+
+function main() {
+  const config = getConfig()
+  const renderFn = config.type === "scaladoc" ? renderScaladoc : renderHit
+
+  if (!setupModal(config, renderFn)) {
+    setupPage(config, renderFn)
   }
 }
 
-// Only run once page has finished loading
-const baseUrl = new URL("../", document.currentScript.src)
 window.onload = function() {
   main()
 }
