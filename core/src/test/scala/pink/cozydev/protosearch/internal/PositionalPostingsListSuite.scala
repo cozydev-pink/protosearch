@@ -16,6 +16,8 @@
 
 package pink.cozydev.protosearch.internal
 
+import pink.cozydev.protosearch.ScoreFunction
+
 class PositionalPostingsListSuite extends munit.FunSuite {
 
   test("PositionalPostingsList cannot be empty") {
@@ -30,7 +32,8 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(1, 3)
     ppb.addTermPosition(1, 8)
     val posList = ppb.toPositionalPostingsList
-    assertEquals(posList.docs.toList, List(1))
+    val docs = posList.queryIterator(ScoreFunction.noScore).docs.toList
+    assertEquals(docs, List(1))
   }
 
   test("PositionalPostingsList docs returns correct two docs") {
@@ -39,7 +42,8 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(1, 8)
     ppb.addTermPosition(42, 1)
     val posList = ppb.toPositionalPostingsList
-    assertEquals(posList.docs.toList, List(1, 42))
+    val docs = posList.queryIterator(ScoreFunction.noScore).docs.toList
+    assertEquals(docs, List(1, 42))
   }
 
   test("PositionalPostingsList docs returns correct six docs") {
@@ -54,7 +58,8 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(5, 55)
     ppb.addTermPosition(6, 66)
     val posList = ppb.toPositionalPostingsList
-    assertEquals(posList.docs.toList, List(1, 2, 3, 4, 5, 6))
+    val docs = posList.queryIterator(ScoreFunction.noScore).docs.toList
+    assertEquals(docs, List(1, 2, 3, 4, 5, 6))
   }
 
   test("PositionalPostingsList Reader nextDoc(i < max) does not advance past i") {
@@ -66,12 +71,12 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(2, 3)
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
-    val posList = ppb.toPositionalPostingsList.reader()
+    val posList = ppb.toPositionalPostingsList.queryIterator(ScoreFunction.noScore)
     (0 to 10).foreach(_ => posList.advance(2))
     assertEquals(posList.advance(2), 2)
   }
 
-  test("PositionalPostingsList Reader nextDoc(i > max) does not advance past max") {
+  test("PositionalPostingsList queryIterator advance(i > max) returns -1") {
     val ppb = new PositionalPostingsBuilder
     ppb.addTermPosition(1, 3)
     ppb.addTermPosition(1, 8)
@@ -80,9 +85,9 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(2, 3)
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
-    val posList = ppb.toPositionalPostingsList.reader()
+    val posList = ppb.toPositionalPostingsList.queryIterator(ScoreFunction.noScore)
     (0 to 10).foreach(_ => posList.advance(100))
-    assertEquals(posList.advance(100), 42)
+    assertEquals(posList.advance(100), -1)
   }
 
   test("PositionalPostingsList Reader nextPosition(i < max) does not advance past i") {
@@ -94,7 +99,7 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(2, 3)
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
-    val posReader = ppb.toPositionalPostingsList.reader()
+    val posReader = ppb.toPositionalPostingsList.queryIterator(ScoreFunction.noScore)
     posReader.advance(2)
     (0 to 10).foreach(_ => posReader.nextPosition(2))
     assertEquals(posReader.nextPosition(2), 2)
@@ -109,7 +114,7 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     ppb.addTermPosition(2, 3)
     ppb.addTermPosition(3, 33)
     ppb.addTermPosition(42, 1)
-    val posReader = ppb.toPositionalPostingsList.reader()
+    val posReader = ppb.toPositionalPostingsList.queryIterator(ScoreFunction.noScore)
     posReader.advance(2)
     (0 to 10).foreach(_ => posReader.nextPosition(200))
     assertEquals(posReader.nextPosition(200), 3)
@@ -119,8 +124,15 @@ class PositionalPostingsListSuite extends munit.FunSuite {
     val ppl1 = new PositionalPostingsList(Array(1, 2, 100, 200, 3, 2, 0, 1))
     val ppl2 = new PositionalPostingsList(Array(0, 2, 10, 20, 1, 3, 15, 150, 250, 3, 1, 2))
     val ppl3 = new PositionalPostingsList(Array(0, 1, 7, 1, 2, 33, 333, 3, 1, 3))
-    val pi = new PositionalIter(Array(ppl1.reader(), ppl2.reader(), ppl3.reader()), Array(1, 2, 3))
-    val res = pi.takeWhile(_ > -1).toList
+    val pi = new PhraseIterator(
+      Array(
+        ppl1.queryIterator(ScoreFunction.noScore),
+        ppl2.queryIterator(ScoreFunction.noScore),
+        ppl3.queryIterator(ScoreFunction.noScore),
+      ),
+      Array(1, 2, 3),
+    )
+    val res = pi.docs.toList
     assertEquals(res, List(3))
   }
 

@@ -123,7 +123,7 @@ final case class IndexBuilder[A] private (
     def search(q: String): List[ScaladocInfo] = {
       val req = SearchRequest.default(q)
       val searchResults = searcher.search(req)
-      searchResults.fold(_ => Nil, hits => hits.map(h => scaladocInfoList.toList(h.id)))
+      searchResults.fold(_ => Nil, hits => hits.map(h => scaladocInfoList.toList(h.id - 1)))
     }
 
     val results: List[ScaladocInfo] = queries.flatMap { query =>

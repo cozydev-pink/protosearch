@@ -16,16 +16,17 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.internal.QueryIterator
-import java.util.regex.Pattern
+trait ScoreFunction extends ((Int, Int, Int) => Float)
+object ScoreFunction {
+  val noScore: ScoreFunction = new ScoreFunction {
+    def apply(freq: Int, docId: Int, numDocs: Int): Float = 0.0f
+  }
 
-trait Index {
-  def numDocs: Int
-  def numTerms: Int
-
-  // Query Iterator
-  def docsWithTermIter(term: String, scorer: ScoreFunction): QueryIterator
-  def docsForRangeIter(left: String, right: String, scorer: ScoreFunction): QueryIterator
-  def docsForPrefixIter(prefix: String, scorer: ScoreFunction): QueryIterator
-  def docsForRegexIter(prefix: Pattern, scorer: ScoreFunction): QueryIterator
+  val tfIdf: ScoreFunction = new ScoreFunction {
+    def apply(freq: Int, docId: Int, numDocs: Int): Float = {
+      val tf = math.log(1.0 + freq)
+      val idf = 1.0 / numDocs
+      (tf * idf).toFloat
+    }
+  }
 }

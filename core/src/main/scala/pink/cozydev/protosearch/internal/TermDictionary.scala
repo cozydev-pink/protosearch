@@ -18,6 +18,8 @@ package pink.cozydev.protosearch.internal
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
+import scala.collection.mutable.ArrayBuffer
+import java.util.regex.Pattern
 
 final class TermDictionary(
     private val termDict: Array[String]
@@ -50,6 +52,18 @@ final class TermDictionary(
   /** Get the list of terms matching the regex. */
   def termsForRegex(regex: Regex): List[String] =
     termDict.filter(regex.findFirstIn(_).isDefined).toList
+
+  def indicesForRegex(pattern: Pattern): Array[Int] = {
+    val bldr = ArrayBuffer.empty[Int]
+    var i = 0
+    termDict.foreach { term =>
+      if (pattern.matcher(term).find) {
+        bldr += i
+      }
+      i += 1
+    }
+    bldr.toArray
+  }
 
   /** Get the list of terms starting with prefix . */
   def indicesForPrefix(prefix: String): Array[Int] = {
