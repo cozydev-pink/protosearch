@@ -97,10 +97,10 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
+    Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
     Compile / packageBin / mappings += {
       val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
-      val inDir = baseDirectory.value / "src" / "main" / "resources"
-      val dir = "pink/cozydev/protosearch/sbt"
+      val dir = "pink/cozydev/protosearch"
       jsArtifactInterop -> s"$dir/protosearch.js"
     },
   )
@@ -139,10 +139,10 @@ lazy val plugin =
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
       addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.4"),
+      Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
-        val inDir = baseDirectory.value / "src" / "main" / "resources"
-        val dir = "pink/cozydev/protosearch/sbt"
+        val dir = "pink/cozydev/protosearch"
         jsArtifactInterop -> s"$dir/protosearch.js"
       },
     )

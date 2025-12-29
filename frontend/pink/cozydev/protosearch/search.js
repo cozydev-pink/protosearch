@@ -1,5 +1,21 @@
+// Protosearch - Core UI
+// Renderers register themselves via window.Protosearch.registerRenderer()
+
 const currentScript = document.currentScript
 const baseUrl = new URL("../", currentScript.src)
+
+// Renderer registry
+window.Protosearch = {
+  renderers: {},
+  defaultRenderer: null,
+  registerRenderer: function(name, fn) {
+    this.renderers[name] = fn
+    if (!this.defaultRenderer) this.defaultRenderer = fn
+  },
+  getRenderer: function(name) {
+    return name ? this.renderers[name] : this.defaultRenderer
+  }
+}
 
 // Read configuration from script data attributes and URL params
 function getConfig() {
@@ -8,9 +24,10 @@ function getConfig() {
     showScore: currentScript?.dataset.showScore === "true",
     showPath: currentScript?.dataset.showPath === "true",
     showPreview: currentScript?.dataset.showPreview !== "false",
-    type: urlParams.get("type") || currentScript?.dataset.type,
+    renderer: urlParams.get("renderer") || currentScript?.dataset.renderer,
     query: urlParams.get("q"),
     workerParams: buildWorkerParams(urlParams),
+    baseUrl: baseUrl,
   }
 }
 
@@ -19,59 +36,6 @@ function buildWorkerParams(urlParams) {
   const index = urlParams.get("index")
   if (index) workerParams.set("index", index)
   return workerParams.toString()
-}
-
-function renderHit(hit, config) {
-  const path = hit.fields.path.startsWith("/") ? hit.fields.path.slice(1) : hit.fields.path
-  const htmlPath = `${path}.html`
-  const link = new URL(htmlPath, baseUrl)
-  const title = hit.highlights["title"] || hit.fields["title"]
-  const preview = hit.highlights["body"]
-  const score = hit.score.toFixed(4)
-
-  const previewHtml = config.showPreview && preview
-    ? `<p class="ps-preview">${preview}</p>`
-    : ""
-
-  const scoreHtml = config.showScore
-    ? `<span class="ps-score">score: ${score}</span>`
-    : ""
-
-  const pathHtml = config.showPath
-    ? `<span class="ps-path">${path}</span>`
-    : ""
-
-  const metaHtml = (config.showScore || config.showPath)
-    ? `<footer class="ps-meta">${scoreHtml}${pathHtml}</footer>`
-    : ""
-
-  return `
-<article class="ps-result">
-  <header>
-    <a href="${link}">${title}</a>
-  </header>
-  ${previewHtml}
-  ${metaHtml}
-</article>`
-}
-
-function renderScaladoc(hit, config) {
-  const title = hit.fields.functionName
-  const description = hit.fields.description
-  const returnType = hit.fields.returnType
-  const params = hit.fields.params
-
-  return `
-<article class="ps-result ps-scaladoc">
-  <header>${title}</header>
-  <p class="ps-preview">${description}</p>
-  <dl class="ps-params">
-    <dt>Parameters</dt>
-    <dd>${params}</dd>
-    <dt>Returns</dt>
-    <dd>${returnType}</dd>
-  </dl>
-</article>`
 }
 
 function createSearchWorker(config, resultsElement, renderFn) {
@@ -158,7 +122,12 @@ function setupPage(config, renderFn) {
 
 function main() {
   const config = getConfig()
-  const renderFn = config.type === "scaladoc" ? renderScaladoc : renderHit
+  const renderFn = window.Protosearch.getRenderer(config.renderer)
+
+  if (!renderFn) {
+    console.error("Protosearch: No renderer registered. Include docs.js or scaladoc.js.")
+    return
+  }
 
   if (!setupModal(config, renderFn)) {
     setupPage(config, renderFn)
