@@ -26,7 +26,7 @@ import laika.config.LaikaKeys
 
 object SearchUI extends ThemeProvider {
 
-  private val path = "pink/cozydev/protosearch/sbt"
+  private val path = "pink/cozydev/protosearch"
 
   /** Returns the path where the search index should be written.
     *
@@ -52,8 +52,8 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "worker.js",
       )
       .addClassLoaderResource(
-        s"$path/searchBar.js",
-        Path.Root / "search" / "searchBar.js",
+        s"$path/docs.js",
+        Path.Root / "search" / "docs.js",
       )
       .addClassLoaderResource(
         s"$path/search.html",
@@ -62,6 +62,10 @@ object SearchUI extends ThemeProvider {
       .addClassLoaderResource(
         s"$path/search.css",
         Path.Root / "search" / "search.css",
+      )
+      .addClassLoaderResource(
+        s"$path/docs.css",
+        Path.Root / "search" / "docs.css",
       )
       .addConfig(unversioned, Path.Root / "search")
   }
@@ -105,9 +109,13 @@ object SearchUI extends ThemeProvider {
     helium.site
       .internalCSS(Path.Root / "search" / "search.css")
       .site
+      .internalCSS(Path.Root / "search" / "docs.css")
+      .site
       .internalCSS(Path.Root / "search" / "search-helium.css")
       .site
       .internalJS(Path.Root / "search" / "protosearch.js")
       .site
-      .internalJS(Path.Root / "search" / "searchBar.js")
+      .internalJS(Path.Root / "search" / "search.js")
+      .site
+      .internalJS(Path.Root / "search" / "docs.js")
 }

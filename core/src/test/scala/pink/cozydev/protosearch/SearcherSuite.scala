@@ -41,7 +41,7 @@ class SearcherSuite extends munit.FunSuite {
   }
 
   def searchHit(q: String): Either[String, List[(Int, Map[String, String])]] = {
-    val req = SearchRequest(q, 10, Nil, List("title", "author"), false)
+    val req = SearchRequest(q, 10, None, Some(List("title", "author")), false)
     val results = searcher.search(req)
     results.toEither.map(_.map(h => (h.id, h.fields)))
   }
@@ -137,6 +137,42 @@ class SearcherSuite extends munit.FunSuite {
       q,
       Left(err),
     )
+  }
+
+  test("error when highlight field not stored") {
+    val req = SearchRequest("bad", 10, Some(List("fakefield")), None, false)
+    val result = searcher.search(req)
+    val err = "Highlights not stored in index: 'fakefield'."
+    assertEquals(result, SearchFailure(err))
+  }
+
+  test("error when result field not stored") {
+    val req = SearchRequest("bad", 10, None, Some(List("fakefield")), false)
+    val result = searcher.search(req)
+    val err = "Fields not stored in index: 'fakefield'."
+    assertEquals(result, SearchFailure(err))
+  }
+
+  test("error when highlight and result fields not stored") {
+    val req = SearchRequest("bad", 10, Some(List("fakefield")), Some(List("fakefield")), false)
+    val result = searcher.search(req)
+    val err =
+      "Fields not stored in index: 'fakefield'. Highlights not stored in index: 'fakefield'."
+    assertEquals(result, SearchFailure(err))
+  }
+
+  test("error when highlight and result fields not stored") {
+    val req = SearchRequest(
+      "bad",
+      10,
+      Some(List("fakefield")),
+      Some(List("fakefield1", "fakefield2")),
+      false,
+    )
+    val result = searcher.search(req)
+    val err =
+      "Fields not stored in index: 'fakefield1, fakefield2'. Highlights not stored in index: 'fakefield'."
+    assertEquals(result, SearchFailure(err))
   }
 
 }
