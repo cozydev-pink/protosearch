@@ -21,9 +21,12 @@ ThisBuild / resolvers +=
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("11"))
 ThisBuild / tlJdkRelease := Some(11)
 
-val Scala212 = "2.12.20"
-val Scala213 = "2.13.16"
-val Scala3 = "3.3.6"
+val Scala212 = "2.12.21"
+
+val Scala213 = "2.13.18"
+
+val Scala3 = "3.3.7"
+
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
 
@@ -40,7 +43,7 @@ val fs2V = "3.12.2"
 val laikaV = "1.3.2"
 val lucilleV = "0.0.4"
 val munitCatsEffectV = "2.1.0"
-val munitV = "1.2.0"
+val munitV = "1.2.1"
 val scalajsDomV = "2.8.1"
 def scodecV(scalaV: String) = if (scalaV.startsWith("2.")) "1.11.11" else "2.3.3"
 val scalametaV = "4.13.4"
@@ -94,10 +97,10 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.scalameta" %%% "munit" % munitV % Test,
       "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
     ),
+    Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
     Compile / packageBin / mappings += {
       val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
-      val inDir = baseDirectory.value / "src" / "main" / "resources"
-      val dir = "pink/cozydev/protosearch/sbt"
+      val dir = "pink/cozydev/protosearch"
       jsArtifactInterop -> s"$dir/protosearch.js"
     },
   )
@@ -135,11 +138,11 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.0"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.4"),
+      Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
-        val inDir = baseDirectory.value / "src" / "main" / "resources"
-        val dir = "pink/cozydev/protosearch/sbt"
+        val dir = "pink/cozydev/protosearch"
         jsArtifactInterop -> s"$dir/protosearch.js"
       },
     )

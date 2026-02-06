@@ -1,0 +1,20 @@
+/* Protosearch - Scaladoc Result Styles */
+
+/* Scaladoc parameters */
+.ps-params {
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+}
+
+.ps-params dt {
+  font-weight: 600;
+  color: var(--ps-text-muted);
+}
+
+.ps-params dd {
+  margin: 0;
+}
+

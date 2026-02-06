@@ -19,8 +19,8 @@ package pink.cozydev.protosearch
 final case class SearchRequest(
     query: String,
     size: Int,
-    highlightFields: List[String],
-    resultFields: List[String],
+    highlightFields: Option[List[String]],
+    resultFields: Option[List[String]],
     lastTermPrefix: Boolean,
     // sort
     // query re-writing?
@@ -28,5 +28,5 @@ final case class SearchRequest(
 object SearchRequest {
   private val defaultSize = 10
   def default(query: String): SearchRequest =
-    SearchRequest(query, defaultSize, Nil, Nil, false)
+    SearchRequest(query, defaultSize, Some(Nil), Some(Nil), false)
 }

@@ -18,7 +18,7 @@ package pink.cozydev.protosearch.ui
 
 import cats.effect.{Async, Resource}
 import laika.ast.Path
-import laika.io.model.InputTree
+import laika.io.model.{InputTree, InputTreeBuilder}
 import laika.theme.{Theme, ThemeBuilder, ThemeProvider}
 import laika.helium.Helium
 import laika.api.config.ConfigBuilder
@@ -26,13 +26,19 @@ import laika.config.LaikaKeys
 
 object SearchUI extends ThemeProvider {
 
-  def build[F[_]: Async]: Resource[F, Theme[F]] = {
+  private val path = "pink/cozydev/protosearch"
 
-    val path = "pink/cozydev/protosearch/sbt"
+  /** Returns the path where the search index should be written.
+    *
+    * @param outputDir the site output directory (e.g. "target/site")
+    * @return the full path for the search index file
+    */
+  def indexPath(outputDir: String): String = s"$outputDir/search/searchIndex.idx"
 
+  private def baseInputs[F[_]: Async]: InputTreeBuilder[F] = {
     val unversioned = ConfigBuilder.empty.withValue(LaikaKeys.versioned, false).build
 
-    val inputs = InputTree[F]
+    InputTree[F]
       .addClassLoaderResource(
         s"$path/protosearch.js",
         Path.Root / "search" / "protosearch.js",
@@ -46,8 +52,8 @@ object SearchUI extends ThemeProvider {
         Path.Root / "search" / "worker.js",
       )
       .addClassLoaderResource(
-        s"$path/searchBar.js",
-        Path.Root / "search" / "searchBar.js",
+        s"$path/docs.js",
+        Path.Root / "search" / "docs.js",
       )
       .addClassLoaderResource(
         s"$path/search.html",
@@ -57,13 +63,44 @@ object SearchUI extends ThemeProvider {
         s"$path/search.css",
         Path.Root / "search" / "search.css",
       )
-      .addConfig(unversioned, Path.Root / "search")
       .addClassLoaderResource(
-        s"$path/topNav.template.html",
-        Path.Root / "helium" / "templates" / "topNav.template.html",
+        s"$path/docs.css",
+        Path.Root / "search" / "docs.css",
       )
+      .addConfig(unversioned, Path.Root / "search")
+  }
 
-    ThemeBuilder[F]("protosearch UI").addInputs(inputs).build
+  /** Theme provider for standalone use without Helium.
+    *
+    * Includes only the core search assets (JavaScript, CSS, HTML).
+    * You'll need to add the search bar and modal to your own templates.
+    */
+  val standalone: ThemeProvider = new ThemeProvider {
+    def build[F[_]: Async]: Resource[F, Theme[F]] =
+      ThemeBuilder[F]("protosearch standalone").addInputs(baseInputs[F]).build
+  }
+
+  def build[F[_]: Async]: Resource[F, Theme[F]] = helium.build
+
+  /** Theme provider for use with Helium.
+    *
+    * Includes all search assets plus the Helium-specific topNav template
+    * and CSS that maps --ps-* vars to Helium theme vars.
+    * Use with `.extendWith(SearchUI.helium)`.
+    */
+  val helium: ThemeProvider = new ThemeProvider {
+    def build[F[_]: Async]: Resource[F, Theme[F]] = {
+      val inputs = baseInputs[F]
+        .addClassLoaderResource(
+          s"$path/topNav.template.html",
+          Path.Root / "helium" / "templates" / "topNav.template.html",
+        )
+        .addClassLoaderResource(
+          s"$path/search-helium.css",
+          Path.Root / "search" / "search-helium.css",
+        )
+      ThemeBuilder[F]("protosearch UI").addInputs(inputs).build
+    }
   }
 
   // Make a Helium => Helium function
@@ -72,7 +109,13 @@ object SearchUI extends ThemeProvider {
     helium.site
       .internalCSS(Path.Root / "search" / "search.css")
       .site
+      .internalCSS(Path.Root / "search" / "docs.css")
+      .site
+      .internalCSS(Path.Root / "search" / "search-helium.css")
+      .site
       .internalJS(Path.Root / "search" / "protosearch.js")
       .site
-      .internalJS(Path.Root / "search" / "searchBar.js")
+      .internalJS(Path.Root / "search" / "search.js")
+      .site
+      .internalJS(Path.Root / "search" / "docs.js")
 }

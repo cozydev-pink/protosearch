@@ -36,12 +36,20 @@ class Querier(val mIndex: MultiIndex) {
   val highlighter =
     FirstMatchHighlighter(FragmentFormatter(150, "<mark>", "</mark>"))
   val searcher = Searcher(mIndex, highlighter)
-  val highlightFields = List("title", "body")
-  val resultFields = List("body", "path", "title")
 
   @JSExport
-  def search(query: String): js.Array[JsHit] = {
-    val req = SearchRequest(query, size = 10, highlightFields, resultFields, lastTermPrefix = true)
+  def search(
+      query: String,
+      highlightFields: js.UndefOr[js.Array[String]] = js.undefined,
+      resultFields: js.UndefOr[js.Array[String]] = js.undefined,
+  ): js.Array[JsHit] = {
+    val req = SearchRequest(
+      query,
+      size = 10,
+      highlightFields.toOption.map(_.toList),
+      resultFields.toOption.map(_.toList),
+      lastTermPrefix = true,
+    )
     val hits = searcher
       .search(req)
       .fold(

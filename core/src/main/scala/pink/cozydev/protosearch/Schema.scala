@@ -29,6 +29,11 @@ final class Schema private (
     val defaultField: String,
     val defaultOR: Boolean = true,
 ) {
+  val storedFields: Set[String] = {
+    val bldr = Set.newBuilder[String]
+    fields.foreach(f => if (f.stored) bldr += f.name)
+    bldr.result()
+  }
 
   def queryAnalyzer(defaultField: String): QueryAnalyzer = {
     val analyzers = fields.map(f => (f.name, f.analyzer))
