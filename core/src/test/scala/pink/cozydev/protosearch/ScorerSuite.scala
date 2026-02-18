@@ -69,6 +69,13 @@ class ScorerSuite extends munit.FunSuite {
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 
+  test("rarer terms produce higher scores") {
+    val doc2 = 2 // "The Tale of Two Bad Mice" by Beatrix Potter
+    val scRare = scoreForDoc("Bad", doc2)
+    val scCommon = scoreForDoc("The", doc2)
+    assert(scRare.exists(r => scCommon.exists(c => r > c)))
+  }
+
   test("prefix queries produce constant scores") {
     // T* matches docs 1, 2, 3
     val hits = score("T*")
