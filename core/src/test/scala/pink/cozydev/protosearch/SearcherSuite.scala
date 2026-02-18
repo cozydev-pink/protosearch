@@ -34,10 +34,10 @@ class SearcherSuite extends munit.FunSuite {
 
   val searcher = Searcher.default(index)
 
-  def search(q: String): Either[String, List[Book]] = {
+  def search(q: String): Either[String, Set[Book]] = {
     val req = SearchRequest.default(q)
     val result = searcher.search(req)
-    result.toEither.map(hits => hits.map(h => allBooks(h.id - 1)))
+    result.toEither.map(hits => hits.map(h => allBooks(h.id - 1)).toSet)
   }
 
   def searchHit(q: String): Either[String, List[(Int, Map[String, String])]] = {
@@ -57,82 +57,82 @@ class SearcherSuite extends munit.FunSuite {
 
   test("Term") {
     val books = search("Bad")
-    assertEquals(books, Right(List(mice)))
+    assertEquals(books, Right(Set(mice)))
   }
 
   test("Term lowercased") {
     val books = search("bad")
-    assertEquals(books, Right(List(mice)))
+    assertEquals(books, Right(Set(mice)))
   }
 
   test("AND with fieldQ") {
     val books = search("two AND author:Seuss")
-    assertEquals(books, Right(List(fish)))
+    assertEquals(books, Right(Set(fish)))
   }
 
   test("AND with multiple fieldQ") {
     val books = search("title:two AND author:Seuss")
-    assertEquals(books, Right(List(fish)))
+    assertEquals(books, Right(Set(fish)))
   }
 
   test("AND NOT field TermRange") {
     val books = search("TWO AND NOT author:[r TO t]")
-    assertEquals(books, Right(List(mice)))
+    assertEquals(books, Right(Set(mice)))
   }
 
   test("AND with field TermRange") {
     val books = search("TWO AND author:[a TO e]")
-    assertEquals(books, Right(List(mice, fish)))
+    assertEquals(books, Right(Set(mice, fish)))
   }
 
   test("implicit OR with field TermRange") {
     val books = search("two author:[a TO c]")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(Set(peter, mice, fish)))
   }
 
   test("explicit OR") {
     val books = search("tale OR two")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(Set(peter, mice, fish)))
   }
 
   test("explicit OR with field TermRange") {
     val books = search("two OR author:[a TO c]")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(Set(peter, mice, fish)))
   }
 
   test("field Group") {
     val books = search("author:(potter seuss)")
-    assertEquals(books, Right(List(peter, mice, fish, eggs)))
+    assertEquals(books, Right(Set(peter, mice, fish, eggs)))
   }
 
   test("field Group with NOT") {
     val books = search("author:(potter seuss) AND NOT eggs")
-    assertEquals(books, Right(List(peter, mice, fish)))
+    assertEquals(books, Right(Set(peter, mice, fish)))
   }
 
   test("nested Groups") {
     val books = search("(eggs AND ham AND author:(potter SEUSS))")
-    assertEquals(books, Right(List(eggs)))
+    assertEquals(books, Right(Set(eggs)))
   }
 
   test("single term phrase query (original casing)") {
     val books = search("\"Eggs\"")
-    assertEquals(books, Right(List(eggs)))
+    assertEquals(books, Right(Set(eggs)))
   }
 
   test("single term phrase query") {
     val books = search("\"eggs\"")
-    assertEquals(books, Right(List(eggs)))
+    assertEquals(books, Right(Set(eggs)))
   }
 
   test("multi term phrase query") {
     val books = search("\"Green Eggs\"")
-    assertEquals(books, Right(List(eggs)))
+    assertEquals(books, Right(Set(eggs)))
   }
 
   test("regex") {
     val books = search("/e(r|e)/")
-    assertEquals(books, Right(List(peter, eggs)))
+    assertEquals(books, Right(Set(peter, eggs)))
   }
 
   test("regex fail") {
