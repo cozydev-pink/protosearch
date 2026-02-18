@@ -44,6 +44,9 @@ class ScorerSuite extends munit.FunSuite {
   def ordered(hits: Either[String, List[(Int, Float)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
 
+  def scoreForDoc(q: String, docId: Int): Option[Float] =
+    score(q).toOption.flatMap(_.find(_._1 == docId).map(_._2))
+
   test("doc with matching term is ordered first") {
     val hits = score("Bad")
     assertEquals(ordered(hits), List(2))
@@ -59,9 +62,10 @@ class ScorerSuite extends munit.FunSuite {
     assertEquals(ordered(hits), List(2, 1, 3))
   }
 
-  test("additional matching queries increases score") {
-    val sc1 = score("Tale OR Two").map(_.head._2)
-    val sc2 = score("author:Seuss Tale OR Two").map(_.head._2)
+  test("additional matching clauses increase a document's score") {
+    val doc3 = 3 // "One Fish, Two Fish..." by Dr. Seuss
+    val sc1 = scoreForDoc("Two", doc3)
+    val sc2 = scoreForDoc("Two OR author:Seuss", doc3)
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 
