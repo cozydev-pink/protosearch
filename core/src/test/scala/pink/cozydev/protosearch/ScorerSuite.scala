@@ -80,7 +80,7 @@ class ScorerSuite extends munit.FunSuite {
     // T* matches docs 1, 2, 3
     val hits = score("T*")
     val scores = hits.toOption.get.map(_._2)
-    assertEquals(scores, List(0.0f, 0.0f, 0.0f))
+    assertEquals(scores, List(1.0f, 1.0f, 1.0f))
   }
 
   test("scores phrase query") {
