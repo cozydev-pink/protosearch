@@ -134,8 +134,15 @@ class AndIter(
   private var currDocId: Int = 0
 
   def currentDocId: Int = currDocId
-  def currentScore: Float =
-    things.map(_.currentScore).sum
+  def currentScore: Float = {
+    var score = 0.0f
+    var i = 0
+    while (i < things.size) {
+      score += things(i).currentScore
+      i += 1
+    }
+    score
+  }
   def advance(docId: Int): Int = {
     val target = things(0).advance(docId)
     currDocId = target
@@ -172,8 +179,17 @@ class OrQueryIterator(
   private var currDocId: Int = 0
 
   def currentDocId: Int = currDocId
-  def currentScore: Float =
-    things.map(_.currentScore).sum
+  def currentScore: Float = {
+    var score = 0.0f
+    var i = 0
+    while (i < things.size) {
+      if (things(i).currentDocId == currDocId) {
+        score += things(i).currentScore
+      }
+      i += 1
+    }
+    score
+  }
 
   def advance(docId: Int): Int = if (currDocId == -1) -1
   else {
