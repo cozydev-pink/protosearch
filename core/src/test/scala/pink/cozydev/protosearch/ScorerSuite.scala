@@ -18,6 +18,7 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
 import pink.cozydev.lucille.QueryParser
+import pink.cozydev.protosearch.internal.QueryIteratorSearch
 import fixtures.BookIndex
 
 class ScorerSuite extends munit.FunSuite {
@@ -32,57 +33,70 @@ class ScorerSuite extends munit.FunSuite {
     )
     .fromList(allBooks)
 
-  val allDocs: Set[Int] = Set(1, 2, 3, 4)
+  val searcher = QueryIteratorSearch(index, ScoreFunction.tfIdf)
 
-  val scorer = Scorer(index)
-  def score(q: String, docs: Set[Int]): Either[String, List[(Int, Float)]] =
+  def score(q: String, topN: Int = 10): Either[String, List[(Int, Float)]] =
     QueryParser
       .parse(q)
-      .flatMap(q => scorer.score(q, docs, 10))
+      .flatMap(q => searcher.scoredSearch(q))
+      .map(_.toList.sortBy(-_._2).take(topN))
 
   def ordered(hits: Either[String, List[(Int, Float)]]): List[Int] =
     hits.fold(_ => Nil, ds => ds.map(_._1))
 
+  def scoreForDoc(q: String, docId: Int): Option[Float] =
+    score(q).toOption.flatMap(_.find(_._1 == docId).map(_._2))
+
   test("doc with matching term is ordered first") {
-    val hits = score("Bad", Set(2))
+    val hits = score("Bad")
     assertEquals(ordered(hits), List(2))
   }
 
   test("no results for docs without matching terms") {
-    val hits = score("XYZ", allDocs)
+    val hits = score("XYZ")
     assertEquals(ordered(hits), Nil)
   }
 
   test("docs with multiple matches score higher") {
-    val hits = score("Tale OR Two", allDocs)
+    val hits = score("Tale OR Two")
     assertEquals(ordered(hits), List(2, 1, 3))
   }
 
-  test("additional matching queries increases score") {
-    val sc1 = score("Tale OR Two", Set(3)).map(_.head._2)
-    val sc2 = score("author:Seuss Tale OR Two", Set(3)).map(_.head._2)
+  test("additional matching clauses increase a document's score") {
+    val doc3 = 3 // "One Fish, Two Fish..." by Dr. Seuss
+    val sc1 = scoreForDoc("Two", doc3)
+    val sc2 = scoreForDoc("Two OR author:Seuss", doc3)
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 
-  test("scores prefix queries") {
-    val hits = score("T*", allDocs)
-    assertEquals(ordered(hits), List(2, 1, 3))
+  test("rarer terms produce higher scores") {
+    val doc2 = 2 // "The Tale of Two Bad Mice" by Beatrix Potter
+    val scRare = scoreForDoc("Bad", doc2)
+    val scCommon = scoreForDoc("The", doc2)
+    assert(scRare.exists(r => scCommon.exists(c => r > c)))
+  }
+
+  test("prefix queries produce constant scores") {
+    // T* matches docs 1, 2, 3
+    val hits = score("T*")
+    val scores = hits.toOption.get.map(_._2)
+    assertEquals(scores, List(1.0f, 1.0f, 1.0f))
   }
 
   test("scores phrase query") {
-    val hits = score("\"Two Bad Mice\"", allDocs)
+    val hits = score("\"Two Bad Mice\"")
     assertEquals(ordered(hits), List(2))
   }
 
   test("scorer with topN=1 returns only top doc") {
     val q = "Tale OR Two" // has 3 matches
-    val hits = QueryParser.parse(q).flatMap(q => scorer.score(q, allDocs, topN = 1))
+    val hits = score(q, topN = 1)
     assertEquals(ordered(hits), List(2))
   }
 
   test("scorer topN can be bigger than number of matches") {
     val q = "Tale OR Two" // has 3 matches
-    val hits = QueryParser.parse(q).flatMap(q => scorer.score(q, allDocs, topN = 999))
+    val hits = score(q, topN = 999)
     assertEquals(ordered(hits), List(2, 1, 3))
   }
 

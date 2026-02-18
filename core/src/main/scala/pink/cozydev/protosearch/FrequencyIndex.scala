@@ -17,13 +17,15 @@
 package pink.cozydev.protosearch
 
 import scala.collection.mutable.ArrayBuilder
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.HashSet
 
 import pink.cozydev.protosearch.codecs.IndexCodecs
 import pink.cozydev.protosearch.internal.TermDictionary
 import pink.cozydev.protosearch.internal.FrequencyPostingsList
 import pink.cozydev.protosearch.internal.FrequencyPostingsBuilder
+import pink.cozydev.protosearch.internal.QueryIterator
+import pink.cozydev.protosearch.internal.OrQueryIterator
+import pink.cozydev.protosearch.internal.ConstantScoreQueryIterator
+import java.util.regex.Pattern
 
 sealed abstract class FrequencyIndex private (
     val termDict: TermDictionary,
@@ -35,12 +37,6 @@ sealed abstract class FrequencyIndex private (
 
   override def toString(): String = s"FrequencyIndex($numTerms terms, $numDocs docs)"
 
-  def docCount(term: String): Int = {
-    val idx = termDict.termIndex(term)
-    if (idx < 0) 0
-    else tfData(idx).docs.size
-  }
-
   def postingForTerm(term: String): Option[FrequencyPostingsList] = {
     val idx = termDict.termIndex(term)
     if (idx < 0) None
@@ -49,53 +45,51 @@ sealed abstract class FrequencyIndex private (
     }
   }
 
-  def docsWithTerm(term: String): Iterator[Int] = {
+  def docsWithTermIter(term: String, scorer: ScoreFunction): QueryIterator = {
     val idx = termDict.termIndex(term)
-    if (idx < 0) Iterator.empty
-    else tfData(idx).docs
+    if (idx < 0) QueryIterator.empty
+    else tfData(idx).queryIterator(scorer)
   }
 
-  /** For every term starting with prefix, get the docs using those terms. */
-  def docsForPrefix(prefix: String): Iterator[Int] = {
+  def docsForPrefixIter(prefix: String, scorer: ScoreFunction): QueryIterator = {
     val terms = termDict.indicesForPrefix(prefix)
-    if (terms.size == 0) Iterator.empty
+    if (terms.size == 0) QueryIterator.empty
     else {
-      val bldr = HashSet.empty[Int]
-      terms.foreach(i => bldr ++= tfData(i).docs)
-      bldr.iterator
-    }
-  }
-
-  /** For every term between left and right, get the docs using those terms. */
-  def docsForRange(left: String, right: String): Iterator[Int] = {
-    val bldr = HashSet.empty[Int]
-    Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
-      .foreach(i => bldr ++= tfData(i).docs)
-    bldr.iterator
-  }
-
-  def scoreTFIDF(docs: Set[Int], term: String): List[(Int, Float)] =
-    if (docs.size == 0) Nil
-    else {
-      val idx = termDict.termIndex(term)
-      if (idx == -1) Nil
-      else {
-        val posting = tfData(idx)
-        val idf: Float = 2.0f / posting.docs.size.toFloat
-        val bldr = ListBuffer.newBuilder[(Int, Float)]
-        bldr.sizeHint(docs.size)
-        docs.foreach { docId =>
-          val freq = posting.frequencyForDocID(docId)
-          if (freq != -1) {
-            val tf: Float = Math.log(1.0 + freq).toFloat
-            val tfidf: Float = tf * idf
-            // println(s"term($term) doc($docId) tf: $tf, idf: $idf, tfidf: $tfidf")
-            bldr += (docId -> tfidf)
-          }
-        }
-        bldr.result().sortBy(-_._2).toList
+      val arr = new Array[QueryIterator](terms.size)
+      var i = 0
+      terms.foreach { idx =>
+        arr(i) = tfData(idx).queryIterator(scorer)
+        i += 1
       }
+      new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
     }
+  }
+
+  def docsForRangeIter(left: String, right: String, scorer: ScoreFunction): QueryIterator = {
+    // TODO Should check termIndex values for -1
+    val range = Range(termDict.termIndexWhere(left), termDict.termIndexWhere(right))
+    val arr = new Array[QueryIterator](range.size)
+    var i = 0
+    range.foreach { idx =>
+      arr(i) = tfData(idx).queryIterator(scorer)
+      i += 1
+    }
+    new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
+  }
+
+  def docsForRegexIter(pattern: Pattern, scorer: ScoreFunction): QueryIterator = {
+    val terms = termDict.indicesForRegex(pattern)
+    if (terms.size == 0) QueryIterator.empty
+    else {
+      val arr = new Array[QueryIterator](terms.size)
+      var i = 0
+      terms.foreach { idx =>
+        arr(i) = tfData(idx).queryIterator(scorer)
+        i += 1
+      }
+      new ConstantScoreQueryIterator(OrQueryIterator(arr, 1), 1.0f)
+    }
+  }
 }
 object FrequencyIndex {
   import scala.collection.mutable.{TreeMap => MMap}

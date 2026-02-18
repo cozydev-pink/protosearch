@@ -18,15 +18,16 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.highlight.FirstMatchHighlighter
 import pink.cozydev.protosearch.highlight.FragmentFormatter
-import pink.cozydev.protosearch.internal.IndexSearcher
+import pink.cozydev.protosearch.internal.QueryIteratorSearch
 
 final case class Searcher(
     multiIndex: MultiIndex,
     highlighter: FirstMatchHighlighter,
 ) {
-  private val indexSearcher = IndexSearcher(multiIndex, multiIndex.schema.defaultOR)
-  private val scorer = Scorer(multiIndex, multiIndex.schema.defaultOR)
+  private val scorer = ScoreFunction.tfIdf
+  private val indexSearcher = QueryIteratorSearch(multiIndex, scorer)
   private val queryAnalyzer = multiIndex.schema.queryAnalyzer(multiIndex.schema.defaultField)
+  private val ord = Ordering[(Float, Int)].on[(Int, Float)](idScore => (-idScore._2, idScore._1))
   private val storedFields = multiIndex.schema.storedFields
 
   def search(request: SearchRequest): SearchResult = {
@@ -36,9 +37,8 @@ final case class Searcher(
     val getHits: Either[String, List[Hit]] = parseQ.flatMap(q =>
       hitBuilder(request).flatMap(hitBldr =>
         indexSearcher
-          .search(q)
-          .flatMap(ds => scorer.score(q, ds, request.size))
-          .map(hits => hits.map(hit => hitBldr(hit)))
+          .scoredSearch(q)
+          .map(ds => ds.toList.sorted(ord).map(hitBldr))
       )
     )
     getHits match {
