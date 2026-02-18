@@ -69,9 +69,11 @@ class ScorerSuite extends munit.FunSuite {
     assert(sc1.exists(s1 => sc2.exists(s2 => s2 > s1)))
   }
 
-  test("scores prefix queries") {
+  test("prefix queries produce constant scores") {
+    // T* matches docs 1, 2, 3
     val hits = score("T*")
-    assertEquals(ordered(hits), List(2, 1, 3))
+    val scores = hits.toOption.get.map(_._2)
+    assertEquals(scores, List(0.0f, 0.0f, 0.0f))
   }
 
   test("scores phrase query") {
