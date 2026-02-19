@@ -194,26 +194,20 @@ class OrQueryIterator(
   def advance(docId: Int): Int = if (currDocId == -1) -1
   else {
     currDocId = docId
-    // Advance postings, count how many are in match
     var numMatched = 0
-    var numDead = 0
+    var minNextDoc = Int.MaxValue
     var i = 0
-    // Track min docId to know when we've exhausted
     while (i < things.size) {
       val newTarget = things(i).advance(currDocId)
-      if (newTarget < currDocId)
-        // posting has no docIds at or above currDocId, but others might
-        numDead += 1
-      if (numDead >= things.size) {
-        currDocId = -1
-        return -1
-      }
-      if (newTarget == currDocId) {
+      if (newTarget == currDocId)
         numMatched += 1
-      }
+      else if (newTarget > currDocId)
+        minNextDoc = math.min(minNextDoc, newTarget)
       i += 1
     }
-    if (numMatched >= minShouldMatch) currDocId else advance(currDocId + 1)
+    if (numMatched >= minShouldMatch) currDocId
+    else if (minNextDoc == Int.MaxValue) { currDocId = -1; -1 }
+    else advance(minNextDoc)
   }
 }
 object OrQueryIterator {
