@@ -201,8 +201,8 @@ class OrQueryIterator(
       val newTarget = things(i).advance(currDocId)
       if (newTarget == currDocId)
         numMatched += 1
-      else if (newTarget > currDocId && newTarget < minNextDoc)
-        minNextDoc = newTarget
+      else if (newTarget > currDocId)
+        minNextDoc = math.min(minNextDoc, newTarget)
       i += 1
     }
     if (numMatched >= minShouldMatch) currDocId
