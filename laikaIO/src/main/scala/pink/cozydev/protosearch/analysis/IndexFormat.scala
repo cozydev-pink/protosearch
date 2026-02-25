@@ -23,15 +23,47 @@ import laika.api.format.{BinaryPostProcessor, Formatter, TwoPhaseRenderFormat, R
 import laika.ast.*
 import laika.io.model.{BinaryOutput, RenderedTreeRoot}
 import laika.api.builder.OperationConfig
-import laika.api.config.Config
+import laika.api.config.{Config, ConfigValue}
+import laika.api.config.ConfigValue.*
 import laika.theme.Theme
 import java.io.OutputStream
 import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
+import laika.api.config.ConfigValue
 
-case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
+class IndexFormat(val configKeys: List[String])
+    extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
   override def description: String = "Protosearch Index"
+
+  val analyzer = Analyzer.default.withLowerCasing
+
+  val baseFields: List[(Field, RenderedDocument => String)] = List(
+    (Field("body", analyzer, true, true, true), d => d.content),
+    (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
+    (Field("path", analyzer, true, true, false), d => renderPath(d)),
+  )
+
+  val configFields: List[(Field, RenderedDocument => String)] = configKeys.map { key =>
+    val field = Field(key, analyzer, true, true, false)
+    val getter: RenderedDocument => String = d =>
+      d.config
+        .getOpt[ConfigValue](key)
+        .map {
+          case Some(value) => renderConfigValue(value)
+          case None => "" // sadly we don't really support optional values yet
+        }
+        .getOrElse("") // further sadness: we don't really support errors
+    (field, getter)
+  }
+
+  def renderConfigValue(value: ConfigValue): String = value match {
+    case sv: SimpleValue => sv.render
+    case ArrayValue(values) => values.map(renderConfigValue).mkString(" ")
+    case _ => "" // because we can't return None yet
+  }
+
+  val allFields: List[(Field, RenderedDocument => String)] = baseFields ++ configFields
 
   def interimFormat: RenderFormat[Formatter] = Plaintext
 
@@ -50,14 +82,11 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
             output: BinaryOutput[F],
             config: OperationConfig,
         ): F[Unit] = {
-          val analyzer = Analyzer.default.withLowerCasing
+          val docs = result.allDocuments.toList
+
           val index = IndexBuilder
-            .of[RenderedDocument](
-              (Field("body", analyzer, true, true, true), _.content),
-              (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
-              (Field("path", analyzer, true, true, false), d => renderPath(d)),
-            )
-            .fromList(result.allDocuments.toList)
+            .of[RenderedDocument](allFields.head, allFields.tail: _*)
+            .fromList(docs)
 
           val indexBytes = MultiIndex.codec
             .encode(index)
@@ -88,4 +117,8 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
   private def renderPath(doc: RenderedDocument): String =
     doc.path.withoutSuffix.toString
 
+}
+
+object IndexFormat extends IndexFormat(Nil) {
+  def withConfigKeys(keys: List[String]): IndexFormat = new IndexFormat(keys)
 }
