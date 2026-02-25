@@ -201,4 +201,40 @@ class IndexFormatSuite extends CatsEffectSuite {
     assertIO(year, Some(List("2024")))
   }
 
+  test("config keys: dot-path notation indexes nested ObjectValue fields") {
+    val doc =
+      """|{%
+         |  metadata: {
+         |    author: "Jane Doe"
+         |    section: "Blog"
+         |  }
+         |%}
+         |# The Title
+         |Some content.
+         |""".stripMargin
+    val tree = InputTree[IO].addString(doc, dir / "doc.md")
+    val index = renderIndex(tree, configKeys = List("metadata.author", "metadata.section"))
+    val author = index.map(_.fields.get("metadata.author").map(_.toList))
+    val section = index.map(_.fields.get("metadata.section").map(_.toList))
+    assertIO(author, Some(List("Jane Doe")))
+    assertIO(section, Some(List("Blog")))
+  }
+
+  test("config keys: ObjectValue at key returns empty string") {
+    val doc =
+      """|{%
+         |  metadata: {
+         |    author: "Jane Doe"
+         |    section: "Blog"
+         |  }
+         |%}
+         |# The Title
+         |Some content.
+         |""".stripMargin
+    val tree = InputTree[IO].addString(doc, dir / "doc.md")
+    val index = renderIndex(tree, configKeys = List("metadata"))
+    val metadataObj = index.map(_.fields.get("metadata").map(_.toList))
+    assertIO(metadataObj, Some(List("")))
+  }
+
 }
