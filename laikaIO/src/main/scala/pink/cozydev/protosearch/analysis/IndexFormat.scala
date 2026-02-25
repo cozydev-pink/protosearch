@@ -29,7 +29,6 @@ import laika.theme.Theme
 import java.io.OutputStream
 import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
-import laika.api.config.ConfigValue
 
 class IndexFormat(val configKeys: List[String])
     extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
