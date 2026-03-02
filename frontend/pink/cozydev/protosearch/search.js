@@ -28,7 +28,16 @@ function getConfig() {
     query: urlParams.get("q"),
     workerParams: buildWorkerParams(urlParams),
     baseUrl: baseUrl,
+    debounceMs: parseDebounceMs(urlParams),
   }
+}
+
+function parseDebounceMs(urlParams) {
+  const fromUrl = urlParams.get("debounceMs") || urlParams.get("debounce")
+  const fromData = currentScript?.dataset.debounceMs || currentScript?.dataset.debounceMs
+  const raw = fromUrl ?? fromData
+  const n = raw == null ? 150 : Number.parseInt(raw, 10)
+  return Number.isFinite(n) && n >= 0 ? n : 150
 }
 
 function buildWorkerParams(urlParams) {
@@ -92,11 +101,44 @@ function setupModal(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, modalBody, renderFn)
+  const poster = makeDebouncedPoster((v) => worker.postMessage(v), config.debounceMs)
+
   modalInput.addEventListener("input", function() {
-    worker.postMessage(this.value)
+    poster.post(this.value)
+  })
+  modalInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") poster.flush()
   })
 
   return true
+}
+
+function makeDebouncedPoster(postMessage, waitMs) {
+  if (!waitMs) {
+    return {
+      post: (value) => postMessage(value),
+      flush: () => {},
+    }
+  }
+  let timeoutId = null
+  let lastValue = ""
+
+  function post(value) {
+    lastValue = value
+    if (timeoutId) clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => {
+      timeoutId = null
+      postMessage(lastValue)
+    }, waitMs)
+  }
+
+  function flush() {
+    if (!timeoutId) return
+    clearTimeout(timeoutId)
+    timeoutId = null
+    postMessage(lastValue)
+  }
+  return { post, flush }
 }
 
 function setupPage(config, renderFn) {
@@ -107,8 +149,13 @@ function setupPage(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, resultsContainer, renderFn)
+  const poster = makeDebouncedPoster((v) => worker.postMessage(v), config.debounceMs)
+
   searchBar.addEventListener("input", function() {
-    worker.postMessage(this.value)
+    poster.post(this.value)
+  })
+  searchBar.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") poster.flush()
   })
 
   // If query param `q` is set, use it as initial query
