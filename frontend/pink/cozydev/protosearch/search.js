@@ -33,8 +33,8 @@ function getConfig() {
 }
 
 function parseDebounceMs(urlParams) {
-  const fromUrl = urlParams.get("debounceMs") || urlParams.get("debounce")
-  const fromData = currentScript?.dataset.debounceMs || currentScript?.dataset.debounceMs
+  const fromUrl = urlParams.get("debounceMs")
+  const fromData = currentScript?.dataset.debounceMs
   const raw = fromUrl ?? fromData
   const n = raw == null ? 150 : Number.parseInt(raw, 10)
   return Number.isFinite(n) && n >= 0 ? n : 150
