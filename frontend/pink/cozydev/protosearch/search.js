@@ -27,17 +27,8 @@ function getConfig() {
     renderer: urlParams.get("renderer") || currentScript?.dataset.renderer,
     query: urlParams.get("q"),
     workerParams: buildWorkerParams(urlParams),
-    baseUrl: baseUrl,
-    debounceMs: parseDebounceMs(urlParams),
+    baseUrl: baseUrl
   }
-}
-
-function parseDebounceMs(urlParams) {
-  const fromUrl = urlParams.get("debounceMs")
-  const fromData = currentScript?.dataset.debounceMs
-  const raw = fromUrl ?? fromData
-  const n = raw == null ? 150 : Number.parseInt(raw, 10)
-  return Number.isFinite(n) && n >= 0 ? n : 150
 }
 
 function buildWorkerParams(urlParams) {
@@ -101,7 +92,7 @@ function setupModal(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, modalBody, renderFn)
-  const poster = makeDebouncedPoster((v) => worker.postMessage(v), config.debounceMs)
+  const poster = makeDebouncedPoster((v) => worker.postMessage(v), 100)
 
   modalInput.addEventListener("input", function() {
     poster.post(this.value)
@@ -149,7 +140,7 @@ function setupPage(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, resultsContainer, renderFn)
-  const poster = makeDebouncedPoster((v) => worker.postMessage(v), config.debounceMs)
+  const poster = makeDebouncedPoster((v) => worker.postMessage(v), 100)
 
   searchBar.addEventListener("input", function() {
     poster.post(this.value)
