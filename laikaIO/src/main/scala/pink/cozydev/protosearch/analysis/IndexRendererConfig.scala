@@ -23,9 +23,12 @@ import laika.ast.Path.Root
 object IndexRendererConfig {
 
   def apply(includeInSite: Boolean): BinaryRendererConfig =
+    apply(includeInSite, Nil)
+
+  def apply(includeInSite: Boolean, configKeys: List[String]): BinaryRendererConfig =
     BinaryRendererConfig(
       alias = "index",
-      format = IndexFormat,
+      format = IndexFormat.withConfigKeys(configKeys),
       artifact = Artifact(
         basePath = Root / "search" / "searchIndex",
         suffix = "idx",
