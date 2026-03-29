@@ -27,7 +27,7 @@ function getConfig() {
     renderer: urlParams.get("renderer") || currentScript?.dataset.renderer,
     query: urlParams.get("q"),
     workerParams: buildWorkerParams(urlParams),
-    baseUrl: baseUrl
+    baseUrl: baseUrl,
   }
 }
 
@@ -92,7 +92,6 @@ function setupModal(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, modalBody, renderFn)
-
   modalInput.addEventListener("input", function() {
     worker.postMessage({query: this.value})
   })
@@ -111,7 +110,6 @@ function setupPage(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, resultsContainer, renderFn)
-
   searchBar.addEventListener("input", function() {
     worker.postMessage({query: this.value})
   })
