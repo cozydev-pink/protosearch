@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch
 
-import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
+import pink.cozydev.protosearch.analysis.Analyzer
 import fixtures.BookIndex
 
 class IndexBuilderSuite extends munit.FunSuite {
