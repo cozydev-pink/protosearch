@@ -24,7 +24,7 @@ final case class Searcher(
     multiIndex: MultiIndex,
     highlighter: FirstMatchHighlighter,
 ) {
-  private val scorer = ScoreFunction.tfIdf
+  private val scorer = ScoreFunction.tfIdf(multiIndex.numDocs)
   private val indexSearcher = QueryIteratorSearch(multiIndex, scorer)
   private val queryAnalyzer = multiIndex.schema.queryAnalyzer(multiIndex.schema.defaultField)
   private val ord = Ordering[(Float, Int)].on[(Int, Float)](idScore => (-idScore._2, idScore._1))

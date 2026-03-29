@@ -16,16 +16,16 @@
 
 package pink.cozydev.protosearch
 
-trait ScoreFunction extends ((Int, Int, Int) => Float)
+trait ScoreFunction extends ((Int, Int) => Float)
 object ScoreFunction {
   val noScore: ScoreFunction = new ScoreFunction {
-    def apply(freq: Int, docId: Int, numDocs: Int): Float = 0.0f
+    def apply(freq: Int, numDocsWithTerm: Int): Float = 0.0f
   }
 
-  val tfIdf: ScoreFunction = new ScoreFunction {
-    def apply(freq: Int, docId: Int, numDocs: Int): Float = {
+  def tfIdf(corpusSize: Int): ScoreFunction = new ScoreFunction {
+    def apply(freq: Int, numDocsWithTerm: Int): Float = {
       val tf = math.log(1.0 + freq)
-      val idf = 1.0 / numDocs
+      val idf = math.log((corpusSize + 1) / (numDocsWithTerm + 1)) + 1
       (tf * idf).toFloat
     }
   }

@@ -29,7 +29,7 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
     def currentDocId: Int = currDocId
 
     def currentScore: Float =
-      scorer(postings(docIndex + 1), currDocId, numDocs)
+      scorer(postings(docIndex + 1), numDocs)
 
     private def hasNext = (docIndex + 2) < max || docIndex == -2
 
@@ -148,7 +148,7 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 
       def currentDocId: Int = postings(docIndex)
       def currentFrequency: Int = postings(docIndex + 1)
-      def currentScore: Float = scorer(currentFrequency, currentDocId, numDocs)
+      def currentScore: Float = scorer(currentFrequency, numDocs)
       def currentPosition: Int = postings(posIndex)
 
       override def toString(): String =
