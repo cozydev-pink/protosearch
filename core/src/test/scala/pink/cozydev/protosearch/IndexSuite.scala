@@ -21,7 +21,9 @@ class IndexSuite extends munit.FunSuite {
   val index = fixtures.CatIndex.index
 
   test("apply builds from list of lists of strings") {
-    assertEquals(index.numTerms, 16)
+    val indexB = FrequencyIndex(List(List("bb", "cc", "dd")))
+    assertEquals(indexB.numTerms, 3)
+    assertEquals(indexB.numDocs, 1)
   }
 
   test("termIndexWhere returns zero when nonexistent would insert at beginning") {
