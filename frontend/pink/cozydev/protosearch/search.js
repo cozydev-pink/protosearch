@@ -92,44 +92,15 @@ function setupModal(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, modalBody, renderFn)
-  const poster = makeDebouncedPoster((v) => worker.postMessage(v), 100)
 
   modalInput.addEventListener("input", function() {
-    poster.post(this.value)
+    worker.postMessage({query: this.value})
   })
   modalInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") poster.flush()
+    if (event.key === "Enter") worker.postMessage({query: this.value, flush: true})
   })
 
   return true
-}
-
-function makeDebouncedPoster(postMessage, waitMs) {
-  if (!waitMs) {
-    return {
-      post: (value) => postMessage(value),
-      flush: () => {},
-    }
-  }
-  let timeoutId = null
-  let lastValue = ""
-
-  function post(value) {
-    lastValue = value
-    if (timeoutId) clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => {
-      timeoutId = null
-      postMessage(lastValue)
-    }, waitMs)
-  }
-
-  function flush() {
-    if (!timeoutId) return
-    clearTimeout(timeoutId)
-    timeoutId = null
-    postMessage(lastValue)
-  }
-  return { post, flush }
 }
 
 function setupPage(config, renderFn) {
@@ -140,19 +111,18 @@ function setupPage(config, renderFn) {
 
   // Send input to worker
   const worker = createSearchWorker(config, resultsContainer, renderFn)
-  const poster = makeDebouncedPoster((v) => worker.postMessage(v), 100)
 
   searchBar.addEventListener("input", function() {
-    poster.post(this.value)
+    worker.postMessage({query: this.value})
   })
   searchBar.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") poster.flush()
+    if (event.key === "Enter") worker.postMessage({query: this.value, flush: true})
   })
 
   // If query param `q` is set, use it as initial query
   if (config.query) {
     searchBar.value = config.query
-    worker.postMessage(config.query)
+    worker.postMessage({query: config.query, flush: true})
   }
 
   return true
