@@ -65,12 +65,12 @@ object FrequencyPostingsList {
   }
 }
 final class FrequencyPostingsBuilder {
-
   // cat ->          // "cat" appears in 2 documents
   // 4, 3,           // doc 4, 3 times
   // 7, 1,           // doc 7, once
   // cat array:
   // 4, 3, 7, 1
+
   private[this] var buffer = new Array[Int](16)
   private[this] var length = 0
 
@@ -142,9 +142,9 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 
   def queryIterator(scorer: ScoreFunction): QueryIteratorWithPositions =
     new QueryIteratorWithPositions {
-      private[this] var docIndex = 0
-      private[this] var posIndex = 2
-      private[this] val numDocs = postings.size / 3 // TODO WRONG, need to save numDocs in array
+      private[this] var docIndex = 1
+      private[this] var posIndex = 3
+      private[this] val numDocs = postings(0)
 
       def currentDocId: Int = postings(docIndex)
       def currentFrequency: Int = postings(docIndex + 1)
@@ -213,18 +213,20 @@ object PositionalPostingsList {
 }
 
 final class PositionalPostingsBuilder {
-  // TODO do we want to encode the number of doc matches?
-
   // cat ->            // "cat" appears in 2 documents
   // 4, 3, 7, 12, 47   // doc 4, 3 occurrences at positions 7, 12, and 47
   // 7, 1, 3           // doc 7, 1 occurrence at position 3
   // cat array:
-  // 4, 3, 7, 12, 47, 7, 1, 3
+  // 2, 4, 3, 7, 12, 47, 7, 1, 3
+
   private[this] var buffer = new Array[Int](16)
-  private[this] var length = 0
+  // Start length at 1 to account for hold numDocs in 0th position of array at the end
+  private[this] var length = 1
 
   // Keeps track of the current document ID
   private[this] var currentDocId = -1
+
+  private[this] var numDocs = 0
 
   // Keeps track of the index for the current document's term frequency
   private[this] var freqIndex = -1
@@ -239,6 +241,7 @@ final class PositionalPostingsBuilder {
       length += 1
     } else {
       // new doc, set docId, freq, first position
+      numDocs += 1
       currentDocId = docId
       buffer(length) = docId
       freqIndex = length + 1
@@ -257,7 +260,9 @@ final class PositionalPostingsBuilder {
     }
 
   def toPositionalPostingsList: PositionalPostingsList = {
-    require(length > 0, "Cannot make empty PositionalPostingsList")
-    new PositionalPostingsList(buffer.slice(0, length))
+    require(length > 1, "Cannot make empty PositionalPostingsList")
+    val slice = buffer.slice(0, length)
+    slice(0) = numDocs
+    new PositionalPostingsList(slice)
   }
 }
