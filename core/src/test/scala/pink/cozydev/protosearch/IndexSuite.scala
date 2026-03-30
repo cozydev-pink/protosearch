@@ -64,4 +64,10 @@ class IndexSuite extends munit.FunSuite {
     assert(indexDecoded.isSuccessful)
   }
 
+  test("FrequencyIndex and PositionalIndex agree on numDocs") {
+    val freqIndex = FrequencyIndex(fixtures.CatIndex.docs)
+    val posIndex = PositionalIndex(fixtures.CatIndex.docs)
+    assertEquals(freqIndex.numDocs, posIndex.numDocs)
+  }
+
 }
