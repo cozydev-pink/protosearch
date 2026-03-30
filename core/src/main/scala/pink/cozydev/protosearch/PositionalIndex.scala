@@ -107,14 +107,15 @@ object PositionalIndex {
     }
     val keys = ArrayBuilder.make[String]
     val values = ArrayBuilder.make[PositionalPostingsList]
-    val size = termPostingsMap.size
-    keys.sizeHint(size)
-    values.sizeHint(size)
+    val numTerms = termPostingsMap.size
+    val numDocs = docId - 1 // because we started at 1
+    keys.sizeHint(numTerms)
+    values.sizeHint(numTerms)
     termPostingsMap.foreach { case (k, v) =>
       keys += k
       values += v.toPositionalPostingsList
     }
-    new PositionalIndex(new TermDictionary(keys.result()), values.result(), docId - 1) {}
+    new PositionalIndex(new TermDictionary(keys.result()), values.result(), numDocs) {}
   }
 
   val codec: Codec[PositionalIndex] = {

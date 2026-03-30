@@ -22,6 +22,8 @@ final case class MultiIndex(
     fields: Map[String, Array[String]],
 ) {
   val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
+
+  val numDocs = indexes(schema.defaultField).numDocs
 }
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs

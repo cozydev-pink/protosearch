@@ -33,7 +33,7 @@ class ScorerSuite extends munit.FunSuite {
     )
     .fromList(allBooks)
 
-  val searcher = QueryIteratorSearch(index, ScoreFunction.tfIdf)
+  val searcher = QueryIteratorSearch(index, ScoreFunction.tfIdf(index.numDocs))
 
   def score(q: String, topN: Int = 10): Either[String, List[(Int, Float)]] =
     QueryParser
