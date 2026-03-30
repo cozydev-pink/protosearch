@@ -25,7 +25,7 @@ object ScoreFunction {
   def tfIdf(corpusSize: Int): ScoreFunction = new ScoreFunction {
     def apply(freq: Int, numDocsWithTerm: Int): Float = {
       val tf = math.log(1.0 + freq)
-      val idf = math.log((corpusSize + 1) / (numDocsWithTerm + 1)) + 1
+      val idf = math.log((corpusSize + 1.0) / (numDocsWithTerm + 1.0)) + 1.0
       (tf * idf).toFloat
     }
   }
