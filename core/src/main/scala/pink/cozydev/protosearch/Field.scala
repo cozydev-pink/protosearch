@@ -18,24 +18,30 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.Analyzer
 
-/** A part of a Document.
-  *
-  * @param name Field name as would be used in a field query, e.g. `title:cats`
-  * @param analyzer The analyzer to apply to the field at indexing time
-  * @param stored Whether the raw field value should be stored in the index
-  * @param indexed Whether the field value should be indexed for fast querying
-  * @param positions Whether the positions should be indexed for fast phrase querying
-  */
+/**
+ * A part of a Document.
+ *
+ * @param name
+ *   Field name as would be used in a field query, e.g. `title:cats`
+ * @param analyzer
+ *   The analyzer to apply to the field at indexing time
+ * @param stored
+ *   Whether the raw field value should be stored in the index
+ * @param indexed
+ *   Whether the field value should be indexed for fast querying
+ * @param positions
+ *   Whether the positions should be indexed for fast phrase querying
+ */
 final case class Field(
-    name: String,
-    analyzer: Analyzer,
-    stored: Boolean,
-    indexed: Boolean,
-    positions: Boolean,
+  name: String,
+  analyzer: Analyzer,
+  stored: Boolean,
+  indexed: Boolean,
+  positions: Boolean
 )
 object Field {
   import scodec.Codec
-  import scodec.codecs._
+  import scodec.codecs.*
 
   val codec: Codec[Field] = {
     ("name" | utf8_32) ::

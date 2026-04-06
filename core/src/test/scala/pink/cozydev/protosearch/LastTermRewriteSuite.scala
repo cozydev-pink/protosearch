@@ -17,10 +17,10 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.lucille.Query
-import pink.cozydev.protosearch.LastTermRewrite._
+import pink.cozydev.protosearch.LastTermRewrite.*
 
 class LastTermRewriteSuite extends munit.FunSuite {
-  import pink.cozydev.lucille.Query._
+  import pink.cozydev.lucille.Query.*
 
   test("termToPrefix rewrites termQ to termQ and prefix") {
     val q = Term("f")
@@ -41,7 +41,7 @@ class LastTermRewriteSuite extends munit.FunSuite {
     val expected =
       Or(
         Term("first"),
-        Group(Or(Term("f"), Prefix("f"))),
+        Group(Or(Term("f"), Prefix("f")))
       )
     assertEquals(q.mapLastTerm(termToPrefix), expected)
   }

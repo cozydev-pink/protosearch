@@ -8,7 +8,7 @@ ThisBuild / licenses := Seq(License.Apache2)
 ThisBuild / developers := List(
   // your GitHub handle and name
   tlGitHubDev("valencik", "Andrew Valencik"),
-  tlGitHubDev("samspills", "Sam Pillsworth"),
+  tlGitHubDev("samspills", "Sam Pillsworth")
 )
 
 // publish website from this branch
@@ -53,7 +53,7 @@ lazy val root =
     .aggregate(
       core,
       laikaIO,
-      jsInterop,
+      jsInterop
     )
     .configureRoot { root =>
       root.aggregate(plugin, scaladoc) // don't include the plugin in rootJVM, only in root
@@ -75,8 +75,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.scodec" %%% "scodec-core" % scodecV(scalaVersion.value),
       "pink.cozydev" %%% "lucille" % lucilleV,
       "org.scalameta" %%% "munit" % munitV % Test,
-      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
-    ),
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test
+    )
   )
 
 lazy val laikaIO = crossProject(JVMPlatform)
@@ -95,14 +95,14 @@ lazy val laikaIO = crossProject(JVMPlatform)
       "org.typelevel" %%% "laika-core" % laikaV,
       "org.typelevel" %%% "laika-io" % laikaV,
       "org.scalameta" %%% "munit" % munitV % Test,
-      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test,
+      "org.typelevel" %%% "munit-cats-effect" % munitCatsEffectV % Test
     ),
     Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
     Compile / packageBin / mappings += {
       val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
       val dir = "pink/cozydev/protosearch"
       jsArtifactInterop -> s"$dir/protosearch.js"
-    },
+    }
   )
 
 lazy val scaladoc = project
@@ -113,8 +113,8 @@ lazy val scaladoc = project
     crossScalaVersions := Seq(Scala212),
     libraryDependencies ++= Seq(
       "org.scalameta" %%% "munit" % munitV % Test,
-      "org.scalameta" %%% "scalameta" % scalametaV,
-    ),
+      "org.scalameta" %%% "scalameta" % scalametaV
+    )
   )
 
 lazy val jsInterop = crossProject(JSPlatform)
@@ -125,7 +125,7 @@ lazy val jsInterop = crossProject(JSPlatform)
     name := "protosearch-jsinterop",
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % scalajsDomV
-    ),
+    )
   )
 
 lazy val plugin =
@@ -144,10 +144,10 @@ lazy val plugin =
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
         val dir = "pink/cozydev/protosearch"
         jsArtifactInterop -> s"$dir/protosearch.js"
-      },
+      }
     )
 
-import laika.helium.config.{IconLink, HeliumIcon}
+import laika.helium.config.{HeliumIcon, IconLink}
 lazy val docs = project
   .in(file("site"))
   .enablePlugins(TypelevelSitePlugin)
@@ -170,7 +170,7 @@ lazy val docs = project
               "Related Projects",
               TextLink.external("https://lucene.apache.org/", "lucene"),
               TextLink.external("https://github.com/cozydev-pink/lucille", "lucille"),
-              TextLink.external("https://github.com/cozydev-pink/textmogrify", "textmogrify"),
+              TextLink.external("https://github.com/cozydev-pink/textmogrify", "textmogrify")
             )
           )
         )
@@ -183,16 +183,16 @@ lazy val docs = project
       laikaInputs.value.delegate
         .addFile(
           FilePath.fromJavaFile(jsArtifactInterop),
-          Root / "interop" / "index.js",
+          Root / "interop" / "index.js"
         )
         .addFile(
           FilePath.fromNioPath(jsArtifactInterop.toPath.resolveSibling(sourcemapInterop)),
-          Root / "interop" / sourcemapInterop,
+          Root / "interop" / sourcemapInterop
         )
     },
     laikaSite := laikaSite
       .dependsOn(
         jsInterop.js / Compile / fullOptJS
       )
-      .value,
+      .value
   )

@@ -16,13 +16,13 @@
 
 package pink.cozydev.protosearch.codecs
 
-import scodec.{Attempt, Codec, codecs}
+import scodec.{codecs, Attempt, Codec}
 
 class IndexCodecsSuite extends munit.FunSuite {
   val termL = List(
     "hi",
     "hello",
-    "goodbye",
+    "goodbye"
   )
 
   test("IndexCodecs.termList encodes") {

@@ -18,16 +18,20 @@ package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.analysis.QueryAnalyzer
 
-/** A Schema describes how the `Field`s of a document type will be used for search.
-  *
-  * @param fields The list of fields
-  * @param defaultField The default field to use when one is not specified in a query
-  * @param defaultOR Whether to use a default `OR` when combining queries
-  */
+/**
+ * A Schema describes how the `Field`s of a document type will be used for search.
+ *
+ * @param fields
+ *   The list of fields
+ * @param defaultField
+ *   The default field to use when one is not specified in a query
+ * @param defaultOR
+ *   Whether to use a default `OR` when combining queries
+ */
 final class Schema private (
-    private val fields: List[Field],
-    val defaultField: String,
-    val defaultOR: Boolean = true,
+  private val fields: List[Field],
+  val defaultField: String,
+  val defaultOR: Boolean = true
 ) {
   val storedFields: Set[String] = {
     val bldr = Set.newBuilder[String]
@@ -45,14 +49,14 @@ object Schema {
   import scodec.codecs
 
   def apply[A](
-      head: Field,
-      tail: List[Field],
+    head: Field,
+    tail: List[Field]
   ): Schema =
     new Schema(head :: tail, head.name)
 
   def of[A](
-      head: Field,
-      tail: Field*
+    head: Field,
+    tail: Field*
   ): Schema =
     new Schema(head :: tail.toList, head.name)
 
@@ -65,6 +69,6 @@ object Schema {
       .as[(List[Field], String, Boolean)]
       .xmap(
         { case (fs, df, db) => new Schema(fs, df, db) },
-        s => (s.fields, s.defaultField, s.defaultOR),
+        s => (s.fields, s.defaultField, s.defaultOR)
       )
 }

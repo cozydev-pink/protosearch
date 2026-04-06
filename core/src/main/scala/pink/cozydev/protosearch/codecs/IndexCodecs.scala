@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch.codecs
 
-import scodec.{Attempt, Codec, Err, codecs}
+import scodec.{codecs, Attempt, Codec, Err}
 import scala.reflect.ClassTag
 
 // Derived from scodec vectorOfN
@@ -33,7 +33,7 @@ object IndexCodecs {
             Attempt.failure(Err.insufficientBits(cnt * valueBits, xs.size * valueBits))
           }
         },
-        (xs: Array[A]) => (xs.size, xs),
+        (xs: Array[A]) => (xs.size, xs)
       )
       .withToString(s"arrayOfN($countCodec, $valueCodec)")
 

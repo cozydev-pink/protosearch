@@ -28,10 +28,10 @@ object IndexRendererConfig {
       format = IndexFormat,
       artifact = Artifact(
         basePath = Root / "search" / "searchIndex",
-        suffix = "idx",
+        suffix = "idx"
       ),
       includeInSite = includeInSite,
-      supportsSeparations = false,
+      supportsSeparations = false
     )
 
 }

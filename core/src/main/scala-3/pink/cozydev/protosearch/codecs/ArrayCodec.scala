@@ -16,17 +16,17 @@
 
 package pink.cozydev.protosearch.codecs
 
-import scodec._
+import scodec.*
 import scodec.bits.BitVector
 import scala.reflect.ClassTag
 
 // Derived from scodec VectorCodec
 // https://github.com/scodec/scodec/blob/v2.2.1/shared/src/main/scala/scodec/codecs/VectorCodec.scala
-private[protosearch] final class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
+final private[protosearch] class ArrayCodec[A: ClassTag](codec: Codec[A], limit: Option[Int] = None)
     extends Codec[Array[A]] {
 
   def sizeBound: SizeBound = limit match {
-    case None => SizeBound.unknown
+    case None      => SizeBound.unknown
     case Some(lim) => codec.sizeBound * lim.toLong
   }
 

@@ -17,9 +17,9 @@
 package pink.cozydev.protosearch
 
 final case class MultiIndex(
-    indexes: Map[String, Index],
-    schema: Schema,
-    fields: Map[String, Array[String]],
+  indexes: Map[String, Index],
+  schema: Schema,
+  fields: Map[String, Array[String]]
 ) {
   val queryAnalyzer = schema.queryAnalyzer(schema.defaultField)
 
@@ -28,13 +28,13 @@ final case class MultiIndex(
 object MultiIndex {
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
-  import scodec.{Attempt, Codec, codecs, Err}
-  import scodec.codecs._
+  import scodec.{codecs, Attempt, Codec, Err}
+  import scodec.codecs.*
 
   private def encodeIndex(i: Index): Attempt[Either[FrequencyIndex, PositionalIndex]] =
     i match {
       case idx: PositionalIndex => Attempt.successful(Right(idx))
-      case idx: FrequencyIndex => Attempt.successful(Left(idx))
+      case idx: FrequencyIndex  => Attempt.successful(Left(idx))
       case _ => Attempt.failure(Err("Index was neither FrequencyIndex or PositionalIndex"))
     }
 
@@ -64,7 +64,7 @@ object MultiIndex {
         .as[(Map[String, Index], Schema, Map[String, Array[String]])]
         .xmap(
           { case (in, sc, fs) => MultiIndex.apply(in, sc, fs) },
-          mi => (mi.indexes, mi.schema, mi.fields),
+          mi => (mi.indexes, mi.schema, mi.fields)
         )
     multiIndex
   }

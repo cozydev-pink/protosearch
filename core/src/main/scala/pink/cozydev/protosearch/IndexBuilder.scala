@@ -18,10 +18,12 @@ package pink.cozydev.protosearch
 
 import scala.collection.mutable.ListBuffer
 
-/** An intermediate helper for iterating over documents and building an Index */
+/**
+ * An intermediate helper for iterating over documents and building an Index
+ */
 final case class IndexBuilder[A] private (
-    fieldAndGetters: List[(Field, A => String)],
-    defaultField: String,
+  fieldAndGetters: List[(Field, A => String)],
+  defaultField: String
 ) {
   val schema = Schema(fieldAndGetters.head._1, fieldAndGetters.tail.map(_._1))
 
@@ -48,16 +50,18 @@ final case class IndexBuilder[A] private (
     new MultiIndex(
       indexes = indexes,
       schema = schema,
-      fields = storage.map { case (k, v) => (k, v.toArray) },
+      fields = storage.map { case (k, v) => (k, v.toArray) }
     )
   }
 }
 object IndexBuilder {
 
-  /** Construct a IndexBuilder of type `A` from a list of `Field`s and 'getter functions'. */
+  /**
+   * Construct a IndexBuilder of type `A` from a list of `Field`s and 'getter functions'.
+   */
   def of[A](
-      defaultField: (Field, A => String),
-      fields: (Field, A => String)*
+    defaultField: (Field, A => String),
+    fields: (Field, A => String)*
   ): IndexBuilder[A] =
     IndexBuilder(defaultField :: fields.toList, defaultField._1.name)
 }

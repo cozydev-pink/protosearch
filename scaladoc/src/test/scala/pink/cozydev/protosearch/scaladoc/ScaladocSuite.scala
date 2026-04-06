@@ -16,7 +16,7 @@
 
 package pink.cozydev.protosearch.scaladoc
 import munit.FunSuite
-import pink.cozydev.protosearch.{Searcher, SearchRequest}
+import pink.cozydev.protosearch.{SearchRequest, Searcher}
 
 class ScaladocSuite extends FunSuite {
 
@@ -145,11 +145,11 @@ final case class IndexBuilder[A] private (
       List(
         "T: The type parameter",
         "a: The first parameter: Int",
-        "b: The second parameter: Int (Optional)",
+        "b: The second parameter: Int (Optional)"
       ),
       "Int",
       17,
-      18,
+      18
     )
 
     assertEquals(actual, expected)
@@ -167,7 +167,7 @@ final case class IndexBuilder[A] private (
       List("name: The name parameter: String (Optional)"),
       "Unit",
       24,
-      25,
+      25
     )
 
     assertEquals(actual, expected)
@@ -186,11 +186,11 @@ final case class IndexBuilder[A] private (
       List(
         "T: The type parameters",
         "c: The first parameter to subtract: Int (Optional)",
-        "d: The second parameter to subtract: Int (Implicit)",
+        "d: The second parameter to subtract: Int (Implicit)"
       ),
       "Int",
       34,
-      34,
+      34
     )
 
     assertEquals(actual, expected)
@@ -209,11 +209,11 @@ final case class IndexBuilder[A] private (
       List(
         "T: The type parameter",
         "a: The first parameter: Int",
-        "b: The second parameter: Int (Optional)",
+        "b: The second parameter: Int (Optional)"
       ),
       "Int",
       8,
-      9,
+      9
     )
 
     assertEquals(actual, expected)
@@ -232,7 +232,7 @@ final case class IndexBuilder[A] private (
       List("docs: List[A]"),
       "MultiIndex",
       12,
-      37,
+      37
     )
 
     assertEquals(actual, expected)

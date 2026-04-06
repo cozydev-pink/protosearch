@@ -35,7 +35,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast")
     assertEquals(
       q,
-      Right(Set(2)),
+      Right(Set(2))
     )
   }
 
@@ -43,7 +43,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast cat")
     assertEquals(
       q,
-      Right(Set(1, 2, 3)),
+      Right(Set(1, 2, 3))
     )
   }
 
@@ -51,7 +51,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("fast AND cat")
     assertEquals(
       q,
-      Right(Set(2)),
+      Right(Set(2))
     )
   }
 
@@ -59,7 +59,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val q = search("the AND fast AND cat")
     assertEquals(
       q,
-      Right(Set(2)),
+      Right(Set(2))
     )
   }
 
@@ -68,7 +68,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2, 3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -77,7 +77,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2, 3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -86,7 +86,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -95,7 +95,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -104,7 +104,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2, 3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -113,7 +113,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -122,7 +122,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -131,7 +131,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val results = Set(1, 2, 3)
     assertEquals(
       q,
-      Right(results),
+      Right(results)
     )
   }
 
@@ -140,7 +140,7 @@ class FrequencyIndexSearcherSuite extends munit.FunSuite {
     val err = "Invalid regex query TermRegex([)"
     assertEquals(
       q,
-      Left(err),
+      Left(err)
     )
   }
 

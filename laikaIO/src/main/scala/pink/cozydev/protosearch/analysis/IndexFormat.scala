@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.analysis
 import cats.syntax.all.*
 import cats.effect.{Async, Resource}
 import fs2.{Chunk, Stream}
-import laika.api.format.{BinaryPostProcessor, Formatter, TwoPhaseRenderFormat, RenderFormat}
+import laika.api.format.{BinaryPostProcessor, Formatter, RenderFormat, TwoPhaseRenderFormat}
 import laika.ast.*
 import laika.io.model.{BinaryOutput, RenderedTreeRoot}
 import laika.api.builder.OperationConfig
@@ -38,24 +38,25 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
   def prepareTree(tree: DocumentTreeRoot): Either[Throwable, DocumentTreeRoot] =
     Right(tree) // no-op
 
-  /** Post processor that produces the final result based on the interim format.
-    */
+  /**
+   * Post processor that produces the final result based on the interim format.
+   */
   def postProcessor: BinaryPostProcessor.Builder = new BinaryPostProcessor.Builder {
 
     def build[F[_]: Async](config: Config, theme: Theme[F]): Resource[F, BinaryPostProcessor[F]] =
       Resource.pure[F, BinaryPostProcessor[F]](new BinaryPostProcessor[F] {
 
         def process(
-            result: RenderedTreeRoot[F],
-            output: BinaryOutput[F],
-            config: OperationConfig,
+          result: RenderedTreeRoot[F],
+          output: BinaryOutput[F],
+          config: OperationConfig
         ): F[Unit] = {
           val analyzer = Analyzer.default.withLowerCasing
           val index = IndexBuilder
             .of[RenderedDocument](
               (Field("body", analyzer, true, true, true), _.content),
               (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
-              (Field("path", analyzer, true, true, false), d => renderPath(d)),
+              (Field("path", analyzer, true, true, false), d => renderPath(d))
             )
             .fromList(result.allDocuments.toList)
 
@@ -82,7 +83,7 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
   private def renderTitle(title: Option[SpanSequence], path: Path): String =
     title match {
       case Some(span) => span.extractText
-      case None => path.name
+      case None       => path.name
     }
 
   private def renderPath(doc: RenderedDocument): String =

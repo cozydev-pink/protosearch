@@ -3,3 +3,6 @@ c6ac9d90ff6ca0d0379c6d45a07a348d2cee5307
 
 # Scala Steward: Reformat with scalafmt 3.8.6
 c42b5300b5a3179bee2ba6475fcef4137487a9b4
+
+# New .scalafmt.conf from cats
+f5c5ab9328743b51e9dd006f80304e4cd597c5e5

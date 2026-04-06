@@ -17,7 +17,7 @@
 package pink.cozydev.protosearch.internal
 
 class NextPositionToMatchSuite extends munit.FunSuite {
-  import NextPositionToMatch._
+  import NextPositionToMatch.*
 
   test("nextNotInOrderWithLargest chooses unordered position closest to being in order") {
     val arr = Array(1, 200, 199)

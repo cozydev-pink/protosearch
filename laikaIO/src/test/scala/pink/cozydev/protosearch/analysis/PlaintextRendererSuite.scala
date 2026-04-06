@@ -36,7 +36,7 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     SelectionConfig(
       "name",
       ChoiceConfig("aaa", "AAA Content"),
-      ChoiceConfig("bbb", "BBB Content"),
+      ChoiceConfig("bbb", "BBB Content")
     )
   )
 
@@ -209,7 +209,9 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     assertEquals(transformMarkdown(doc), Right(expected))
   }
 
-  /** BlockContainers **************************************************** */
+  /**
+   * BlockContainers ****************************************************
+   */
 
   test("nested blockquotes - Markdown") {
     val doc =
@@ -272,7 +274,9 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     assertEquals(transformRST(doc), Right(expected))
   }
 
-  /** lists ************************************************************** */
+  /**
+   * lists **************************************************************
+   */
 
   test("nested bullet lists") {
     val doc =
@@ -359,7 +363,9 @@ class PlaintextRendererSuite extends CatsEffectSuite {
     }
   }
 
-  /** templates and raw content ****************************************************** */
+  /**
+   * templates and raw content ******************************************************
+   */
 
   test("exclude template content except the nodes merged from the associated markup files") {
     val doc =

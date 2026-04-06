@@ -17,44 +17,44 @@
 package pink.cozydev.protosearch
 
 import pink.cozydev.protosearch.highlight.{FirstMatchHighlighter, FragmentFormatter}
-import scala.scalajs.js.annotation._
+import scala.scalajs.js.annotation.*
 import scala.scalajs.js
 import org.scalajs.dom.Blob
 import scodec.bits.ByteVector
 
 @JSExportTopLevel("Hit")
 class JsHit(
-    val id: Int,
-    val score: Float,
-    val fields: js.Dictionary[String],
-    val highlights: js.Dictionary[String],
+  val id: Int,
+  val score: Float,
+  val fields: js.Dictionary[String],
+  val highlights: js.Dictionary[String]
 ) extends js.Object
 
 @JSExportTopLevel("Querier")
 class Querier(val mIndex: MultiIndex) {
-  import js.JSConverters._
+  import js.JSConverters.*
   val highlighter =
     FirstMatchHighlighter(FragmentFormatter("<mark>", "</mark>"), 150)
   val searcher = Searcher(mIndex, highlighter)
 
   @JSExport
   def search(
-      query: String,
-      highlightFields: js.UndefOr[js.Array[String]] = js.undefined,
-      resultFields: js.UndefOr[js.Array[String]] = js.undefined,
+    query: String,
+    highlightFields: js.UndefOr[js.Array[String]] = js.undefined,
+    resultFields: js.UndefOr[js.Array[String]] = js.undefined
   ): js.Array[JsHit] = {
     val req = SearchRequest(
       query,
       size = 10,
       highlightFields.toOption.map(_.toList),
       resultFields.toOption.map(_.toList),
-      lastTermPrefix = true,
+      lastTermPrefix = true
     )
     val hits = searcher
       .search(req)
       .fold(
         err => { println(err); Nil },
-        identity,
+        identity
       )
       .map(h => new JsHit(h.id, h.score, h.fields.toJSDictionary, h.highlights.toJSDictionary))
     hits.toJSArray

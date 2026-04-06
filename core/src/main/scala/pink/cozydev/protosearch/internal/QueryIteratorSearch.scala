@@ -18,7 +18,7 @@ package pink.cozydev.protosearch.internal
 
 import pink.cozydev.protosearch.Index
 import pink.cozydev.lucille.Query
-import pink.cozydev.lucille.Query._
+import pink.cozydev.lucille.Query.*
 import pink.cozydev.protosearch.PositionalIndex
 import pink.cozydev.protosearch.MultiIndex
 import pink.cozydev.lucille.TermQuery
@@ -58,23 +58,23 @@ object QueryIteratorSearch {
           .get(f)
           .toRight(s"Unsupported field: '$f'")
           .flatMap(idx => new SingleIndexQueryIteratorSearcher(idx, scorer).doit(q))
-      case Query.Group(q) => doit(q)
-      case Query.And(qs) => qs.traverse(doit).map(qis => AndIter(qis.toList))
-      case Query.Or(qs) => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
+      case Query.Group(q)        => doit(q)
+      case Query.And(qs)         => qs.traverse(doit).map(qis => AndIter(qis.toList))
+      case Query.Or(qs)          => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
       case Query.Boost(q, boost) => doit(q).map(qi => new BoostQueryIterator(qi, boost))
       case Query.MinimumMatch(qs, num) =>
         qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, num))
       case q: Query.Not =>
         doit(q.q).map(qi => new NotQueryIterator(qi, defaultIndex.numDocs))
       case _: Query.UnaryMinus => ???
-      case _: Query.UnaryPlus => ???
+      case _: Query.UnaryPlus  => ???
     }
   }
 
   private class SingleIndexQueryIteratorSearcher(index: Index, scorer: ScoreFunction) {
     def doit(query: Query): Either[String, QueryIterator] = query match {
-      case q: Query.Term => Right(index.docsWithTermIter(q.str, scorer))
-      case q: Query.Prefix => Right(index.docsForPrefixIter(q.str, scorer))
+      case q: Query.Term      => Right(index.docsWithTermIter(q.str, scorer))
+      case q: Query.Prefix    => Right(index.docsForPrefixIter(q.str, scorer))
       case q: Query.TermRange => rangeSearch(q)
       case q: Query.TermRegex => regexSearch(q)
       case q: Query.Phrase =>
@@ -82,25 +82,25 @@ object QueryIteratorSearch {
           case indx: PositionalIndex =>
             PhraseIterator.exact(indx, q.str.split(" ").toList) match {
               case Some(pi) => Right(pi)
-              case None => Left(s"Some terms in phrase '$q' could not be found in index")
+              case None     => Left(s"Some terms in phrase '$q' could not be found in index")
             }
           case _ => Left("Index does not support phrase queries")
         }
       case q: Query.Field =>
         Left(s"Unsupported nested field query: $q")
       case Query.Group(q) => doit(q)
-      case Query.And(qs) => qs.traverse(doit).map(qis => AndIter(qis.toList))
-      case Query.Or(qs) => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
+      case Query.And(qs)  => qs.traverse(doit).map(qis => AndIter(qis.toList))
+      case Query.Or(qs)   => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
       case q: Query.Not =>
         doit(q.q).map(qi => new NotQueryIterator(qi, index.numDocs))
       case Query.Boost(q, boost) => doit(q).map(qi => new BoostQueryIterator(qi, boost))
       case MinimumMatch(qs, num) =>
         qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, num))
       case _: Query.UnaryMinus => ???
-      case _: Query.UnaryPlus => ???
-      case _: Query.Proximity => ???
-      case _: Query.Fuzzy => ???
-      case _: Query.WildCard => ???
+      case _: Query.UnaryPlus  => ???
+      case _: Query.Proximity  => ???
+      case _: Query.Fuzzy      => ???
+      case _: Query.WildCard   => ???
     }
 
     private def rangeSearch(q: Query.TermRange): Either[String, QueryIterator] =

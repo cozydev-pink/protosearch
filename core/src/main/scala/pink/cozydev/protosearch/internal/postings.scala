@@ -18,7 +18,9 @@ package pink.cozydev.protosearch.internal
 
 import pink.cozydev.protosearch.ScoreFunction
 
-/** A non-empty array of postings for a single term. */
+/**
+ * A non-empty array of postings for a single term.
+ */
 final class FrequencyPostingsList private[internal] (private val postings: Array[Int]) {
 
   def queryIterator(scorer: ScoreFunction): QueryIterator = new QueryIterator {
@@ -49,8 +51,8 @@ final class FrequencyPostingsList private[internal] (private val postings: Array
 
 }
 object FrequencyPostingsList {
-  import scodec.{Codec, codecs}
-  import scodec.codecs._
+  import scodec.{codecs, Codec}
+  import scodec.codecs.*
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
   val codec: Codec[FrequencyPostingsList] = {
@@ -60,7 +62,7 @@ object FrequencyPostingsList {
       .arrayOfN(codecs.vint, codecs.vint)
       .xmap(
         arr => new FrequencyPostingsList(arr),
-        p => p.postings,
+        p => p.postings
       )
   }
 }
@@ -110,17 +112,20 @@ final class FrequencyPostingsBuilder {
   }
 }
 
-/** A stateful reader for `PositionalPostingsList`s, tracking the `currentDocId` and
-  * `currentPosition` as it iterates through the postings.
-  */
-private[internal] abstract class PositionalPostingsReader {
+/**
+ * A stateful reader for `PositionalPostingsList`s, tracking the `currentDocId` and
+ * `currentPosition` as it iterates through the postings.
+ */
+abstract private[internal] class PositionalPostingsReader {
   def currentDocId: Int
   def currentPosition: Int
 
-  /** Advances until `docId` or greater if possible, skipping docs less than `docId`.
-    * Does not advance if already at `docId`.
-    * @return new `currentDocId` value
-    */
+  /**
+   * Advances until `docId` or greater if possible, skipping docs less than `docId`. Does not
+   * advance if already at `docId`.
+   * @return
+   *   new `currentDocId` value
+   */
   def advance(docId: Int): Int
 
   def currentFrequency: Int
@@ -129,15 +134,20 @@ private[internal] abstract class PositionalPostingsReader {
 
   def hasNextPosition: Boolean
 
-  /** Advances and returns the next position if possible, returns -1 if there are no remaining positions.
-    *
-    * @return new `currentPosition` value
-    */
+  /**
+   * Advances and returns the next position if possible, returns -1 if there are no remaining
+   * positions.
+   *
+   * @return
+   *   new `currentPosition` value
+   */
   def nextPosition(): Int
   def nextPosition(target: Int): Int
 }
 
-/** A non-empty array of postings for a single term. */
+/**
+ * A non-empty array of postings for a single term.
+ */
 final class PositionalPostingsList private[internal] (private val postings: Array[Int]) {
 
   def queryIterator(scorer: ScoreFunction): QueryIteratorWithPositions =
@@ -196,8 +206,8 @@ final class PositionalPostingsList private[internal] (private val postings: Arra
 
 }
 object PositionalPostingsList {
-  import scodec.{Codec, codecs}
-  import scodec.codecs._
+  import scodec.{codecs, Codec}
+  import scodec.codecs.*
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
   val codec: Codec[PositionalPostingsList] = {
@@ -207,7 +217,7 @@ object PositionalPostingsList {
       .arrayOfN(codecs.vint, codecs.vint)
       .xmap(
         arr => new PositionalPostingsList(arr),
-        p => p.postings,
+        p => p.postings
       )
   }
 }

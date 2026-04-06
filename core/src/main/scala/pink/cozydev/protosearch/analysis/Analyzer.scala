@@ -18,7 +18,7 @@ package pink.cozydev.protosearch.analysis
 
 // TODO Replace with textmogrify Analyzer once ready
 final case class Analyzer(
-    lowerCase: Boolean
+  lowerCase: Boolean
 ) {
   def withLowerCasing: Analyzer =
     copy(lowerCase = true)
@@ -32,7 +32,7 @@ final case class Analyzer(
 }
 object Analyzer {
   import scodec.Codec
-  import scodec.codecs._
+  import scodec.codecs.*
 
   def default: Analyzer =
     new Analyzer(lowerCase = false)

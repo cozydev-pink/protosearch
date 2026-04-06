@@ -21,8 +21,8 @@ import pink.cozydev.protosearch.highlight.FragmentFormatter
 import pink.cozydev.protosearch.internal.QueryIteratorSearch
 
 final case class Searcher(
-    multiIndex: MultiIndex,
-    highlighter: FirstMatchHighlighter,
+  multiIndex: MultiIndex,
+  highlighter: FirstMatchHighlighter
 ) {
   private val scorer = ScoreFunction.tfIdf(multiIndex.numDocs)
   private val indexSearcher = QueryIteratorSearch(multiIndex, scorer)
@@ -42,7 +42,7 @@ final case class Searcher(
       )
     )
     getHits match {
-      case Left(err) => SearchFailure(err)
+      case Left(err)   => SearchFailure(err)
       case Right(hits) => SearchSuccess(hits)
     }
   }

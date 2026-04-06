@@ -22,14 +22,14 @@ import pink.cozydev.protosearch.internal.QueryIteratorSearch
 import fixtures.BookIndex
 
 class ScorerSuite extends munit.FunSuite {
-  import BookIndex.{Book, allBooks}
+  import BookIndex.{allBooks, Book}
 
   val analyzer = Analyzer.default
 
   val index = IndexBuilder
     .of[Book](
       (Field("title", analyzer, true, true, true), _.title),
-      (Field("author", analyzer, true, true, false), _.author),
+      (Field("author", analyzer, true, true, false), _.author)
     )
     .fromList(allBooks)
 

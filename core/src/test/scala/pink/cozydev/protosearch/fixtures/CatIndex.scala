@@ -26,7 +26,7 @@ object CatIndex {
     List(
       analyzer.tokenize("the quick brown fox jumped over the lazy cat"),
       analyzer.tokenize("the very fast cat jumped across the room"),
-      analyzer.tokenize("a lazy cat sleeps all day"),
+      analyzer.tokenize("a lazy cat sleeps all day")
     )
 
   lazy val index = FrequencyIndex(docs)
