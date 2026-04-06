@@ -17,8 +17,8 @@
 package pink.cozydev.protosearch.highlight
 
 class FirstMatchHighlighterSuite extends munit.FunSuite {
-  val formatter = FragmentFormatter(60, "<b>", "</b>")
-  val highlighter = FirstMatchHighlighter(formatter)
+  val formatter = FragmentFormatter("<b>", "</b>")
+  val highlighter = FirstMatchHighlighter(formatter, 60)
 
   test("no highlight on no match") {
     val s = "hello world"
@@ -117,7 +117,7 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
 
   test("long docs get trimmed with ellipses") {
     val actual = highlighter.highlight(longDoc, "fake")
-    val expected = longDoc.take(formatter.maxSize + formatter.tagSize) + "..."
+    val expected = longDoc.take(highlighter.maxSize + formatter.tagSize) + "..."
     assertEquals(actual, expected)
   }
 
@@ -131,8 +131,7 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
   }
 
   test("trim does not produce broken highlight tags") {
-    val formatter = highlighter.formatter
-    val maxSize = formatter.maxSize
+    val maxSize = highlighter.maxSize
     // match near end, string just under maxSize so tags push it over
     val s = "x" * (maxSize - 6) + "cat" + "xx"
     val actual = highlighter.highlight(s, "cat")

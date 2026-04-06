@@ -17,14 +17,15 @@
 package pink.cozydev.protosearch.highlight
 
 case class FirstMatchHighlighter(
-    formatter: FragmentFormatter
+    formatter: FragmentFormatter,
+    maxSize: Int,
 ) {
 
-  val lookBackWindowSize: Int = formatter.maxSize / 2
+  val lookBackWindowSize: Int = maxSize / 2
 
   def trim(str: String): String = {
     val trimmed = str.trim()
-    val maxWithTags = formatter.maxSize + formatter.tagSize
+    val maxWithTags = maxSize + formatter.tagSize
     if (trimmed.size > maxWithTags)
       trimmed.take(maxWithTags) + "..."
     else trimmed
@@ -39,7 +40,7 @@ case class FirstMatchHighlighter(
       trim(str)
     else {
       val start = Math.max(0, offset - lookBackWindowSize)
-      if (start == 0 || str.size < formatter.maxSize) {
+      if (start == 0 || str.size < maxSize) {
         // First match 'offset' is within first 'lookBackWindowSize' characters,
         // or the whole 'str' is within formatter max, no slicing necessary.
         val fStr = formatter.format(str, List(offset, normalizedQ.size))

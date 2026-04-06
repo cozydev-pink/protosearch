@@ -81,7 +81,7 @@ final case class Searcher(
 }
 object Searcher {
   private val defaultHighlighter =
-    FirstMatchHighlighter(FragmentFormatter(100, "<b>", "</b>"))
+    FirstMatchHighlighter(FragmentFormatter("<b>", "</b>"), 100)
 
   def default(index: MultiIndex): Searcher =
     Searcher(index, defaultHighlighter)

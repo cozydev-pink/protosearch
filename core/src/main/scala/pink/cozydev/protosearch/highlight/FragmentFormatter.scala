@@ -17,7 +17,6 @@
 package pink.cozydev.protosearch.highlight
 
 case class FragmentFormatter(
-    maxSize: Int,
     startTag: String,
     endTag: String,
 ) {

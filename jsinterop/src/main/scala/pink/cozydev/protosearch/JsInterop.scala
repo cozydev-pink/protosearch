@@ -34,7 +34,7 @@ class JsHit(
 class Querier(val mIndex: MultiIndex) {
   import js.JSConverters._
   val highlighter =
-    FirstMatchHighlighter(FragmentFormatter(150, "<mark>", "</mark>"))
+    FirstMatchHighlighter(FragmentFormatter("<mark>", "</mark>"), 150)
   val searcher = Searcher(mIndex, highlighter)
 
   @JSExport

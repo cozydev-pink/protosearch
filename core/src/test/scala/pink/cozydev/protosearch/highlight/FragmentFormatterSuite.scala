@@ -19,7 +19,7 @@ package pink.cozydev.protosearch.highlight
 import munit.FunSuite
 
 class FragmentFormatterSuite extends FunSuite {
-  val formatter = FragmentFormatter(100, "<b>", "</b>")
+  val formatter = FragmentFormatter("<b>", "</b>")
 
   test("formats string with empty offsets") {
     val s = "hello world"
