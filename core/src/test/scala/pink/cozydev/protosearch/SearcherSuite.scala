@@ -41,7 +41,7 @@ class SearcherSuite extends munit.FunSuite {
   }
 
   def searchHit(q: String): Either[String, List[(Int, Map[String, String])]] = {
-    val req = SearchRequest(q, 10, None, Some(List("title", "author")), false)
+    val req = SearchRequest(q, 10, 0, None, Some(List("title", "author")), false)
     val results = searcher.search(req)
     results.toEither.map(_.map(h => (h.id, h.fields)))
   }
@@ -145,21 +145,21 @@ class SearcherSuite extends munit.FunSuite {
   }
 
   test("error when highlight field not stored") {
-    val req = SearchRequest("bad", 10, Some(List("fakefield")), None, false)
+    val req = SearchRequest("bad", 10, 0, Some(List("fakefield")), None, false)
     val result = searcher.search(req)
     val err = "Highlights not stored in index: 'fakefield'."
     assertEquals(result, SearchFailure(err))
   }
 
   test("error when result field not stored") {
-    val req = SearchRequest("bad", 10, None, Some(List("fakefield")), false)
+    val req = SearchRequest("bad", 10, 0, None, Some(List("fakefield")), false)
     val result = searcher.search(req)
     val err = "Fields not stored in index: 'fakefield'."
     assertEquals(result, SearchFailure(err))
   }
 
   test("error when highlight and result fields not stored") {
-    val req = SearchRequest("bad", 10, Some(List("fakefield")), Some(List("fakefield")), false)
+    val req = SearchRequest("bad", 10, 0, Some(List("fakefield")), Some(List("fakefield")), false)
     val result = searcher.search(req)
     val err =
       "Fields not stored in index: 'fakefield'. Highlights not stored in index: 'fakefield'."
@@ -170,6 +170,7 @@ class SearcherSuite extends munit.FunSuite {
     val req = SearchRequest(
       "bad",
       10,
+      0,
       Some(List("fakefield")),
       Some(List("fakefield1", "fakefield2")),
       false
@@ -181,11 +182,35 @@ class SearcherSuite extends munit.FunSuite {
   }
 
   test("no highlights when highlightFields is Some(Nil)") {
-    val req = SearchRequest("bad", 10, Some(Nil), Some(List("title", "author")), false)
+    val req = SearchRequest("bad", 10, 0, Some(Nil), Some(List("title", "author")), false)
     val result = searcher.search(req)
     val hits = result.toEither.toOption.get
     assert(hits.nonEmpty, "expected at least one hit")
     hits.foreach(h => assertEquals(h.highlights, Map.empty[String, String]))
+  }
+
+  test("SearchRequest.size limits the number of results") {
+    val matchesAll = "author:(potter seuss)"
+    for (i <- 0 to 4) {
+      val req = SearchRequest(matchesAll, i, 0, None, None, false)
+      val numResults = searcher.search(req).fold(_ => 0, _.size)
+      assertEquals(numResults, i)
+    }
+  }
+
+  test("SearchRequest.size greater than number of results works fine") {
+    val matchesAll = "author:(potter seuss)"
+    val req = SearchRequest(matchesAll, 1000, 0, None, None, false)
+    val numResults = searcher.search(req).fold(_ => 0, _.size)
+    assertEquals(numResults, 4)
+  }
+
+  test("SearchRequest.skip skips the top N results") {
+    val matchesAll = "author:(potter seuss)"
+    // skip first three, so only one result remains
+    val req = SearchRequest(matchesAll, 1000, 3, None, None, false)
+    val numResults = searcher.search(req).fold(_ => 0, _.size)
+    assertEquals(numResults, 1)
   }
 
 }

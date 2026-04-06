@@ -38,7 +38,13 @@ final case class Searcher(
       hitBuilder(request).flatMap(hitBldr =>
         indexSearcher
           .scoredSearch(q)
-          .map(ds => ds.toList.sorted(ord).map(hitBldr))
+          .map { ds =>
+            val arr = ds.toArray
+            java.util.Arrays.sort(arr, ord)
+            val from = math.min(request.skip, arr.size)
+            val until = math.min(request.skip + request.size, arr.size)
+            arr.slice(from, until).iterator.map(hitBldr).toList
+          }
       )
     )
     getHits match {

@@ -40,12 +40,15 @@ class Querier(val mIndex: MultiIndex) {
   @JSExport
   def search(
     query: String,
+    size: js.UndefOr[Int] = js.undefined,
+    skip: js.UndefOr[Int] = js.undefined,
     highlightFields: js.UndefOr[js.Array[String]] = js.undefined,
     resultFields: js.UndefOr[js.Array[String]] = js.undefined
   ): js.Array[JsHit] = {
     val req = SearchRequest(
       query,
-      size = 10,
+      size = size.getOrElse(SearchRequest.defaultSize),
+      skip = skip.getOrElse(0),
       highlightFields.toOption.map(_.toList),
       resultFields.toOption.map(_.toList),
       lastTermPrefix = true
