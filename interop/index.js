@@ -26032,7 +26032,7 @@ $p.Hk = (function(str, queryStr) {
         }
       }
       var x1$1 = $p_sc_IndexedSeqOptimized__negLength__I__I(this$15, ((start$1 + ((i$1 - start$1) | 0)) | 0));
-      var nearbyOrStart = ((x1$1 === (-1)) ? start : x1$1);
+      var nearbyOrStart = ((x1$1 === (-1)) ? start : ((x1$1 > offset) ? start : x1$1));
       var this$23 = new $c_sci_StringOps(str);
       var this$$4 = this$23.ah;
       var until = this$$4.length;
