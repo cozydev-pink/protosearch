@@ -16,19 +16,19 @@
 
 package pink.cozydev.protosearch.scaladoc
 
-import scala.meta._
-import scala.meta.contrib._
-import scala.meta.contrib.DocToken._
+import scala.meta.*
+import scala.meta.contrib.*
+import scala.meta.contrib.DocToken.*
 import scala.meta.tokens.Token.Comment
 
 case class ScaladocInfo(
-    name: String,
-    description: String,
-    annotations: List[String],
-    params: List[String],
-    returnType: String,
-    startLine: Int,
-    endLine: Int,
+  name: String,
+  description: String,
+  annotations: List[String],
+  params: List[String],
+  returnType: String,
+  startLine: Int,
+  endLine: Int
 )
 
 object ParseScaladoc {
@@ -125,7 +125,7 @@ object ParseScaladoc {
         val combinedParams = typeParams ++ allParams
         val returnType = retType match {
           case Some(tpe) => tpe.syntax
-          case None => "Unit"
+          case None      => "Unit"
         }
 
         ScaladocInfo(
@@ -135,7 +135,7 @@ object ParseScaladoc {
           combinedParams,
           returnType,
           startLine,
-          endLine,
+          endLine
         )
     }
     functions

@@ -17,16 +17,18 @@
 package pink.cozydev.protosearch.internal
 import pink.cozydev.protosearch.PositionalIndex
 import pink.cozydev.protosearch.ScoreFunction
-import cats.syntax.all._
+import cats.syntax.all.*
 
 abstract class QueryIterator {
   def currentDocId: Int
   def currentScore: Float
 
-  /** Advances until `docId` or greater if possible, skipping docs less than `docId`.
-    * Does not advance if already at `docId`.
-    * @return new `currentDocId` value
-    */
+  /**
+   * Advances until `docId` or greater if possible, skipping docs less than `docId`. Does not
+   * advance if already at `docId`.
+   * @return
+   *   new `currentDocId` value
+   */
   def advance(docId: Int): Int
 
   def docs: Iterator[Int] = {
@@ -129,7 +131,7 @@ class NotQueryIterator(qi: QueryIterator, max: Int) extends QueryIterator {
 
 }
 class AndIter(
-    things: Array[QueryIterator]
+  things: Array[QueryIterator]
 ) extends QueryIterator {
   private var currDocId: Int = 0
 
@@ -173,8 +175,8 @@ object AndIter {
 }
 
 class OrQueryIterator(
-    things: Array[QueryIterator],
-    minShouldMatch: Int,
+  things: Array[QueryIterator],
+  minShouldMatch: Int
 ) extends QueryIterator {
   private var currDocId: Int = 0
 
@@ -224,8 +226,8 @@ object OrQueryIterator {
 }
 
 class PhraseIterator(
-    val postings: Array[QueryIteratorWithPositions],
-    val relativePositions: Array[Int],
+  val postings: Array[QueryIteratorWithPositions],
+  val relativePositions: Array[Int]
 ) extends QueryIterator {
 
   // TODO optimized ordering
@@ -245,21 +247,28 @@ class PhraseIterator(
   def advance(docId: Int) =
     if (currDocId == -1) -1 else if (docId <= currDocId) currDocId else advanceAllDocs(docId)
 
-  /** Returns true if all postings match `docId` */
+  /**
+   * Returns true if all postings match `docId`
+   */
   def allDocsMatch(docId: Int): Boolean =
     firstNonMatching(docId) == -1
 
-  /** Returns first index that does not match `docId` */
+  /**
+   * Returns first index that does not match `docId`
+   */
   def firstNonMatching(docId: Int): Int =
     postings.indexWhere(p => p.currentDocId != docId)
 
-  /** Returns true if all postings are in positional match */
+  /**
+   * Returns true if all postings are in positional match
+   */
   private def allPositionsMatch: Boolean =
     firstNonPositionMatching == -1
 
-  /** Returns the index of the first posting that is not in a positional match
-    * with the postings preceding it according to the constraints set by `relativePositions`.
-    */
+  /**
+   * Returns the index of the first posting that is not in a positional match with the postings
+   * preceding it according to the constraints set by `relativePositions`.
+   */
   def firstNonPositionMatching: Int =
     // TODO handle "slop" / error distance
     if (postings.size < 2) -1

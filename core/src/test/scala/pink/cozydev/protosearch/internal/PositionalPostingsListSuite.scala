@@ -128,9 +128,9 @@ class PositionalPostingsListSuite extends munit.FunSuite {
       Array(
         ppl1.queryIterator(ScoreFunction.noScore),
         ppl2.queryIterator(ScoreFunction.noScore),
-        ppl3.queryIterator(ScoreFunction.noScore),
+        ppl3.queryIterator(ScoreFunction.noScore)
       ),
-      Array(1, 2, 3),
+      Array(1, 2, 3)
     )
     val res = pi.docs.toList
     assertEquals(res, List(3))

@@ -28,9 +28,9 @@ import pink.cozydev.protosearch.internal.ConstantScoreQueryIterator
 import java.util.regex.Pattern
 
 sealed abstract class FrequencyIndex private (
-    val termDict: TermDictionary,
-    private val tfData: Array[FrequencyPostingsList],
-    val numDocs: Int,
+  val termDict: TermDictionary,
+  private val tfData: Array[FrequencyPostingsList],
+  val numDocs: Int
 ) extends Index {
 
   val numTerms = termDict.numTerms
@@ -93,7 +93,7 @@ sealed abstract class FrequencyIndex private (
 }
 object FrequencyIndex {
   import scala.collection.mutable.{TreeMap => MMap}
-  import scodec.{Codec, codecs}
+  import scodec.{codecs, Codec}
 
   def apply(docs: Iterable[Iterable[String]]): FrequencyIndex = {
     val termPostingsMap = new MMap[String, FrequencyPostingsBuilder].empty
@@ -129,7 +129,7 @@ object FrequencyIndex {
       .as[(Int, Array[FrequencyPostingsList], TermDictionary)]
       .xmap(
         { case (numDocs, tfData, terms) => new FrequencyIndex(terms, tfData, numDocs) {} },
-        ti => (ti.numDocs, ti.tfData, ti.termDict),
+        ti => (ti.numDocs, ti.tfData, ti.termDict)
       )
   }
 }

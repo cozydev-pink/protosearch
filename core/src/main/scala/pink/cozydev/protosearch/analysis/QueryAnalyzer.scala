@@ -17,15 +17,15 @@
 package pink.cozydev.protosearch.analysis
 
 import pink.cozydev.lucille.{Query, TermQuery}
-import pink.cozydev.lucille.Query._
+import pink.cozydev.lucille.Query.*
 import pink.cozydev.lucille.QueryParser
 
 // TODO This is a hack, the Lucille parser tokenizes on white space only currently
 // We perhaps want Lucille to use a tokenizer from textmogrify
 // In the meantime, we rewrite the Query with our `Analyzer`
 final case class QueryAnalyzer(
-    defaultField: String,
-    analyzers: Map[String, Analyzer],
+  defaultField: String,
+  analyzers: Map[String, Analyzer]
 ) {
   // TODO Support using the right analyzer for the right field
   private val defaultAnalyzer = analyzers(defaultField)
@@ -34,8 +34,8 @@ final case class QueryAnalyzer(
     query match {
       case Term(t) =>
         defaultAnalyzer.tokenize(t) match {
-          case Nil => Left(s"Error tokenizing Term '$t' during query analysis")
-          case q1 :: Nil => Right(Term(q1))
+          case Nil              => Left(s"Error tokenizing Term '$t' during query analysis")
+          case q1 :: Nil        => Right(Term(q1))
           case q1 :: q2 :: tail => Right(Or(Term(q1), Term(q2), tail.map(Term.apply)))
         }
       case Phrase(p) =>
@@ -53,9 +53,9 @@ final case class QueryAnalyzer(
 }
 object QueryAnalyzer {
   def apply(
-      defaultField: String,
-      head: (String, Analyzer),
-      tail: (String, Analyzer)*
+    defaultField: String,
+    head: (String, Analyzer),
+    tail: (String, Analyzer)*
   ): QueryAnalyzer =
     QueryAnalyzer(defaultField, (head :: tail.toList).toMap)
 }

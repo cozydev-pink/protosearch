@@ -22,34 +22,42 @@ import scala.collection.mutable.ArrayBuffer
 import java.util.regex.Pattern
 
 final class TermDictionary(
-    private val termDict: Array[String]
+  private val termDict: Array[String]
 ) {
 
   val numTerms = termDict.length
 
   override def toString(): String = s"TermDictionary($numTerms terms)"
 
-  /** Find where the term would fit in the term list. */
+  /**
+   * Find where the term would fit in the term list.
+   */
   def termIndexWhere(term: String): Int = {
     val idx = termDict.indexWhere(_ >= term)
     if (idx == -1) termDict.length else idx
   }
 
-  /** Get the list of terms between left and right. */
+  /**
+   * Get the list of terms between left and right.
+   */
   def termsForRange(left: String, right: String): List[String] = {
     val li = termIndexWhere(left)
     val ri = termIndexWhere(right)
     termDict.slice(li, ri).toList
   }
 
-  /** Get the list of terms starting with prefix . */
+  /**
+   * Get the list of terms starting with prefix .
+   */
   def termsForPrefix(prefix: String): List[String] = {
     val bldr = List.newBuilder[String]
     indicesForPrefix(prefix).foreach(i => bldr += termDict(i))
     bldr.result()
   }
 
-  /** Get the list of terms matching the regex. */
+  /**
+   * Get the list of terms matching the regex.
+   */
   def termsForRegex(regex: Regex): List[String] =
     termDict.filter(regex.findFirstIn(_).isDefined).toList
 
@@ -65,7 +73,9 @@ final class TermDictionary(
     bldr.toArray
   }
 
-  /** Get the list of terms starting with prefix . */
+  /**
+   * Get the list of terms starting with prefix .
+   */
   def indicesForPrefix(prefix: String): Array[Int] = {
     var i = termIndexWhere(prefix)
     if (i < termDict.length && termDict(i).startsWith(prefix)) {
@@ -89,8 +99,8 @@ final class TermDictionary(
       val idx = from + (to - from - 1) / 2
       math.signum(elem.compareTo(termDict(idx))) match {
         case -1 => binarySearch(elem, from, idx)
-        case 1 => binarySearch(elem, idx + 1, to)
-        case _ => idx
+        case 1  => binarySearch(elem, idx + 1, to)
+        case _  => idx
       }
     }
 }
@@ -101,6 +111,6 @@ object TermDictionary {
   val codec: Codec[TermDictionary] =
     IndexCodecs.termList.xmap(
       { case terms => new TermDictionary(terms) },
-      td => td.termDict,
+      td => td.termDict
     )
 }

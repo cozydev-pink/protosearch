@@ -51,19 +51,19 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
        * or duplicate entries (e.g. a section title on the current page)
        */
       case _: NavigationList | _: NavigationItem => ""
-      case _ => fmt.children(con.content)
+      case _                                     => fmt.children(con.content)
     }
 
     def renderBlockContainer(con: BlockContainer): String = con match {
       /* Some special handling for the few containers which hold child nodes
          in more properties than just the container's `content` property.
        */
-      case Section(header, content, _) => renderBlock(header.content) + renderBlocks(content)
-      case QuotedBlock(content, attr, _) => renderBlocks(content) + renderBlock(attr)
-      case TitledBlock(title, content, _) => renderBlock(title) + renderBlocks(content)
-      case Figure(_, caption, content, _) => renderBlock(caption) + renderBlocks(content)
+      case Section(header, content, _)       => renderBlock(header.content) + renderBlocks(content)
+      case QuotedBlock(content, attr, _)     => renderBlocks(content) + renderBlock(attr)
+      case TitledBlock(title, content, _)    => renderBlock(title) + renderBlocks(content)
+      case Figure(_, caption, content, _)    => renderBlock(caption) + renderBlocks(content)
       case DefinitionListItem(term, defn, _) => renderBlock(term) + renderBlocks(defn)
-      case _ => renderBlocks(con.content)
+      case _                                 => renderBlocks(con.content)
     }
 
     def renderElementContainer(con: ElementContainer[? <: Element]): String = con match {
@@ -86,9 +86,9 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
       /* embedded debug info node */
       case _: RuntimeMessage => ""
       /* this does not represent text nodes in verbatim HTML */
-      case _: HTMLSpan => ""
+      case _: HTMLSpan      => ""
       case _: SectionNumber => ""
-      case _ => con.content
+      case _                => con.content
     }
 
     def renderTable(table: Table): String = {
@@ -103,7 +103,7 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
        * It is unlikely anyone will use a template for the index renderer,
        * but the use case should be covered - it could lead to an empty index
        * for pages with templates otherwise. */
-      case EmbeddedRoot(content, _, _) => renderBlocks(content)
+      case EmbeddedRoot(content, _, _)    => renderBlocks(content)
       case TemplateElement(element, _, _) => renderElement(element)
 
       case tsc: TemplateSpanContainer => fmt.children(tsc.content)
@@ -125,15 +125,15 @@ object PlaintextRenderer extends ((Formatter, Element) => String) {
        * They usually also implement some of the other traits we match on,
        * so this always needs to come first. */
       case _: Hidden | _: Unresolved | _: Invalid => ""
-      case lc: ListContainer => renderListContainer(lc)
-      case bc: BlockContainer => renderBlockContainer(bc)
-      case sc: SpanContainer => fmt.children(sc.content)
-      case t: Table => renderTable(t)
-      case tsc: TemplateSpanContainer => fmt.children(tsc.content)
-      case ts: TemplateSpan => renderTemplateSpan(ts)
-      case tc: TextContainer => renderTextContainer(tc)
-      case ec: ElementContainer[?] => renderElementContainer(ec)
-      case e => renderElement(e)
+      case lc: ListContainer                      => renderListContainer(lc)
+      case bc: BlockContainer                     => renderBlockContainer(bc)
+      case sc: SpanContainer                      => fmt.children(sc.content)
+      case t: Table                               => renderTable(t)
+      case tsc: TemplateSpanContainer             => fmt.children(tsc.content)
+      case ts: TemplateSpan                       => renderTemplateSpan(ts)
+      case tc: TextContainer                      => renderTextContainer(tc)
+      case ec: ElementContainer[?]                => renderElementContainer(ec)
+      case e                                      => renderElement(e)
     }
   }
 }

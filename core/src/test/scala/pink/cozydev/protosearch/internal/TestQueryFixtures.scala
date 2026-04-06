@@ -27,7 +27,7 @@ object TestQueryFixtures {
       analyzer.tokenize("0 1 2 3 4 5 6 7 8 9"),
       analyzer.tokenize("a b c d e f g h i j"),
       analyzer.tokenize("a 1 c 3 e 5 g 7 i 9"),
-      analyzer.tokenize("0 b 2 d 4 f 6 h 8 j"),
+      analyzer.tokenize("0 b 2 d 4 f 6 h 8 j")
     )
   )
 
@@ -38,7 +38,7 @@ object TestQueryFixtures {
     def exact(label: String, query: String): TestQuery =
       TestQuery(
         label,
-        () => positionalIter(query),
+        () => positionalIter(query)
       )
 
     private def positionalIter(q: String): PhraseIterator =

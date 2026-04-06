@@ -27,9 +27,9 @@ import pink.cozydev.protosearch.internal.OrQueryIterator
 import java.util.regex.Pattern
 
 sealed abstract class PositionalIndex private (
-    val termDict: TermDictionary,
-    private val tfData: Array[PositionalPostingsList],
-    val numDocs: Int,
+  val termDict: TermDictionary,
+  private val tfData: Array[PositionalPostingsList],
+  val numDocs: Int
 ) extends Index {
   val numTerms = termDict.numTerms
 
@@ -89,7 +89,7 @@ sealed abstract class PositionalIndex private (
 }
 object PositionalIndex {
   import scala.collection.mutable.{TreeMap => MMap}
-  import scodec.{Codec, codecs}
+  import scodec.{codecs, Codec}
   import pink.cozydev.protosearch.codecs.IndexCodecs
 
   def apply(docs: Iterable[Iterable[String]]): PositionalIndex = {
@@ -128,7 +128,7 @@ object PositionalIndex {
       .as[(Int, Array[PositionalPostingsList], TermDictionary)]
       .xmap(
         { case (numDocs, tfData, terms) => new PositionalIndex(terms, tfData, numDocs) {} },
-        idx => (idx.numDocs, idx.tfData, idx.termDict),
+        idx => (idx.numDocs, idx.tfData, idx.termDict)
       )
   }
 

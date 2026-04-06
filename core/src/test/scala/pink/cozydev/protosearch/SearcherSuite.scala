@@ -20,13 +20,13 @@ import pink.cozydev.protosearch.analysis.{Analyzer, QueryAnalyzer}
 import fixtures.BookIndex
 
 class SearcherSuite extends munit.FunSuite {
-  import BookIndex._
+  import BookIndex.*
 
   val analyzer = Analyzer.default.withLowerCasing
   val index = IndexBuilder
     .of[Book](
       (Field("title", analyzer, true, true, true), _.title),
-      (Field("author", analyzer, true, true, false), _.author),
+      (Field("author", analyzer, true, true, false), _.author)
     )
     .fromList(allBooks)
 
@@ -50,7 +50,7 @@ class SearcherSuite extends munit.FunSuite {
     val books = searchHit("Bad")
     val miceMap = Map(
       "title" -> "The Tale of Two Bad Mice",
-      "author" -> "Beatrix Potter",
+      "author" -> "Beatrix Potter"
     )
     assertEquals(books, Right(List(2 -> miceMap)))
   }
@@ -140,7 +140,7 @@ class SearcherSuite extends munit.FunSuite {
     val err = "Invalid regex query TermRegex([a)"
     assertEquals(
       q,
-      Left(err),
+      Left(err)
     )
   }
 
@@ -172,7 +172,7 @@ class SearcherSuite extends munit.FunSuite {
       10,
       Some(List("fakefield")),
       Some(List("fakefield1", "fakefield2")),
-      false,
+      false
     )
     val result = searcher.search(req)
     val err =

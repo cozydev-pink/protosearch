@@ -16,16 +16,16 @@
 
 package pink.cozydev.protosearch.internal
 
-import TestQueryFixtures._
+import TestQueryFixtures.*
 
 class AndIterSuite extends munit.FunSuite {
 
   // The order of QueryIterators should not matter, so we test all permutations
   def checkAllPermutations(
-      queries: List[TestQuery],
-      expected: List[Int],
+    queries: List[TestQuery],
+    expected: List[Int]
   )(implicit
-      loc: munit.Location
+    loc: munit.Location
   ): Unit =
     queries.permutations.foreach { tqs =>
       val name = tqs.map(_.label).mkString(", ")
@@ -37,7 +37,7 @@ class AndIterSuite extends munit.FunSuite {
   test("never match with 1 noMatch (doc1)") {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty)
   }
@@ -45,7 +45,7 @@ class AndIterSuite extends munit.FunSuite {
   test("never match with 1 noMatch (doc2)") {
     val queries = List(
       TestQuery.exact("doc2", "a b c d"),
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty)
   }
@@ -54,7 +54,7 @@ class AndIterSuite extends munit.FunSuite {
     assert(alphaNumIndex.numDocs == 4, clue = "expected 4 to be last docId")
     val queries = List(
       TestQuery.exact("doc4", "0 b 2 d"),
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty)
   }
@@ -78,7 +78,7 @@ class AndIterSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
       TestQuery.exact("doc1", "3 4 5 6"),
-      TestQuery.exact("doc1", "6 7 8 9"),
+      TestQuery.exact("doc1", "6 7 8 9")
     )
     checkAllPermutations(queries, List(1))
   }
@@ -87,7 +87,7 @@ class AndIterSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
       TestQuery.exact("doc1", "3 4 5 6"),
-      TestQuery.exact("doc2", "a b c d"),
+      TestQuery.exact("doc2", "a b c d")
     )
     checkAllPermutations(queries, List.empty)
   }
@@ -95,7 +95,7 @@ class AndIterSuite extends munit.FunSuite {
   test("always match with all matching, multiple queries, multiple docs") {
     val queries = List(
       TestQuery.exact("doc1&3", "1"),
-      TestQuery.exact("doc1&3", "3"),
+      TestQuery.exact("doc1&3", "3")
     )
     checkAllPermutations(queries, List(1, 3))
   }

@@ -16,15 +16,19 @@
 
 package pink.cozydev.protosearch
 
-/** A search result
-  *
-  * @param id Document ID
-  * @param score The score of this result given the query
-  * @param fields Stored fields of the result
-  */
+/**
+ * A search result
+ *
+ * @param id
+ *   Document ID
+ * @param score
+ *   The score of this result given the query
+ * @param fields
+ *   Stored fields of the result
+ */
 final case class Hit(
-    val id: Int,
-    val score: Float,
-    val fields: Map[String, String],
-    val highlights: Map[String, String],
+  val id: Int,
+  val score: Float,
+  val fields: Map[String, String],
+  val highlights: Map[String, String]
 )

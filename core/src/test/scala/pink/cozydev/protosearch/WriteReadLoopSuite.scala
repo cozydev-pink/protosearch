@@ -20,7 +20,7 @@ import pink.cozydev.protosearch.analysis.Analyzer
 import fixtures.BookIndex
 
 class WriteReadLoopSuite extends munit.FunSuite {
-  import BookIndex.{Book, allBooks, fish}
+  import BookIndex.{allBooks, fish, Book}
 
   test("Can write bytes, read bytes, and search") {
     val analyzer = Analyzer.default.withLowerCasing
@@ -28,7 +28,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
     val index = IndexBuilder
       .of[Book](
         (Field("title", analyzer, true, true, true), _.title),
-        (Field("author", analyzer, true, true, false), _.author),
+        (Field("author", analyzer, true, true, false), _.author)
       )
       .fromList(allBooks)
 
@@ -49,7 +49,7 @@ class WriteReadLoopSuite extends munit.FunSuite {
 
     val results = indexRead.map(index =>
       search(index)("Two AND author:seuss") match {
-        case Left(_) => List.empty[Book]
+        case Left(_)     => List.empty[Book]
         case Right(hits) => hits
       }
     )

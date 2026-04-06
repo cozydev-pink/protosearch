@@ -16,17 +16,17 @@
 
 package pink.cozydev.protosearch.internal
 
-import TestQueryFixtures._
+import TestQueryFixtures.*
 
 class OrQueryIteratorSuite extends munit.FunSuite {
 
   // The order of QueryIterators should not matter, so we test all permutations
   def checkAllPermutations(
-      queries: List[TestQuery],
-      expected: List[Int],
-      minShouldMatch: Int,
+    queries: List[TestQuery],
+    expected: List[Int],
+    minShouldMatch: Int
   )(implicit
-      loc: munit.Location
+    loc: munit.Location
   ): Unit =
     queries.permutations.foreach { tqs =>
       val name = tqs.map(_.label).mkString(", ")
@@ -39,7 +39,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(1), minShouldMatch = 1)
   }
@@ -48,7 +48,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc2", "a b c d"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(2), minShouldMatch = 1)
   }
@@ -58,7 +58,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc4", "0 b 2 d"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(4), minShouldMatch = 1)
   }
@@ -67,7 +67,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc1", "0 1 2 3"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty, minShouldMatch = 2)
   }
@@ -76,7 +76,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc2", "a b c d"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty, minShouldMatch = 2)
   }
@@ -86,7 +86,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
     val queries = List(
       TestQuery.exact("doc4", "0 b 2 d"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty, minShouldMatch = 2)
   }
@@ -98,7 +98,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
       TestQuery.exact("doc2", "a b c d"),
       TestQuery.exact("doc2", "e f g h"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(1, 2), minShouldMatch = 1)
   }
@@ -110,7 +110,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
       TestQuery.exact("doc2", "a b c d"),
       TestQuery.exact("doc2", "e f g h"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(1, 2), minShouldMatch = 2)
   }
@@ -121,7 +121,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
       TestQuery.exact("doc1", "4 5 6 7"),
       TestQuery.exact("doc2", "a b c d"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List(1), minShouldMatch = 2)
   }
@@ -131,7 +131,7 @@ class OrQueryIteratorSuite extends munit.FunSuite {
       TestQuery.exact("doc1", "0 1 2 3"),
       TestQuery.exact("doc1", "4 5 6 7"),
       TestQuery.noMatch,
-      TestQuery.noMatch,
+      TestQuery.noMatch
     )
     checkAllPermutations(queries, List.empty, minShouldMatch = 3)
   }

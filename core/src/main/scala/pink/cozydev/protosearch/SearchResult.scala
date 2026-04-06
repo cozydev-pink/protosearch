@@ -18,12 +18,12 @@ package pink.cozydev.protosearch
 
 sealed trait SearchResult {
   def fold[A](fail: String => A, success: List[Hit] => A): A = this match {
-    case SearchFailure(msg) => fail(msg)
+    case SearchFailure(msg)  => fail(msg)
     case SearchSuccess(hits) => success(hits)
   }
 
   def toEither: Either[String, List[Hit]] = this match {
-    case SearchFailure(msg) => Left(msg)
+    case SearchFailure(msg)  => Left(msg)
     case SearchSuccess(hits) => Right(hits)
   }
 }

@@ -16,16 +16,16 @@
 
 package pink.cozydev.protosearch.internal
 
-import TestQueryFixtures._
+import TestQueryFixtures.*
 
 class NotQueryIteratorSuite extends munit.FunSuite {
 
   val allDocs = Set(1, 2, 3, 4)
 
   def checkNotMatchesInverse(
-      queryIter: () => QueryIterator
+    queryIter: () => QueryIterator
   )(implicit
-      loc: munit.Location
+    loc: munit.Location
   ): Unit = {
     val origDocs = queryIter().docs.toSet
     val iter = new NotQueryIterator(queryIter(), alphaNumIndex.numDocs)
@@ -34,10 +34,10 @@ class NotQueryIteratorSuite extends munit.FunSuite {
   }
 
   def checkNot(
-      queryIter: () => QueryIterator,
-      expected: Set[Int],
+    queryIter: () => QueryIterator,
+    expected: Set[Int]
   )(implicit
-      loc: munit.Location
+    loc: munit.Location
   ): Unit = {
     val iter = new NotQueryIterator(queryIter(), alphaNumIndex.numDocs)
     val notDocs = iter.docs.toSet

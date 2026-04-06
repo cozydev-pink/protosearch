@@ -20,7 +20,7 @@ import pink.cozydev.protosearch.analysis.Analyzer
 import fixtures.BookIndex
 
 class IndexBuilderSuite extends munit.FunSuite {
-  import BookIndex._
+  import BookIndex.*
 
   val analyzer = Analyzer.default.withLowerCasing
 
@@ -28,7 +28,7 @@ class IndexBuilderSuite extends munit.FunSuite {
     val bldr = IndexBuilder
       .of[Book](
         (Field("title", analyzer, true, true, true), _.title),
-        (Field("author", analyzer, true, true, false), _.author),
+        (Field("author", analyzer, true, true, false), _.author)
       )
     assertEquals(bldr.defaultField, "title")
   }
@@ -37,7 +37,7 @@ class IndexBuilderSuite extends munit.FunSuite {
     val bldr = IndexBuilder
       .of[Book](
         (Field("title", analyzer, true, true, true), _.title),
-        (Field("author", analyzer, true, true, false), _.author),
+        (Field("author", analyzer, true, true, false), _.author)
       )
     val index = bldr.fromList(allBooks)
     assertEquals(index.numDocs, allBooks.size)

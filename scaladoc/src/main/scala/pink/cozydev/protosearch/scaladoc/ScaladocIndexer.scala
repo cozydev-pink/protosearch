@@ -25,24 +25,24 @@ object ScaladocIndexer {
     (Field("functionName", analyzer, stored = true, indexed = true, positions = true), _.name),
     (
       Field("description", analyzer, stored = true, indexed = true, positions = true),
-      _.description,
+      _.description
     ),
     (
       Field("params", analyzer, stored = true, indexed = true, positions = true),
-      _.params.mkString(", "),
+      _.params.mkString(", ")
     ),
     (
       Field("annotations", analyzer, stored = true, indexed = true, positions = true),
-      _.annotations.mkString(", "),
+      _.annotations.mkString(", ")
     ),
     (
       Field("startLine", analyzer, stored = true, indexed = true, positions = true),
-      _.startLine.toString(),
+      _.startLine.toString()
     ),
     (
       Field("endLine", analyzer, stored = true, indexed = true, positions = true),
-      _.endLine.toString(),
+      _.endLine.toString()
     ),
-    (Field("returnType", analyzer, stored = true, indexed = true, positions = true), _.returnType),
+    (Field("returnType", analyzer, stored = true, indexed = true, positions = true), _.returnType)
   )
 }

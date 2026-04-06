@@ -19,11 +19,11 @@ package pink.cozydev.protosearch.sbt
 import sbt.*
 import sbt.Keys.*
 import sbt.nio.file.FileTreeView
-import fs2.{Stream, Chunk}
+import fs2.{Chunk, Stream}
 import fs2.io.file.{Files, Path}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.all._
+import cats.syntax.all.*
 import java.nio.file.{Path => JPath}
 
 import pink.cozydev.protosearch.scaladoc.{ParseScaladoc, ScaladocIndexer}
@@ -78,7 +78,7 @@ object ProtosearchScaladocPlugin extends AutoPlugin {
 
   override def requires = plugins.JvmPlugin
 
-  override lazy val projectSettings: Seq[Setting[_]] = Seq(
+  override lazy val projectSettings: Seq[Setting[?]] = Seq(
     createScaladocIndex := buildScaladocIndex.value
   )
 }
