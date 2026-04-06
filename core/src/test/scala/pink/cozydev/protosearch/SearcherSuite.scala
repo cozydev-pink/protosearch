@@ -180,4 +180,12 @@ class SearcherSuite extends munit.FunSuite {
     assertEquals(result, SearchFailure(err))
   }
 
+  test("no highlights when highlightFields is Some(Nil)") {
+    val req = SearchRequest("bad", 10, Some(Nil), Some(List("title", "author")), false)
+    val result = searcher.search(req)
+    val hits = result.toEither.toOption.get
+    assert(hits.nonEmpty, "expected at least one hit")
+    hits.foreach(h => assertEquals(h.highlights, Map.empty[String, String]))
+  }
+
 }
