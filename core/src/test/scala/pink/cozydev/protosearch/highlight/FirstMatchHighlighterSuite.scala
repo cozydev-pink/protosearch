@@ -87,19 +87,19 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
 
   test("highlights first word match near beginning of long doc") {
     val actual = highlighter.highlight(longDoc, "Contents")
-    val expected = "<b>Contents</b>: A letter to cat\nhello cat, hello cat, hello..."
+    val expected = "<b>Contents</b>: A letter to cat\nhello cat, hello cat, hello cat, h..."
     assertEquals(actual, expected)
   }
 
   test("highlights character in word near beginning of long doc") {
     val actual = highlighter.highlight(longDoc, "t")
-    val expected = "Con<b>t</b>ents: A letter to cat\nhello cat, hello cat, hello..."
+    val expected = "Con<b>t</b>ents: A letter to cat\nhello cat, hello cat, hello cat, h..."
     assertEquals(actual, expected)
   }
 
   test("highlights word near beginning of long doc") {
     val actual = highlighter.highlight(longDoc, "cat")
-    val expected = "Contents: A letter to <b>cat</b>\nhello cat, hello cat, hello..."
+    val expected = "Contents: A letter to <b>cat</b>\nhello cat, hello cat, hello cat, h..."
     assertEquals(actual, expected)
   }
 
@@ -117,7 +117,7 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
 
   test("long docs get trimmed with ellipses") {
     val actual = highlighter.highlight(longDoc, "fake")
-    val expected = longDoc.take(formatter.maxSize) + "..."
+    val expected = longDoc.take(formatter.maxSize + formatter.tagSize) + "..."
     assertEquals(actual, expected)
   }
 
@@ -128,5 +128,16 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     val s = "x" * (lookBack + 5) + "cat" + "x" * lookBack
     val actual = highlighter.highlight(s, "cat")
     assert(actual.contains("<b>cat</b>"))
+  }
+
+  test("trim does not produce broken highlight tags") {
+    val formatter = highlighter.formatter
+    val maxSize = formatter.maxSize
+    // match near end, string just under maxSize so tags push it over
+    val s = "x" * (maxSize - 6) + "cat" + "xx"
+    val actual = highlighter.highlight(s, "cat")
+    assert(s.size < maxSize)
+    assert((s.size + formatter.startTag.size + formatter.endTag.size) > maxSize)
+    assert(actual.contains("<b>") && actual.contains("</b>"))
   }
 }

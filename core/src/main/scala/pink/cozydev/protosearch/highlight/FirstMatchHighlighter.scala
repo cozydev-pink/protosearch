@@ -24,8 +24,9 @@ case class FirstMatchHighlighter(
 
   def trim(str: String): String = {
     val trimmed = str.trim()
-    if (trimmed.size > formatter.maxSize)
-      trimmed.take(formatter.maxSize) + "..."
+    val maxWithTags = formatter.maxSize + formatter.tagSize
+    if (trimmed.size > maxWithTags)
+      trimmed.take(maxWithTags) + "..."
     else trimmed
   }
 
