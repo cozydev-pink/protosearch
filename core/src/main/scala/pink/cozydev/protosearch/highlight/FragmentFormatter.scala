@@ -31,8 +31,7 @@ case class FragmentFormatter(
   /** Builds a new string with inserted start/end tags at `offsets` positions.
     *
     * Offsets are pairs of (start position, length). An even number of integers is required.
-    *
-    * @throws IllegalArgumentException if an offset exceeds the fragment length
+    * Throws an `IllegalArgumentException` if an offset exceeds the fragment length.
     */
   def format(fragment: String, offsets: Iterable[Int]): String =
     if (offsets.size == 0) fragment
