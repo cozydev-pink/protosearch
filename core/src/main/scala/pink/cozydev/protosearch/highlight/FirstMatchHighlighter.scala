@@ -16,14 +16,26 @@
 
 package pink.cozydev.protosearch.highlight
 
+/** Highlights the first case-insensitive occurrence of a query string within text,
+  * trimming long text to a window around the match.
+  *
+  * If no match is found, the text is returned trimmed to `maxSize`. When the match
+  * occurs far into the text, a nearby word boundary is used as the starting point
+  * for the returned fragment.
+  *
+  * @param formatter the formatter used to wrap matches with tags
+  * @param maxSize maximum number of content characters (excluding tags) in the result
+  */
 case class FirstMatchHighlighter(
     formatter: FragmentFormatter,
     maxSize: Int,
 ) {
 
+  /** How far back from a match to start the window. */
   val lookBackWindowSize: Int = maxSize / 2
 
-  def trim(str: String): String = {
+  // trim and add '...' if needed
+  private def trim(str: String): String = {
     val trimmed = str.trim()
     val maxWithTags = maxSize + formatter.tagSize
     if (trimmed.size > maxWithTags)
@@ -31,6 +43,10 @@ case class FirstMatchHighlighter(
     else trimmed
   }
 
+  /** Returns `str` with the first case-insensitive occurrence of `queryStr` wrapped in
+    * formatter tags, trimmed to a window of `maxSize` content characters.
+    * If `queryStr` is not found, returns the trimmed text without highlighting.
+    */
   def highlight(str: String, queryStr: String): String = {
     // lowercase both in place, to find case-insensitive matches
     val normalizedQ = queryStr.trim().toLowerCase()
