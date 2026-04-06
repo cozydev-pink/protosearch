@@ -43,7 +43,7 @@ final case class SearchRequest(
   lastTermPrefix: Boolean
 )
 object SearchRequest {
-  private val defaultSize = 10
+  val defaultSize = 10
 
   /* Build a simple request with no highlighting, stored fields, or prefix rewriting */
   def default(query: String): SearchRequest =
