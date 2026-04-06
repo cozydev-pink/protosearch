@@ -66,6 +66,7 @@ case class FirstMatchHighlighter(
         // or 'str' is too big, need to find a nearby starting place from 'start'.
         val nearbyOrStart = str.indexWhere(c => " \n\t.".contains(c), start) match {
           case -1 => start // no boundary nearby, use start
+          case i if i > offset => start // boundary past match, just use start
           case i => i
         }
         val slice = str.drop(nearbyOrStart)

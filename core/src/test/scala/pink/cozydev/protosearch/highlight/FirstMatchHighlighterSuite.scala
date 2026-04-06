@@ -139,4 +139,13 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     assert((s.size + formatter.startTag.size + formatter.endTag.size) > maxSize)
     assert(actual.contains("<b>") && actual.contains("</b>"))
   }
+
+  test("highlights correctly when first word boundary appears after match") {
+    val lookBack = highlighter.lookBackWindowSize
+    // xxxxxxx...xxxxxcat xxxx...
+    //    ^-- lookback   ^-- word boundary
+    val s = "x" * (lookBack + 5) + "cat" + " " + "x" * lookBack
+    val actual = highlighter.highlight(s, "cat")
+    assert(actual.contains("<b>cat</b>"))
+  }
 }
