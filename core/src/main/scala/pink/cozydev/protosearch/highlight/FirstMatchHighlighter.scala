@@ -46,9 +46,12 @@ case class FirstMatchHighlighter(
       } else {
         // First match 'offset' not within first 'lookBackWindowSize' characters,
         // or 'str' is too big, need to find a nearby starting place from 'start'.
-        val nearby = str.indexWhere(c => " \n\t.".contains(c), start)
-        val slice = str.drop(nearby)
-        val newOffset = offset - nearby
+        val nearbyOrStart = str.indexWhere(c => " \n\t.".contains(c), start) match {
+          case -1 => start // no boundary nearby, use start
+          case i => i
+        }
+        val slice = str.drop(nearbyOrStart)
+        val newOffset = offset - nearbyOrStart
         val fStr = formatter.format(slice, List(newOffset, normalizedQ.size))
         trim(fStr)
       }

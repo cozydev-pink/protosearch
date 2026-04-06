@@ -120,4 +120,13 @@ class FirstMatchHighlighterSuite extends munit.FunSuite {
     val expected = longDoc.take(formatter.maxSize) + "..."
     assertEquals(actual, expected)
   }
+
+  test("highlights correctly when no word boundary after lookback starts") {
+    val lookBack = highlighter.lookBackWindowSize
+    // xxxx...xxxxxcatxxxx...
+    //    ^-- lookback
+    val s = "x" * (lookBack + 5) + "cat" + "x" * lookBack
+    val actual = highlighter.highlight(s, "cat")
+    assert(actual.contains("<b>cat</b>"))
+  }
 }
