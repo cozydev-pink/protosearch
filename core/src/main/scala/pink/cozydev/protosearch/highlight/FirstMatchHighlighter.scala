@@ -16,19 +16,37 @@
 
 package pink.cozydev.protosearch.highlight
 
+/** Highlights the first case-insensitive occurrence of a query string within text,
+  * trimming long text to a window around the match.
+  *
+  * If no match is found, the text is returned trimmed to `maxSize`. When the match
+  * occurs far into the text, a nearby word boundary is used as the starting point
+  * for the returned fragment.
+  *
+  * @param formatter the formatter used to wrap matches with tags
+  * @param maxSize maximum number of content characters (excluding tags) in the result
+  */
 case class FirstMatchHighlighter(
-    formatter: FragmentFormatter
+    formatter: FragmentFormatter,
+    maxSize: Int,
 ) {
 
-  val lookBackWindowSize: Int = formatter.maxSize / 2
+  /** How far back from a match to start the window. */
+  val lookBackWindowSize: Int = maxSize / 2
 
-  def trim(str: String): String = {
+  // trim and add '...' if needed
+  private def trim(str: String): String = {
     val trimmed = str.trim()
-    if (trimmed.size > formatter.maxSize)
-      trimmed.take(formatter.maxSize) + "..."
+    val maxWithTags = maxSize + formatter.tagSize
+    if (trimmed.size > maxWithTags)
+      trimmed.take(maxWithTags) + "..."
     else trimmed
   }
 
+  /** Returns `str` with the first case-insensitive occurrence of `queryStr` wrapped in
+    * formatter tags, trimmed to a window of `maxSize` content characters.
+    * If `queryStr` is not found, returns the trimmed text without highlighting.
+    */
   def highlight(str: String, queryStr: String): String = {
     // lowercase both in place, to find case-insensitive matches
     val normalizedQ = queryStr.trim().toLowerCase()
@@ -38,7 +56,7 @@ case class FirstMatchHighlighter(
       trim(str)
     else {
       val start = Math.max(0, offset - lookBackWindowSize)
-      if (start == 0 || str.size < formatter.maxSize) {
+      if (start == 0 || str.size < maxSize) {
         // First match 'offset' is within first 'lookBackWindowSize' characters,
         // or the whole 'str' is within formatter max, no slicing necessary.
         val fStr = formatter.format(str, List(offset, normalizedQ.size))
@@ -46,9 +64,12 @@ case class FirstMatchHighlighter(
       } else {
         // First match 'offset' not within first 'lookBackWindowSize' characters,
         // or 'str' is too big, need to find a nearby starting place from 'start'.
-        val nearby = str.indexWhere(c => " \n\t.".contains(c), start)
-        val slice = str.drop(nearby)
-        val newOffset = offset - nearby
+        val nearbyOrStart = str.indexWhere(c => " \n\t.".contains(c), start) match {
+          case -1 => start // no boundary nearby, use start
+          case i => i
+        }
+        val slice = str.drop(nearbyOrStart)
+        val newOffset = offset - nearbyOrStart
         val fStr = formatter.format(slice, List(newOffset, normalizedQ.size))
         trim(fStr)
       }

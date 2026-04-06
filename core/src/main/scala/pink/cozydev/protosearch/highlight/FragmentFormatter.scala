@@ -16,13 +16,23 @@
 
 package pink.cozydev.protosearch.highlight
 
+/** A formatter to insert start/end tags at supplied offsets and length pairs.
+  * @param startTag the tag inserted before each highlighted region
+  * @param endTag the tag inserted after each highlighted region
+  */
 case class FragmentFormatter(
-    maxSize: Int,
     startTag: String,
     endTag: String,
 ) {
-  private val tagSize = startTag.size + endTag.size
 
+  /* Total size of start and end tags */
+  val tagSize: Int = startTag.size + endTag.size
+
+  /** Builds a new string with inserted start/end tags at `offsets` positions.
+    *
+    * Offsets are pairs of (start position, length). An even number of integers is required.
+    * Throws an `IllegalArgumentException` if an offset exceeds the fragment length.
+    */
   def format(fragment: String, offsets: Iterable[Int]): String =
     if (offsets.size == 0) fragment
     else {
