@@ -23,6 +23,8 @@ package pink.cozydev.protosearch
  *   the query string to search for
  * @param size
  *   maximum number of results to return
+ * @param skip
+ *   the number of top results to skip before collecting
  * @param highlightFields
  *   fields to highlight. `None` highlights all stored fields, `Some(Nil)` disables highlighting,
  *   `Some(list)` highlights only the named fields.
@@ -35,6 +37,7 @@ package pink.cozydev.protosearch
 final case class SearchRequest(
   query: String,
   size: Int,
+  skip: Int,
   highlightFields: Option[List[String]],
   resultFields: Option[List[String]],
   lastTermPrefix: Boolean
@@ -44,5 +47,5 @@ object SearchRequest {
 
   /* Build a simple request with no highlighting, stored fields, or prefix rewriting */
   def default(query: String): SearchRequest =
-    SearchRequest(query, defaultSize, Some(Nil), Some(Nil), false)
+    SearchRequest(query, defaultSize, 0, Some(Nil), Some(Nil), false)
 }

@@ -41,8 +41,9 @@ final case class Searcher(
           .map { ds =>
             val arr = ds.toArray
             java.util.Arrays.sort(arr, ord)
-            val until = math.min(request.size, arr.size)
-            arr.slice(0, until).iterator.map(hitBldr).toList
+            val from = math.min(request.skip, arr.size)
+            val until = math.min(request.skip + request.size, arr.size)
+            arr.slice(from, until).iterator.map(hitBldr).toList
           }
       )
     )

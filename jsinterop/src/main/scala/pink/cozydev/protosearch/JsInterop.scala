@@ -46,6 +46,7 @@ class Querier(val mIndex: MultiIndex) {
     val req = SearchRequest(
       query,
       size = 10,
+      skip = 0,
       highlightFields.toOption.map(_.toList),
       resultFields.toOption.map(_.toList),
       lastTermPrefix = true
