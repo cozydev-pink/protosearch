@@ -188,4 +188,20 @@ class SearcherSuite extends munit.FunSuite {
     hits.foreach(h => assertEquals(h.highlights, Map.empty[String, String]))
   }
 
+  test("SearchRequest.size limits the number of results") {
+    val matchesAll = "author:(potter seuss)"
+    for (i <- 0 to 4) {
+      val req = SearchRequest(matchesAll, i, None, None, false)
+      val numResults = searcher.search(req).fold(_ => 0, _.size)
+      assertEquals(numResults, i)
+    }
+  }
+
+  test("SearchRequest.size greater than number of results works fine") {
+    val matchesAll = "author:(potter seuss)"
+    val req = SearchRequest(matchesAll, 1000, None, None, false)
+    val numResults = searcher.search(req).fold(_ => 0, _.size)
+    assertEquals(numResults, 4)
+  }
+
 }
