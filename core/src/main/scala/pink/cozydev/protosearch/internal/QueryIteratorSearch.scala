@@ -52,7 +52,7 @@ object QueryIteratorSearch {
     private val defaultIndex = index.indexes(index.schema.defaultField)
 
     def doit(q: Query): Either[String, QueryIterator] = q match {
-      case qt: TermQuery => new SingleIndexQueryIteratorSearcher(defaultIndex, scorer).doit(qt)
+      case qt: TermQuery     => new SingleIndexQueryIteratorSearcher(defaultIndex, scorer).doit(qt)
       case Query.Field(f, q) =>
         index.indexes
           .get(f)
@@ -77,7 +77,7 @@ object QueryIteratorSearch {
       case q: Query.Prefix    => Right(index.docsForPrefixIter(q.str, scorer))
       case q: Query.TermRange => rangeSearch(q)
       case q: Query.TermRegex => regexSearch(q)
-      case q: Query.Phrase =>
+      case q: Query.Phrase    =>
         index match {
           case indx: PositionalIndex =>
             PhraseIterator.exact(indx, q.str.split(" ").toList) match {
@@ -91,7 +91,7 @@ object QueryIteratorSearch {
       case Query.Group(q) => doit(q)
       case Query.And(qs)  => qs.traverse(doit).map(qis => AndIter(qis.toList))
       case Query.Or(qs)   => qs.traverse(doit).map(qis => OrQueryIterator(qis.toList, 1))
-      case q: Query.Not =>
+      case q: Query.Not   =>
         doit(q.q).map(qi => new NotQueryIterator(qi, index.numDocs))
       case Query.Boost(q, boost) => doit(q).map(qi => new BoostQueryIterator(qi, boost))
       case MinimumMatch(qs, num) =>

@@ -44,7 +44,7 @@ object TestQueryFixtures {
     private def positionalIter(q: String): PhraseIterator =
       PhraseIterator.exact(alphaNumIndex, q.split(" ").toList) match {
         case Some(iter) => iter
-        case None =>
+        case None       =>
           val msg = s"some terms in query: '$q', could not be found in test index"
           throw new IllegalArgumentException(msg)
       }
