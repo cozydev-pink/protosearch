@@ -103,7 +103,7 @@ class IndexFormat(val excludePaths: List[Path])
     }
 
   private def renderPath(doc: RenderedDocument): String =
-    doc.path.withoutSuffix.toString
+    doc.path.withoutSuffix.toString().stripPrefix("/")
 
 }
 object IndexFormat {

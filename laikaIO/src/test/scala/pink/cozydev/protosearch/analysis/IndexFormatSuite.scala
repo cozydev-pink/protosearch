@@ -107,7 +107,7 @@ class IndexFormatSuite extends CatsEffectSuite {
          |""".stripMargin
     val path =
       renderIndex(doc).map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(path, Some(List("/client/doc")))
+    assertIO(path, Some(List("client/doc")))
   }
 
   val docs: List[(Path, String)] = List(
@@ -118,28 +118,28 @@ class IndexFormatSuite extends CatsEffectSuite {
     val format = IndexFormat(Nil)
     val index = renderIndexWithDocs(docs, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(indexedPaths, Some(List("/one", "/two")))
+    assertIO(indexedPaths, Some(List("one", "two")))
   }
 
   test("IndexFormat.exclude excludes matching docs") {
     val format = IndexFormat(List(Path.Root / "one.md"))
     val index = renderIndexWithDocs(docs, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(indexedPaths, Some(List("/two")))
+    assertIO(indexedPaths, Some(List("two")))
   }
 
   test("IndexFormat.exclude excludes without needing the suffix") {
     val format = IndexFormat(List(Path.Root / "one"))
     val index = renderIndexWithDocs(docs, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(indexedPaths, Some(List("/two")))
+    assertIO(indexedPaths, Some(List("two")))
   }
 
   test("IndexFormat.exclude with no matching path includes all docs") {
     val format = IndexFormat(List(Path.Root / "doesnt-exist.md"))
     val index = renderIndexWithDocs(docs, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(indexedPaths, Some(List("/one", "/two")))
+    assertIO(indexedPaths, Some(List("one", "two")))
   }
 
   val docsAndCats: List[(Path, String)] = List(
@@ -152,7 +152,7 @@ class IndexFormatSuite extends CatsEffectSuite {
     val format = IndexFormat(List(Path.Root / "cats"))
     val index = renderIndexWithDocs(docsAndCats, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
-    assertIO(indexedPaths, Some(List("/one", "/two")))
+    assertIO(indexedPaths, Some(List("one", "two")))
   }
 
 }
