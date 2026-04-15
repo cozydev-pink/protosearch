@@ -28,4 +28,6 @@ If you need a Laika `BinaryRendererConfig`, as you might when working with the L
 
 `IndexConfig` provides two helpers to setup a `IndexConfigBuilder` for you. There is `.default` to index all documents in the Laika site, and `.withExcludedPaths` to exclude some paths.
 
+Additionally, you can get an `IndexFormat` from the `IndexConfigBuilder` which can be convenient for reusing certain configuration settings.
+
 [Laika]: https://typelevel.org/Laika

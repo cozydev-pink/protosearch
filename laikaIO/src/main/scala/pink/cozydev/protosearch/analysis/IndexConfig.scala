@@ -24,13 +24,19 @@ final case class IndexConfigBuilder(
   excludedPaths: List[Path],
   renderWithLaikaSiteCommand: Boolean
 ) {
+  /* Exclude the provided paths from the index */
   def withExcludedPaths(paths: List[Path]): IndexConfigBuilder =
     copy(excludedPaths = paths)
 
+  /* Build the `IndexFormat` for this config */
+  def format: IndexFormat =
+    IndexFormat(excludePaths = excludedPaths)
+
+  /* Build the `BinaryRendererConfig` for this config */
   def config: BinaryRendererConfig =
     BinaryRendererConfig(
       alias = "index",
-      format = IndexFormat(excludePaths = excludedPaths),
+      format = format,
       artifact = Artifact(
         basePath = Path.Root / "search" / "searchIndex",
         suffix = "idx"
