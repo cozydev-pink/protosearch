@@ -22,7 +22,7 @@ import org.typelevel.sbt.TypelevelSitePlugin
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport.*
 
 import pink.cozydev.protosearch.ui.SearchUI
-import pink.cozydev.protosearch.analysis.IndexRendererConfig
+import pink.cozydev.protosearch.analysis.IndexConfig
 
 object ProtosearchPlugin extends AutoPlugin {
 
@@ -35,6 +35,6 @@ object ProtosearchPlugin extends AutoPlugin {
       .extendWith(SearchUI)
       .extendWith(SearchUI.searchNavBar(_))
       .build,
-    laikaRenderers += IndexRendererConfig(includeInSite = true)
+    laikaRenderers += IndexConfig.default.config
   )
 }

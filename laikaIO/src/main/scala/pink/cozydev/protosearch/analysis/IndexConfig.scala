@@ -18,20 +18,33 @@ package pink.cozydev.protosearch.analysis
 
 import laika.io.config.BinaryRendererConfig
 import laika.io.config.Artifact
-import laika.ast.Path.Root
+import laika.ast.Path
 
-object IndexRendererConfig {
+final case class IndexConfigBuilder(
+  excludedPaths: List[Path],
+  renderWithLaikaSiteCommand: Boolean
+) {
+  def withExcludedPaths(paths: List[Path]): IndexConfigBuilder =
+    copy(excludedPaths = paths)
 
-  def apply(includeInSite: Boolean): BinaryRendererConfig =
+  def config: BinaryRendererConfig =
     BinaryRendererConfig(
       alias = "index",
-      format = IndexFormat,
+      format = IndexFormat(excludePaths = excludedPaths),
       artifact = Artifact(
-        basePath = Root / "search" / "searchIndex",
+        basePath = Path.Root / "search" / "searchIndex",
         suffix = "idx"
       ),
-      includeInSite = includeInSite,
+      includeInSite = renderWithLaikaSiteCommand,
       supportsSeparations = false
     )
+}
+object IndexConfig {
 
+  /* A configuration for indexing all docs in the site in protosearch. */
+  val default: IndexConfigBuilder = IndexConfigBuilder(Nil, true)
+
+  /* A configuration for indexing docs with some exclusions. */
+  def withExcludedPaths(paths: List[Path]): IndexConfigBuilder =
+    IndexConfigBuilder(paths, true)
 }

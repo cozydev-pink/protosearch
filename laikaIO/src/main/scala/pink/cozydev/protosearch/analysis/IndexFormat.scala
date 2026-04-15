@@ -29,7 +29,13 @@ import java.io.OutputStream
 import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
 
-case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
+/**
+ * Laika binary format for protosearch indexes of Laika sites.
+ * @param excludePaths
+ *   A list of `Path`s to exclude from the index.
+ */
+class IndexFormat(val excludePaths: List[Path])
+    extends TwoPhaseRenderFormat[Formatter, BinaryPostProcessor.Builder] {
 
   override def description: String = "Protosearch Index"
 
@@ -52,13 +58,23 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
           config: OperationConfig
         ): F[Unit] = {
           val analyzer = Analyzer.default.withLowerCasing
+          val docs = excludePaths match {
+            case Nil => result.allDocuments
+            // rendered documents have .txt extension, because they're now "plaintext" so we compare with stripped suffixes
+            case one :: Nil =>
+              result.allDocuments.filterNot(d => d.path.withoutSuffix.isSubPath(one.withoutSuffix))
+            case paths =>
+              result.allDocuments.filterNot(d =>
+                paths.exists(p => d.path.withoutSuffix.isSubPath(p.withoutSuffix))
+              )
+          }
           val index = IndexBuilder
             .of[RenderedDocument](
               (Field("body", analyzer, true, true, true), _.content),
               (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
               (Field("path", analyzer, true, true, false), d => renderPath(d))
             )
-            .fromList(result.allDocuments.toList)
+            .fromList(docs.toList)
 
           val indexBytes = MultiIndex.codec
             .encode(index)
@@ -89,4 +105,15 @@ case object IndexFormat extends TwoPhaseRenderFormat[Formatter, BinaryPostProces
   private def renderPath(doc: RenderedDocument): String =
     doc.path.withoutSuffix.toString
 
+}
+object IndexFormat {
+  /* Laika binary format for protosearch index of all docs in a Laika site */
+  val default: IndexFormat = new IndexFormat(Nil)
+
+  /**
+   * Laika binary format for protosearch index of docs in a Laika site.
+   * @param excludePaths
+   *   A list of `Path`s to exlude from the index.
+   */
+  def apply(excludePaths: List[Path]): IndexFormat = new IndexFormat(excludePaths)
 }
