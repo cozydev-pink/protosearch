@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch.analysis
+package pink.cozydev.protosearch.laika
 
 import laika.ast.*
 import laika.api.format.{Formatter, RenderFormat}
