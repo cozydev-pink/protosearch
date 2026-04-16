@@ -25,8 +25,8 @@ final case class IndexConfigBuilder(
   renderWithLaikaSiteCommand: Boolean
 ) {
   /* Exclude the provided paths from the index */
-  def withExcludedPaths(paths: List[Path]): IndexConfigBuilder =
-    copy(excludedPaths = paths)
+  def withExcludedPaths(paths: Path*): IndexConfigBuilder =
+    copy(excludedPaths = paths.toList)
 
   /* Build the `IndexFormat` for this config */
   def format: IndexFormat =
@@ -51,6 +51,6 @@ object IndexConfig {
   val default: IndexConfigBuilder = IndexConfigBuilder(Nil, true)
 
   /* A configuration for indexing docs with some exclusions. */
-  def withExcludedPaths(paths: List[Path]): IndexConfigBuilder =
-    IndexConfigBuilder(paths, true)
+  def withExcludedPaths(paths: Path*): IndexConfigBuilder =
+    IndexConfigBuilder(paths.toList, true)
 }
