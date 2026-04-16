@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="Typelevel Laika + Helium Theme" />
-  <title>Features</title>
+  <title>Laika Integration</title>
   
   <meta name="author" content="Andrew Valencik"/>
   
@@ -72,12 +72,12 @@
     <li class="level1 nav-leaf"><a href="../contributing.html">Contributing</a></li>
     <li class="level1 nav-leaf"><a href="../">Protosearch</a></li>
     <li class="level1 nav-header">About Protosearch</li>
-    <li class="level2 active nav-leaf"><a href="#">Features</a></li>
-    <li class="level2 nav-leaf"><a href="02-design-goals.html">Design Goals</a></li>
+    <li class="level2 nav-leaf"><a href="../01-about-protosearch/01-features.html">Features</a></li>
+    <li class="level2 nav-leaf"><a href="../01-about-protosearch/02-design-goals.html">Design Goals</a></li>
     <li class="level1 nav-header">Tutorial</li>
-    <li class="level2 nav-leaf"><a href="../02-tutorial/01-indexing.html">Indexing Tutorial</a></li>
-    <li class="level2 nav-leaf"><a href="../02-tutorial/02-querying.html">Querying</a></li>
-    <li class="level2 nav-leaf"><a href="../02-tutorial/03-laika-integration.html">Laika Integration</a></li>
+    <li class="level2 nav-leaf"><a href="01-indexing.html">Indexing Tutorial</a></li>
+    <li class="level2 nav-leaf"><a href="02-querying.html">Querying</a></li>
+    <li class="level2 active nav-leaf"><a href="#">Laika Integration</a></li>
     <li class="level1 nav-header">Related Projects</li>
     <li class="level2 nav-leaf"><a href="https://lucene.apache.org/">lucene</a></li>
     <li class="level2 nav-leaf"><a href="https://github.com/cozydev-pink/lucille">lucille</a></li>
@@ -90,9 +90,11 @@
 
       
 <nav id="page-nav" class="all-screens">
-  <p class="header"><a href="#">Features</a></p>
+  <p class="header"><a href="#">Laika Integration</a></p>
 
   <ul class="nav-list">
+    <li class="level1 nav-leaf"><a href="#indexformat">IndexFormat</a></li>
+    <li class="level1 nav-leaf"><a href="#indexconfig">IndexConfig</a></li>
   </ul>
 
   <p class="footer"></p>
@@ -101,14 +103,26 @@
 
       <main class="content">
 
-        <h1 id="features" class="title">Features</h1>
-        <p>Protosearch is a prototype search library aimed at providing advanced querying features and supporting multiple platforms (JVM, JS, Native).</p>
-        <p>It supports full-text search features like keyword search, phrase search, multiple fields, boolean queries, and regular expressions.</p>
-        <p>It currently targets static index scenarios such as:</p>
+        <h1 id="laika-integration" class="title">Laika Integration</h1>
+        <p>Protosearch provides two different ways to integrate with <a href="https://typelevel.org/Laika">Laika</a>.
+        There is the base Laika module which defines the <code>IndexFormat</code> and <code>IndexConfig</code> for building indexes from Laika sites.
+        And then there is the sbt plugin which assumes use of <code>TypelevelSitePlugin</code> which leverages Laika.</p>
+        
+        <h2 id="indexformat" class="section"><a class="anchor-link left" href="#indexformat"><i class="icofont-laika link">&#xef71;</i></a>IndexFormat</h2>
+        <p>Each included document in the Laika site is converted to a Protosearch document with three fields:</p>
         <ul>
-          <li>Powering site documentation search</li>
-          <li>In memory search over immutable collections</li>
+          <li><em>body</em> - the plaintext content of the Laika document</li>
+          <li><em>title</em> - the title of the document</li>
+          <li><em>path</em> - the path of the document without file suffix</li>
         </ul>
+        <p>Users can exclude certain files or file paths by providing an <code>excludePaths</code> argument to <code>IndexFormat</code>.
+        This supports both files and directories, and does not require file suffixes.
+        <code>IndexFormat</code> includes a convenience method <code>.default</code> which indexes all documents in the Laika site.</p>
+        
+        <h2 id="indexconfig" class="section"><a class="anchor-link left" href="#indexconfig"><i class="icofont-laika link">&#xef71;</i></a>IndexConfig</h2>
+        <p>If you need a Laika <code>BinaryRendererConfig</code>, as you might when working with the Laika preview server or Laika sbt plugin, you can use <code>IndexConfig</code>.</p>
+        <p><code>IndexConfig</code> provides two helpers to setup a <code>IndexConfigBuilder</code> for you. There is <code>.default</code> to index all documents in the Laika site, and <code>.withExcludedPaths</code> to exclude some paths.</p>
+        <p>Additionally, you can get an <code>IndexFormat</code> from the <code>IndexConfigBuilder</code> which can be convenient for reusing certain configuration settings.</p>
 
         
 <hr class="footer-rule"/>
