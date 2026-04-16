@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch.analysis
+package pink.cozydev.protosearch.laika
 
 import cats.effect.{IO, Resource}
 import laika.api.{MarkupParser, Renderer, Transformer}

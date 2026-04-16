@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pink.cozydev.protosearch.analysis
+package pink.cozydev.protosearch.laika
 
 import cats.syntax.all.*
 import cats.effect.{Async, Resource}
@@ -28,6 +28,7 @@ import laika.theme.Theme
 import java.io.OutputStream
 import pink.cozydev.protosearch.{Field, IndexBuilder, MultiIndex}
 import laika.io.model.RenderedDocument
+import pink.cozydev.protosearch.analysis.Analyzer
 
 /**
  * Laika binary format for protosearch indexes of Laika sites.

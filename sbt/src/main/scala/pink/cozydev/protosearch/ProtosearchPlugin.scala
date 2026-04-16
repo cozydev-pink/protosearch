@@ -22,7 +22,7 @@ import org.typelevel.sbt.TypelevelSitePlugin
 import org.typelevel.sbt.TypelevelSitePlugin.autoImport.*
 
 import pink.cozydev.protosearch.ui.SearchUI
-import pink.cozydev.protosearch.analysis.IndexConfig
+import pink.cozydev.protosearch.laika.IndexConfig
 
 object ProtosearchPlugin extends AutoPlugin {
 
