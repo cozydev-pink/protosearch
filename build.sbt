@@ -138,7 +138,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.5"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.6"),
       Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
