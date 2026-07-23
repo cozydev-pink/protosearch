@@ -25,7 +25,7 @@ val Scala212 = "2.12.21"
 
 val Scala213 = "2.13.18"
 
-val Scala3 = "3.3.7"
+val Scala3 = "3.3.8"
 
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
@@ -138,7 +138,7 @@ lazy val plugin =
       sbtPlugin := true,
       crossScalaVersions := Seq(Scala212),
       addSbtPlugin("org.typelevel" % "laika-sbt" % laikaV),
-      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.6"),
+      addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.8.7"),
       Compile / unmanagedResourceDirectories += (ThisBuild / baseDirectory).value / "frontend",
       Compile / packageBin / mappings += {
         val jsArtifactInterop = (jsInterop.js / Compile / fullOptJS).value.data
