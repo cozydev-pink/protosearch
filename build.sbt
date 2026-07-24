@@ -25,7 +25,7 @@ val Scala212 = "2.12.21"
 
 val Scala213 = "2.13.18"
 
-val Scala3 = "3.3.8"
+val Scala3 = "3.8.4"
 
 ThisBuild / crossScalaVersions := Seq(Scala212, Scala213, Scala3)
 ThisBuild / scalaVersion := Scala212 // the default Scala
