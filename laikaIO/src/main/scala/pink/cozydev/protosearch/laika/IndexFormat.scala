@@ -59,7 +59,7 @@ class IndexFormat(val excludePaths: List[Path])
           config: OperationConfig
         ): F[Unit] = {
           val analyzer = Analyzer.default.withLowerCasing
-          val docs = excludePaths match {
+          val docs1 = excludePaths match {
             case Nil => result.allDocuments
             // rendered documents have .txt extension, because they're now "plaintext" so we compare with stripped suffixes
             case one :: Nil =>
@@ -69,19 +69,23 @@ class IndexFormat(val excludePaths: List[Path])
                 paths.exists(p => d.path.withoutSuffix.isSubPath(p.withoutSuffix))
               )
           }
-          val index = IndexBuilder
+          val docs = filterExcluded(docs1.toList)
+          val indexBldr = IndexBuilder
             .of[RenderedDocument](
               (Field("body", analyzer, true, true, true), _.content),
               (Field("title", analyzer, true, true, true), d => renderTitle(d.title, d.path)),
               (Field("path", analyzer, true, true, false), d => renderPath(d))
             )
-            .fromList(docs.toList)
 
-          val indexBytes = MultiIndex.codec
-            .encode(index)
-            .map(_.bytes)
-            .toEither
-            .leftMap(err => new Throwable(err.message))
+          val index = docs.map(ds => indexBldr.fromList(ds))
+
+          val indexBytes = index.flatMap(idx =>
+            MultiIndex.codec
+              .encode(idx)
+              .map(_.bytes)
+              .toEither
+              .leftMap(err => new Throwable(err.message))
+          )
           val bytes: Stream[F, Byte] = fs2.Stream
             .fromEither(indexBytes)
             .flatMap(bv => Stream.chunk(Chunk.byteVector(bv)))
@@ -96,6 +100,15 @@ class IndexFormat(val excludePaths: List[Path])
       })
 
   }
+
+  private def filterExcluded(
+    docs: List[RenderedDocument]
+  ): Either[Throwable, List[RenderedDocument]] =
+    docs
+      .filterA(_.config.get[Boolean]("protosearch.exclude", false).map(excluded => !excluded))
+      .leftMap(error =>
+        new Throwable(s"Protosearch 'protosearch.exclude' config error: ${error.message}")
+      )
 
   private def renderTitle(title: Option[SpanSequence], path: Path): String =
     title match {
