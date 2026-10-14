@@ -23,7 +23,7 @@ ThisBuild / tlJdkRelease := Some(11)
 
 val Scala212 = "2.12.21"
 
-val Scala213 = "2.13.18"
+val Scala213 = "3.9.0"
 
 val Scala3 = "3.3.8"
 
