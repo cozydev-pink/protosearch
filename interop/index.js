@@ -8630,23 +8630,23 @@ function $m_RTLong$() {
 }
 function $p_Lpink_cozydev_lucille_QueryParser__notQ__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var this$2 = new $c_Lcats_parse_Parser$Soft($m_Lcats_parse_Parser$().iV("NOT")).tU($m_Lpink_cozydev_lucille_QueryParserHelpers$().g4).eD(query);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$Not(q$2$2)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$Not(q$2$2)));
   return $m_Lcats_parse_Parser$().as(this$2, fn);
 }
 function $p_Lpink_cozydev_lucille_QueryParser__unaryPlus__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var $x_1 = $m_Lcats_parse_Parser$().aA(43);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryPlus(q$2$2)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryPlus(q$2$2)));
   return $x_1.eD($m_Lcats_parse_Parser$().as(query, fn));
 }
 function $p_Lpink_cozydev_lucille_QueryParser__unaryMinus__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var $x_1 = $m_Lcats_parse_Parser$().aA(45);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryMinus(q$2$2)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryMinus(q$2$2)));
   return $x_1.eD($m_Lcats_parse_Parser$().as(query, fn));
 }
 function $p_Lpink_cozydev_lucille_QueryParser__fieldQuery__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var this$1 = $thiz.x5;
   var this$2 = $m_Lcats_parse_Parser$().bN(this$1, query);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       return new $c_Lpink_cozydev_lucille_Query$Field(x0$1$2$2.A(), x0$1$2$2.w());
     } else {
@@ -8658,14 +8658,14 @@ function $p_Lpink_cozydev_lucille_QueryParser__fieldQuery__Lcats_parse_Parser__L
 function $p_Lpink_cozydev_lucille_QueryParser__boostQ__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var limitedQ = $p_Lpink_cozydev_lucille_QueryParser__fieldQuery__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query).cc($m_Lpink_cozydev_lucille_QueryParserHelpers$().ss).cc($m_Lpink_cozydev_lucille_QueryParserHelpers$().so).cc($p_Lpink_cozydev_lucille_QueryParser__groupQ__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query));
   var this$5 = new $c_Lcats_parse_Parser$Soft($m_Lcats_parse_Parser$().rs(limitedQ, "limitedQ")).tU($m_Lcats_parse_Parser$().aA(94).eD($m_Lpink_cozydev_lucille_QueryParserHelpers$().xc).eC($m_Lpink_cozydev_lucille_QueryParserHelpers$().sp));
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((qf$2$2) => new $c_Lpink_cozydev_lucille_Query$Boost(qf$2$2.A(), Math.fround(qf$2$2.w()))));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((qf$2$2) => new $c_Lpink_cozydev_lucille_Query$Boost(qf$2$2.A(), Math.fround(qf$2$2.w()))));
   return $m_Lcats_parse_Parser$().as(this$5, fn);
 }
 function $p_Lpink_cozydev_lucille_QueryParser__minimumMatchQ__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var matchNum = $m_Lcats_parse_Parser$().aA(64).eD($m_Lpink_cozydev_lucille_QueryParserHelpers$().oZ).eC($m_Lpink_cozydev_lucille_QueryParserHelpers$().sp);
   var grouped = $thiz.CV(query).qy($m_Lcats_parse_Parser$().aA(40), $m_Lcats_parse_Parser$().aA(41));
   var this$1 = new $c_Lcats_parse_Parser$Soft(grouped).tU(matchNum);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       return new $c_Lpink_cozydev_lucille_Query$MinimumMatch(x0$1$2$2.A(), x0$1$2$2.Ao());
     } else {
@@ -8687,12 +8687,12 @@ function $p_Lpink_cozydev_lucille_QueryParser__groupQ__Lcats_parse_Parser__Lcats
   var g = $p_Lpink_cozydev_lucille_QueryParser__wrappedQueries__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query).qy($m_Lcats_parse_Parser$().aA(40), $m_Lcats_parse_Parser$().aA(41));
   var endOfGroupSpecial = $m_Lcats_parse_Parser$().aA(64);
   var this$1 = g.eC($m_Lcats_parse_Parser$().m6(endOfGroupSpecial));
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$Group(q$2$2)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => new $c_Lpink_cozydev_lucille_Query$Group(q$2$2)));
   return $m_Lcats_parse_Parser$().as(this$1, fn);
 }
 function $p_Lpink_cozydev_lucille_QueryParser__wrappedQueries__Lcats_parse_Parser__Lcats_parse_Parser($thiz, query) {
   var this$4 = $thiz.CV(query);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       var left = x0$1$2$2.bG;
       if ($m_sci_Nil$().b(x0$1$2$2.bu)) {
@@ -8761,9 +8761,22 @@ function $c_Lpink_cozydev_lucille_QueryParser(defaultBooleanOR) {
   this.x6 = null;
   this.x4 = defaultBooleanOR;
   this.x5 = new $c_Lcats_parse_Parser$Soft($m_Lpink_cozydev_lucille_QueryParserHelpers$().p2).eC($m_Lcats_parse_Parser$().aA(58));
-  this.x7 = $m_Lcats_parse_Parser$().IX(new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((r$2$2) => {
+  this.x7 = $m_Lcats_parse_Parser$().IX(new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((r$2$2) => {
     var $x_1 = $m_Lcats_parse_Parser$();
-    var array = [$p_Lpink_cozydev_lucille_QueryParser__unaryPlus__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $p_Lpink_cozydev_lucille_QueryParser__unaryMinus__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $p_Lpink_cozydev_lucille_QueryParser__notQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $p_Lpink_cozydev_lucille_QueryParser__fieldQuery__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $m_Lpink_cozydev_lucille_QueryParserHelpers$().xl, $m_Lpink_cozydev_lucille_QueryParserHelpers$().IV(), $m_Lpink_cozydev_lucille_QueryParserHelpers$().xe, $p_Lpink_cozydev_lucille_QueryParser__minimumMatchQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $p_Lpink_cozydev_lucille_QueryParser__boostQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2), $m_Lpink_cozydev_lucille_QueryParserHelpers$().ss, $m_Lpink_cozydev_lucille_QueryParserHelpers$().xn, $m_Lpink_cozydev_lucille_QueryParserHelpers$().so, $p_Lpink_cozydev_lucille_QueryParser__groupQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2)];
+    var x0 = $p_Lpink_cozydev_lucille_QueryParser__unaryPlus__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x1 = $p_Lpink_cozydev_lucille_QueryParser__unaryMinus__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x2 = $p_Lpink_cozydev_lucille_QueryParser__notQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x3 = $p_Lpink_cozydev_lucille_QueryParser__fieldQuery__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x4 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().xl;
+    var x5 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().IV();
+    var x6 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().xe;
+    var x7 = $p_Lpink_cozydev_lucille_QueryParser__minimumMatchQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x8 = $p_Lpink_cozydev_lucille_QueryParser__boostQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var x9 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().ss;
+    var x10 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().xn;
+    var x11 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().so;
+    var x12 = $p_Lpink_cozydev_lucille_QueryParser__groupQ__Lcats_parse_Parser__Lcats_parse_Parser(this, r$2$2);
+    var array = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12];
     var i = (((array.length | 0) - 1) | 0);
     var result = $m_sci_Nil$();
     while ((i >= 0)) {
@@ -8791,7 +8804,7 @@ $p.CV = (function(query) {
   var $x_1 = $m_Lpink_cozydev_lucille_QueryParserHelpers$().g4;
   var that = $p_Lpink_cozydev_lucille_QueryParser__suffixOps__Lcats_parse_Parser__Lcats_parse_Parser0(this, query);
   var this$29 = $x_2.lQ($x_1, $m_Lcats_parse_Parser$().bN(qsAndLast, that));
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       var p2 = x0$1$2$2.A();
       var p3 = x0$1$2$2.w();
@@ -8954,7 +8967,7 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var acc$1 = new $c_Lcats_parse_Accumulator$$anon$12();
   var this$10 = $m_Lcats_parse_Parser$().eN(this$8, 1, acc$1).eC($m_Lcats_parse_Parser$().m6($m_Lcats_parse_Parser$().aA(46)));
   var this$15 = $m_Lcats_parse_Parser$().gK(this$10);
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x$4$2$2) => $m_jl_Integer$().qV(new $c_sci_StringOps(x$4$2$2).ah, 10, 214748364)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x$4$2$2) => $m_jl_Integer$().qV(new $c_sci_StringOps(x$4$2$2).ah, 10, 214748364)));
   this.oZ = $m_Lcats_parse_Parser$().as(this$15, fn);
   var $x_3 = $m_Lcats_parse_Parser$().aA(46);
   var this$16 = $m_Lcats_parse_Rfc5234$().kT;
@@ -8966,7 +8979,7 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var that = dotDigits.kc();
   var this$21 = $m_Lcats_parse_Parser$().bN(this$20, that);
   var fs = $m_Lcats_parse_Parser$().gK(this$21);
-  var this$22 = fs.Ic(new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((s$2$2) => $m_Lpink_cozydev_lucille_QueryParserHelpers$().ID(s$2$2))));
+  var this$22 = fs.Ic(new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((s$2$2) => $m_Lpink_cozydev_lucille_QueryParserHelpers$().ID(s$2$2))));
   this.xc = $m_Lcats_parse_Parser$().rs(this$22, "float");
   this.oY = $f_sc_TraversableLike__to__scg_CanBuildFrom__O($f_sr_IntegralProxy__to__O__sci_NumericRange$Inclusive(new $c_sr_RichChar(32), $bC(65535)), $m_sci_Set$().hc);
   $m_sci_Set$();
@@ -9069,13 +9082,13 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var b$4 = $m_Lcats_parse_Parser$().bC(this.p0);
   this.sn = this$46.qy(b$4, b$4);
   var this$47 = this.sn;
-  var fn$1 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((str$2$2) => new $c_Lpink_cozydev_lucille_Query$Phrase(str$2$2)));
+  var fn$1 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((str$2$2) => new $c_Lpink_cozydev_lucille_Query$Phrase(str$2$2)));
   this.so = $m_Lcats_parse_Parser$().as(this$47, fn$1);
   this.xk = new $c_Lcats_parse_Parser$Soft(this.sn).eC($m_Lcats_parse_Parser$().aA(126));
   var this$49 = this.xk;
   var that$3 = this.oZ;
   var this$50 = $m_Lcats_parse_Parser$().bN(this$49, that$3);
-  var fn$2 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn$2 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       return new $c_Lpink_cozydev_lucille_Query$Proximity(x0$1$2$2.A(), x0$1$2$2.Ao());
     } else {
@@ -9087,7 +9100,7 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var this$52 = this.xd;
   var that$4 = this.oZ.kc();
   var this$53 = $m_Lcats_parse_Parser$().bN(this$52, that$4);
-  var fn$3 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$2$2$2) => {
+  var fn$3 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$2$2$2) => {
     if ((x0$2$2$2 !== null)) {
       return new $c_Lpink_cozydev_lucille_Query$Fuzzy(x0$2$2$2.A(), x0$2$2$2.w());
     } else {
@@ -9102,12 +9115,12 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var b$6 = $m_Lpink_cozydev_lucille_Query$WildCardOp$ManyChar$();
   var many = $m_Lcats_parse_Parser$().fO(this$55, b$6);
   var this$56 = this.p2;
-  var fn$4 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((s$2$2$1) => new $c_Lpink_cozydev_lucille_Query$WildCardOp$Str(s$2$2$1)));
+  var fn$4 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((s$2$2$1) => new $c_Lpink_cozydev_lucille_Query$WildCardOp$Str(s$2$2$1)));
   var str = $m_Lcats_parse_Parser$().as(this$56, fn$4);
   var this$58 = single.cc(many).cc(str);
   var acc$6 = new $c_Lcats_parse_Accumulator$$anon$12();
   var this$60 = $m_Lcats_parse_Parser$().eN(this$58, 1, acc$6);
-  var fn$5 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$3$2$2) => {
+  var fn$5 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$3$2$2) => {
     if ((x0$3$2$2 !== null)) {
       var p2 = x0$3$2$2.bG;
       var p3 = x0$3$2$2.bu;
@@ -9144,7 +9157,7 @@ function $c_Lpink_cozydev_lucille_QueryParserHelpers$() {
   var b$7 = $m_Lcats_parse_Parser$().aA(47);
   this.xm = rStr.qy(b$7, b$7);
   var this$65 = this.xm;
-  var fn$6 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((str$2$2$1) => new $c_Lpink_cozydev_lucille_Query$TermRegex(str$2$2$1)));
+  var fn$6 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((str$2$2$1) => new $c_Lpink_cozydev_lucille_Query$TermRegex(str$2$2$1)));
   this.xn = $m_Lcats_parse_Parser$().as(this$65, fn$6);
   var this$67 = $m_Lcats_parse_Parser$().iV("OR").cc($m_Lcats_parse_Parser$().iV("||"));
   var b$8 = $m_Lpink_cozydev_lucille_internal_Op$OR$();
@@ -9234,7 +9247,7 @@ $p.IV = (function() {
     var $x_1 = new $c_Lcats_parse_Parser$Impl$CharIn(result.a[0], $m_Lcats_parse_BitSetUtil$().ud(result), x1$2);
   }
   var this$17 = $x_1;
-  var fn = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((lowerBound$2$2) => ($uC(lowerBound$2$2) === 91)));
+  var fn = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((lowerBound$2$2) => ($uC(lowerBound$2$2) === 91)));
   var inclLower = $m_Lcats_parse_Parser$().as(this$17, fn).eC(this.g4);
   var $x_5 = this.g4;
   var this$20 = $m_Lcats_parse_Parser$();
@@ -9298,7 +9311,7 @@ $p.IV = (function() {
     var $x_3 = new $c_Lcats_parse_Parser$Impl$CharIn(result$1.a[0], $m_Lcats_parse_BitSetUtil$().ud(result$1), x1$2$1);
   }
   var this$34 = $x_3;
-  var fn$1 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((upperBound$2$2) => ($uC(upperBound$2$2) === 93)));
+  var fn$1 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((upperBound$2$2) => ($uC(upperBound$2$2) === 93)));
   var inclUpper = $x_5.tX($m_Lcats_parse_Parser$().as(this$34, fn$1));
   var this$35 = $m_Lcats_parse_Parser$().aA(42);
   var b = $m_s_None$();
@@ -9310,7 +9323,7 @@ $p.IV = (function() {
   var acc = new $c_Lcats_parse_Accumulator$$anon$12();
   var this$42 = $m_Lcats_parse_Parser$().eN(this$40, 1, acc);
   var this$43 = $m_Lcats_parse_Parser$().gK(this$42);
-  var fn$2 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x$5$2$2) => new $c_s_Some(x$5$2$2)));
+  var fn$2 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x$5$2$2) => new $c_s_Some(x$5$2$2)));
   var txt = $m_Lcats_parse_Parser$().as(this$43, fn$2);
   var boundValue = wild.cc($m_Lcats_parse_Parser$With1$().lQ($m_Lcats_parse_Parser$().m6($m_Lcats_parse_Parser$().DA(this.sq)), txt));
   var to = this.p1.eD($m_Lcats_parse_Parser$().iV("TO")).eC(this.p1);
@@ -9318,7 +9331,7 @@ $p.IV = (function() {
   var this$45 = $m_Lcats_parse_Parser$().bN(this$44, to);
   var this$46 = $m_Lcats_parse_Parser$().bN(this$45, boundValue);
   var this$47 = $m_Lcats_parse_Parser$().bN(this$46, inclUpper);
-  var fn$3 = new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((x0$1$2$2) => {
+  var fn$3 = new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((x0$1$2$2) => {
     if ((x0$1$2$2 !== null)) {
       var p2$2 = x0$1$2$2.A();
       var iu = x0$1$2$2.qo();
@@ -33833,8 +33846,8 @@ function $h_Lpink_cozydev_lucille_Query$And() {
 }
 $h_Lpink_cozydev_lucille_Query$And.prototype = $p;
 $p.b8 = (function(f, evidence$4) {
-  var gNelQ = this.eW.gL(new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => q$2$2.b8(f, evidence$4))), evidence$4);
-  return evidence$4.aB(gNelQ, new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$And$$anon$7(this, qNel$2$2))));
+  var gNelQ = this.eW.gL(new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => q$2$2.b8(f, evidence$4))), evidence$4);
+  return evidence$4.aB(gNelQ, new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$And$$anon$7(this, qNel$2$2))));
 });
 $p.p = (function() {
   return "And";
@@ -33889,7 +33902,7 @@ function $h_Lpink_cozydev_lucille_Query$Boost() {
 }
 $h_Lpink_cozydev_lucille_Query$Boost.prototype = $p;
 $p.b8 = (function(f, evidence$9) {
-  return evidence$9.aB(this.ia.b8(f, evidence$9), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Boost(newQ$2$2, this.i9))));
+  return evidence$9.aB(this.ia.b8(f, evidence$9), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Boost(newQ$2$2, this.i9))));
 });
 $p.p = (function() {
   return "Boost";
@@ -33970,7 +33983,7 @@ $p.Id = (function(f) {
   return new $c_Lpink_cozydev_lucille_Query$Field(this.j9, this.ja.bE(f));
 });
 $p.b8 = (function(f, evidence$11) {
-  return evidence$11.aB(this.ja.b8(f, evidence$11), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Field(this.j9, newQ$2$2))));
+  return evidence$11.aB(this.ja.b8(f, evidence$11), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Field(this.j9, newQ$2$2))));
 });
 $p.p = (function() {
   return "Field";
@@ -34043,7 +34056,7 @@ function $h_Lpink_cozydev_lucille_Query$Group() {
 }
 $h_Lpink_cozydev_lucille_Query$Group.prototype = $p;
 $p.b8 = (function(f, evidence$6) {
-  return evidence$6.aB(this.jb.b8(f, evidence$6), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Group(newQ$2$2))));
+  return evidence$6.aB(this.jb.b8(f, evidence$6), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Group(newQ$2$2))));
 });
 $p.p = (function() {
   return "Group";
@@ -34106,8 +34119,8 @@ function $h_Lpink_cozydev_lucille_Query$MinimumMatch() {
 }
 $h_Lpink_cozydev_lucille_Query$MinimumMatch.prototype = $p;
 $p.b8 = (function(f, evidence$10) {
-  var gNelQ = this.ic.gL(new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => q$2$2.b8(f, evidence$10))), evidence$10);
-  return evidence$10.aB(gNelQ, new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$MinimumMatch(qNel$2$2, this.ib))));
+  var gNelQ = this.ic.gL(new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => q$2$2.b8(f, evidence$10))), evidence$10);
+  return evidence$10.aB(gNelQ, new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$MinimumMatch(qNel$2$2, this.ib))));
 });
 $p.p = (function() {
   return "MinimumMatch";
@@ -34186,7 +34199,7 @@ $p.Ie = (function(f) {
   return new $c_Lpink_cozydev_lucille_Query$Not(this.id.bE(f));
 });
 $p.b8 = (function(f, evidence$5) {
-  return evidence$5.aB(this.id.b8(f, evidence$5), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Not(newQ$2$2))));
+  return evidence$5.aB(this.id.b8(f, evidence$5), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$Not(newQ$2$2))));
 });
 $p.p = (function() {
   return "Not";
@@ -34250,8 +34263,8 @@ function $h_Lpink_cozydev_lucille_Query$Or() {
 }
 $h_Lpink_cozydev_lucille_Query$Or.prototype = $p;
 $p.b8 = (function(f, evidence$3) {
-  var gNelQ = this.ep.gL(new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((q$2$2) => q$2$2.b8(f, evidence$3))), evidence$3);
-  return evidence$3.aB(gNelQ, new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$Or$$anon$2(this, qNel$2$2))));
+  var gNelQ = this.ep.gL(new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((q$2$2) => q$2$2.b8(f, evidence$3))), evidence$3);
+  return evidence$3.aB(gNelQ, new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((qNel$2$2) => new $c_Lpink_cozydev_lucille_Query$Or$$anon$2(this, qNel$2$2))));
 });
 $p.p = (function() {
   return "Or";
@@ -34307,7 +34320,7 @@ $p.If = (function(f) {
   return new $c_Lpink_cozydev_lucille_Query$UnaryMinus(this.l1.bE(f));
 });
 $p.b8 = (function(f, evidence$8) {
-  return evidence$8.aB(this.l1.b8(f, evidence$8), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryMinus(newQ$2$2))));
+  return evidence$8.aB(this.l1.b8(f, evidence$8), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryMinus(newQ$2$2))));
 });
 $p.p = (function() {
   return "UnaryMinus";
@@ -34371,7 +34384,7 @@ $p.Ig = (function(f) {
   return new $c_Lpink_cozydev_lucille_Query$UnaryPlus(this.l2.bE(f));
 });
 $p.b8 = (function(f, evidence$7) {
-  return evidence$7.aB(this.l2.b8(f, evidence$7), new $c_sjsr_AnonFunction1_$$Lambda$412915ce24663401f4bc24349a746e1dbd693dc1(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryPlus(newQ$2$2))));
+  return evidence$7.aB(this.l2.b8(f, evidence$7), new $c_sr_AbstractFunction1_$$Lambda$7afc3dd0acc1681fb022ef921c83979087aaa919(((newQ$2$2) => new $c_Lpink_cozydev_lucille_Query$UnaryPlus(newQ$2$2))));
 });
 $p.p = (function() {
   return "UnaryPlus";
