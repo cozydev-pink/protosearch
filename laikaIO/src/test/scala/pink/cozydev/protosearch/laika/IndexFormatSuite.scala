@@ -21,11 +21,11 @@ import pink.cozydev.protosearch.MultiIndex
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import laika.api.Transformer
-import laika.ast.Path
+import laika.ast.{Document, Paragraph, Path, RootElement, Text}
 import laika.config.SyntaxHighlighting
 import laika.format.Markdown
 import laika.io.api.BinaryTreeTransformer
-import laika.io.model.InputTree
+import laika.io.model.{InputTree, InputTreeBuilder}
 import laika.io.syntax.*
 import munit.CatsEffectSuite
 import scodec.bits.ByteVector
@@ -54,15 +54,19 @@ class IndexFormatSuite extends CatsEffectSuite {
   }
 
   def renderIndexWithDocs(docs: List[(Path, String)], format: IndexFormat): IO[MultiIndex] = {
+    val tree = docs.foldLeft(InputTree[IO]) { case (t, (path, content)) =>
+      t.addString(content, path)
+    }
+    renderIndexWithTree(tree, format)
+  }
+
+  def renderIndexWithTree(tree: InputTreeBuilder[IO], format: IndexFormat): IO[MultiIndex] = {
     val transformer = Transformer
       .from(Markdown)
       .to(format)
       .using(Markdown.GitHubFlavor, SyntaxHighlighting)
       .parallel[IO]
       .build
-    val tree = docs.foldLeft(InputTree[IO]) { case (t, (path, content)) =>
-      t.addString(content, path)
-    }
     val bytes = fs2.io
       .readOutputStream[IO](1024)(out =>
         transformer.use(_.fromInput(tree).toStream(IO(out)).transform)
@@ -153,6 +157,41 @@ class IndexFormatSuite extends CatsEffectSuite {
     val index = renderIndexWithDocs(docsAndCats, format)
     val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
     assertIO(indexedPaths, Some(List("one", "two")))
+  }
+
+  test("protosearch.exclude config excludes a document") {
+    val docs = List(
+      (Path.Root / "one.md", "{% protosearch.exclude = true %}\n# Doc 1\n one."),
+      (Path.Root / "two.md", "# Doc 2\n two.")
+    )
+    val index = renderIndexWithDocs(docs, IndexFormat.default)
+    val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
+    assertIO(indexedPaths, Some(List("two")))
+  }
+
+  test("protosearch.exclude config in directory.conf excludes a directory") {
+    val docs = List(
+      (Path.Root / "one.md", "# Doc 1\n one."),
+      (Path.Root / "cats" / "directory.conf", "protosearch.exclude = true"),
+      (Path.Root / "cats" / "ziggy.md", "# Ziggy\n a good boy."),
+      (Path.Root / "cats" / "kittens" / "neeko.md", "# Neeko\n also a good boy.")
+    )
+    val index = renderIndexWithDocs(docs, IndexFormat.default)
+    val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
+    assertIO(indexedPaths, Some(List("one")))
+  }
+
+  test("protosearch.exclude config can be added programmatically to a document") {
+    val excludedDoc = Document(
+      Path.Root / "one.md",
+      RootElement(Seq(Paragraph(Seq(Text("one.")))))
+    ).modifyConfig(_.withValue("protosearch.exclude", true))
+    val tree = InputTree[IO]
+      .addDocument(excludedDoc)
+      .addString("# Doc 2\n two.", Path.Root / "two.md")
+    val index = renderIndexWithTree(tree, IndexFormat.default)
+    val indexedPaths = index.map(idx => idx.fields.get("path").map(_.toList))
+    assertIO(indexedPaths, Some(List("two")))
   }
 
 }
